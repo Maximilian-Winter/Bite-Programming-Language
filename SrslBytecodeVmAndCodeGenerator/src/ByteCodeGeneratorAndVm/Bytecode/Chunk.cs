@@ -78,11 +78,11 @@ public class Chunk
     public Chunk()
     {
         m_Code = new List < ByteCode >();
-        m_Constants = new List < DynamicSrslVariable >();
+        m_Constants = new List < ConstantValue >();
         m_Lines = new List < int >();
     }
     private List < ByteCode > m_Code;
-    private List < DynamicSrslVariable > m_Constants;
+    private List < ConstantValue > m_Constants;
     private List < int > m_Lines;
     public List < ByteCode > Code
     {
@@ -90,7 +90,7 @@ public class Chunk
         set => m_Code = value;
     }
     
-    public List < DynamicSrslVariable > Constants
+    public List < ConstantValue > Constants
     {
         get => m_Constants;
         set => m_Constants = value;
@@ -108,18 +108,18 @@ public class BinaryChunk
     public BinaryChunk()
     {
         Code = Array.Empty < byte >();
-        Constants = new List < DynamicSrslVariable >();
+        Constants = new List < ConstantValue >();
         Lines = new List < int >();
     }
     
-    public BinaryChunk(byte[] code, List <DynamicSrslVariable> constants, List <int> lines )
+    public BinaryChunk(byte[] code, List <ConstantValue> constants, List <int> lines )
     {
         Code = code;
         Constants = constants;
         Lines = lines;
     }
     public byte[] Code;
-    public List < DynamicSrslVariable > Constants;
+    public List < ConstantValue > Constants;
     public List < int > Lines;
 }
 

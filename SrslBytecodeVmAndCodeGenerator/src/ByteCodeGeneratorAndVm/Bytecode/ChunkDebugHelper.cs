@@ -27,7 +27,7 @@ public static class ChunkDebugHelper
     
     public static int DissassembleInstruction( this BinaryChunk chunk, int offset )
     {
-        Console.Write(offset + " ");
+        //Console.Write(offset + " ");
 
         SrslVmOpCodes instruction = (SrslVmOpCodes)chunk.Code[offset];
         offset++;
@@ -132,18 +132,18 @@ public static class ChunkDebugHelper
                 }
                 
                 
-                Console.WriteLine(inst);
+                //Console.WriteLine(inst);
                 return offset + 1;
         }
     }
     
-   /* private static ConstantValue ReadConstant(this BinaryChunk chunk, ref int offset )
+    /*private static ConstantValue ReadConstant(this BinaryChunk chunk, ref int offset )
     {
         ConstantValue instruction =
             chunk.Constants[chunk.Code[offset] | (chunk.Code[offset+1] << 8) | (chunk.Code[offset+2] << 16) | (chunk.Code[offset+3] << 24)];
         offset += 4;
         return instruction;
-    }
+    }*/
     
     static int SimpleInstruction(string name, int offset)
     {
@@ -151,7 +151,7 @@ public static class ChunkDebugHelper
         return offset + 1;
     }
     
-    static int ConstantInstruction(string name, BinaryChunk chunk, int offset)
+    /*static int ConstantInstruction(string name, BinaryChunk chunk, int offset)
     {
         ConstantValue constantValue = ReadConstant(chunk, ref offset);
 

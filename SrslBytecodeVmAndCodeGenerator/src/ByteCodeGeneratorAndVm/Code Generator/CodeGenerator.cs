@@ -78,7 +78,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return CurrentChunk().WriteToChunk( byteCode, line );
     }
     
-    private int EmitByteCode(SrslVmOpCodes byteCode, DynamicSrslVariable constantValue, int line = 0)
+    private int EmitByteCode(SrslVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
     {
         return CurrentChunk().WriteToChunk( byteCode, constantValue, line );
     }
@@ -88,7 +88,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return EmitByteCode( SrslVmOpCodes.OpReturn, line );
     }
     
-    private int EmitConstant(DynamicSrslVariable value, int line = 0)
+    private int EmitConstant(ConstantValue value, int line = 0)
     {
         return EmitByteCode(SrslVmOpCodes.OpConstant, value, line);
     }
@@ -224,7 +224,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             CurrentChunk().
                 WriteToChunk(
                     SrslVmOpCodes.OpDefineModule,
-                    new DynamicSrslVariable( m_CurrentModuleName ),
+                    new ConstantValue( m_CurrentModuleName ),
                     mod.NumberOfSymbols,
                     0 );
             m_CompilingChunk = new Chunk();
@@ -356,7 +356,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         }
         else
         {
-            EmitByteCode( SrslVmOpCodes.OpDefineClass, new DynamicSrslVariable(m_CurrentClassName) );
+            EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName) );
             //EmitByteCode( symbol.InsertionOrderNumber );
             m_CompilingChunk = new Chunk();
             CompilingChunks.Add( m_CurrentClassName, m_CompilingChunk);
@@ -389,7 +389,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             }
             else
             {
-                EmitByteCode( SrslVmOpCodes.OpDefineMethod, new DynamicSrslVariable(method.QualifiedName) );
+                EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue(method.QualifiedName) );
                 //EmitByteCode( method.InsertionOrderNumber );
             }
         }
@@ -408,7 +408,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         }
         else
         {
-            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new DynamicSrslVariable(symbol.QualifiedName) );
+            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName) );
             //EmitByteCode( symbol.InsertionOrderNumber );
             m_CompilingChunk = new Chunk();
             CompilingChunks.Add( symbol.QualifiedName, m_CompilingChunk);
@@ -509,7 +509,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 }
                 else
                 {
-                    EmitConstant( new DynamicSrslVariable(callElementEntry.Identifier) );
+                    EmitConstant( new ConstantValue(callElementEntry.Identifier) );
                 }
             }
             ByteCode byteCode = new ByteCode(
@@ -523,7 +523,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             //EmitByteCode( SrslVmOpCodes.OpCallFunction );
             int d = 0;
             FunctionSymbol functionSymbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d) as FunctionSymbol;
-            EmitByteCode( SrslVmOpCodes.OpCallFunction, new DynamicSrslVariable(functionSymbol.QualifiedName) );
+            EmitByteCode( SrslVmOpCodes.OpCallFunction, new ConstantValue(functionSymbol.QualifiedName) );
         }
         else
         {
@@ -607,7 +607,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         }
                         else
                         {
-                            EmitConstant( new DynamicSrslVariable(callElementEntry.Identifier) );
+                            EmitConstant( new ConstantValue(callElementEntry.Identifier) );
                         }
                     }
                     ByteCode byteCode = new ByteCode(
@@ -629,11 +629,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
                         if ( memberSymbol == null )
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new DynamicSrslVariable(terminalNode.Primary.PrimaryId.Id) );
+                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id) );
                         }
                         else
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new DynamicSrslVariable(memberSymbol.QualifiedName) );
+                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName) );
                         }
 
                     }
@@ -647,11 +647,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
                         if ( memberSymbol == null )
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new DynamicSrslVariable(terminalNode.Primary.PrimaryId.Id) );
+                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id) );
                         }
                         else
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new DynamicSrslVariable(memberSymbol.QualifiedName) );
+                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName) );
                         }
 
                     }
@@ -1096,19 +1096,19 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 return null;
 
             case PrimaryNode.PrimaryTypes.BooleanLiteral:
-                EmitConstant(new DynamicSrslVariable(node.BooleanLiteral.Value));
+                EmitConstant(new ConstantValue(node.BooleanLiteral.Value));
                 return null;
 
             case PrimaryNode.PrimaryTypes.IntegerLiteral:
-                EmitConstant(new DynamicSrslVariable(node.IntegerLiteral.Value));
+                EmitConstant(new ConstantValue(node.IntegerLiteral.Value));
                 return null;
 
             case PrimaryNode.PrimaryTypes.FloatLiteral:
-                EmitConstant(new DynamicSrslVariable(node.FloatLiteral.Value));
+                EmitConstant(new ConstantValue(node.FloatLiteral.Value));
                 return null;
 
             case PrimaryNode.PrimaryTypes.StringLiteral:
-                EmitConstant(new DynamicSrslVariable(node.StringLiteral));
+                EmitConstant(new ConstantValue(node.StringLiteral));
                 return null;
 
             case PrimaryNode.PrimaryTypes.Expression:
@@ -1116,10 +1116,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 return null;
             
             case PrimaryNode.PrimaryTypes.NullReference:
-                DynamicSrslVariable dynamicSrslVariable = new DynamicSrslVariable();
-                dynamicSrslVariable.DynamicType = DynamicVariableType.Null;
-                EmitConstant(dynamicSrslVariable);
-                
+                EmitConstant(new ConstantValue(null));
                 return null;
 
             case PrimaryNode.PrimaryTypes.Default:

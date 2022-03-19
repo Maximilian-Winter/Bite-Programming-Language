@@ -30,12 +30,12 @@ function FindFibonacciNumber(n)
 
 var temp = 0;
 var count3 = 0;
-while(count3 < 1)
+while(count3 < 1000)
 {
     var count2 = 0;
-    while(count2 < 1)
+    while(count2 < 37)
     {
-        temp = FindFibonacciNumber(5);
+        temp = FindFibonacciNumber(count2);
         count2++;
     }
     count3++;

@@ -1,4 +1,4 @@
-﻿#define SRSL_VM_DEBUG_TRACE_EXECUTION
+﻿//#define SRSL_VM_DEBUG_TRACE_EXECUTION
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -104,9 +104,9 @@ public class SrslVm
         return m_CurrentByteCodeInstruction;
     }
 
-    private DynamicSrslVariable ReadConstant()
+    private ConstantValue ReadConstant()
     {
-        DynamicSrslVariable instruction =
+        ConstantValue instruction =
             m_CurrentChunk.Constants[m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24)];
         m_CurrentInstructionPointer += 4;
         m_CurrentByteCodeInstructionDataPointer++;
@@ -152,7 +152,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpDefineModule:
                     {
-                        string moduleName = ReadConstant().StringData;
+                        string moduleName = ReadConstant().StringConstantValue;
                         int depth = 0;
                         m_CurrentScope = (BaseScope)m_CurrentScope.resolve( moduleName, out int moduleId, ref depth );
                         int numberOfMembers = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
@@ -179,7 +179,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpDefineClass:
                     {
-                        string className = ReadConstant().StringData;
+                        string className = ReadConstant().StringConstantValue;
                         SrslChunkWrapper chunkWrapper = new SrslChunkWrapper(
                             CompiledChunks[className] );
                         
@@ -189,7 +189,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpDefineMethod:
                     {
-                        string methodName = ReadConstant().StringData;
+                        string methodName = ReadConstant().StringConstantValue;
                         SrslChunkWrapper chunkWrapper = new SrslChunkWrapper(
                             CompiledChunks[methodName] );
                         
@@ -212,7 +212,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpCallFunction:
                     {
-                        string method = ReadConstant().StringData;
+                        string method = ReadConstant().StringConstantValue;
                         DynamicSrslVariable call = m_CurrentMemorySpace.Get( method );
 
                         if ( call.ObjectData is SrslChunkWrapper function )
@@ -253,11 +253,11 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpCallMemberFunction:
                     {
-                        DynamicSrslVariable constant = ReadConstant(); 
+                        ConstantValue constant = ReadConstant(); 
                         if ( m_VmStack.Peek().ObjectData is StaticWrapper wrapper )
                         {
                             m_VmStack.Pop();
-                            string methodName = constant.StringData;
+                            string methodName = constant.StringConstantValue;
                             object[] functionArguments = new object[m_FunctionArguments.Count];
                             Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
                             int it = 0;
@@ -278,7 +278,7 @@ public class SrslVm
                         {
                             m_VmStack.Pop();
                             
-                            string methodName = constant.StringData;
+                            string methodName = constant.StringConstantValue;
                             DynamicSrslVariable call = fastMemorySpace.Get( methodName );
                             
                             m_CurrentMemorySpace = fastMemorySpace;
@@ -324,7 +324,7 @@ public class SrslVm
                         else if ( m_VmStack.Peek().ObjectData is object obj )
                         {
                             m_VmStack.Pop();
-                            string callString = obj + "." + constant.StringData;
+                            string callString = obj + "." + constant.StringConstantValue;
                             if ( CachedMethods.ContainsKey( callString ) )
                             {
                                 object[] functionArguments = new object[m_FunctionArguments.Count];
@@ -354,7 +354,7 @@ public class SrslVm
                                     functionArgumentTypes[it] = functionArgument.GetType();
                                     it++;
                                 }
-                                MethodInfo method = type.GetMethod(constant.StringData, functionArgumentTypes);
+                                MethodInfo method = type.GetMethod(constant.StringConstantValue, functionArgumentTypes);
                                 if ( method != null )
                                 {
                                     FastMethodInfo fastMethodInfo = new FastMethodInfo( method );
@@ -367,7 +367,7 @@ public class SrslVm
                                 }
                                 else
                                 {
-                                    throw new Exception( "Error Function "+ constant.StringData + " not found!" );
+                                    throw new Exception( "Error Function "+ constant.StringConstantValue + " not found!" );
                                 }
                             }
                                 
@@ -476,8 +476,29 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpConstant:
                     {
-                        DynamicSrslVariable constantValue = ReadConstant();
-                        m_VmStack.Push( constantValue );
+                        ConstantValue constantValue = ReadConstant();
+
+                        switch ( constantValue.ConstantType )
+                        {
+                            case ConstantValueType.Integer:
+                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( constantValue.IntegerConstantValue ) );
+                                break;
+
+                            case ConstantValueType.Double:
+                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(constantValue.DoubleConstantValue) );
+                                break;
+
+                            case ConstantValueType.String:
+                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(constantValue.StringConstantValue) );
+                                break;
+
+                            case ConstantValueType.Bool:
+                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(constantValue.BoolConstantValue) );
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                        //;
                         break;
                     }
                     case SrslVmOpCodes.OpWhileLoop:

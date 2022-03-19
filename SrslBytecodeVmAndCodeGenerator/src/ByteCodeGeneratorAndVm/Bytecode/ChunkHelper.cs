@@ -22,7 +22,7 @@ public static class ChunkHelper
         return chunk.Code.Count - 1;
     }
     
-    public static int WriteToChunk( this Chunk chunk, SrslVmOpCodes code, DynamicSrslVariable constant, int line )
+    public static int WriteToChunk( this Chunk chunk, SrslVmOpCodes code, ConstantValue constant, int line )
     {
         chunk.Code.Add( new ByteCode(code, chunk.Constants.Count) );
         chunk.Constants.Add( constant );
@@ -30,7 +30,7 @@ public static class ChunkHelper
         return chunk.Code.Count - 1;
     }
     
-    public static int WriteToChunk( this Chunk chunk, SrslVmOpCodes code, DynamicSrslVariable constant, int opCodeData, int line )
+    public static int WriteToChunk( this Chunk chunk, SrslVmOpCodes code, ConstantValue constant, int opCodeData, int line )
     {
         chunk.Code.Add( new ByteCode(code, chunk.Constants.Count, opCodeData) );
         chunk.Constants.Add( constant );
