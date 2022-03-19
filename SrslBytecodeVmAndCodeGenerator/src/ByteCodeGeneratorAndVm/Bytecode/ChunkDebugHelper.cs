@@ -132,7 +132,7 @@ public static class ChunkDebugHelper
                 }
                 
                 
-                Console.WriteLine(inst);
+                //Console.WriteLine(inst);
                 return offset + 1;
         }
     }

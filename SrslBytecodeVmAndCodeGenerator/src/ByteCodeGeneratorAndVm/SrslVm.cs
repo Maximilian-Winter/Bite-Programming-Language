@@ -1,4 +1,4 @@
-﻿//#define SRSL_VM_DEBUG_TRACE_EXECUTION
+﻿#define SRSL_VM_DEBUG_TRACE_EXECUTION
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -33,19 +33,14 @@ public class SrslVm
     private BinaryChunk m_CurrentChunk;
     private int m_CurrentInstructionPointer;
     private Stack<DynamicSrslVariable> m_VmStack;
-    private DynamicSrslVariable[] m_VmTosCache;
     private Dictionary <string, BinaryChunk > m_CompiledChunks;
-    //private BufferPool < object > m_ObjectBufferPool;
-    
+
     private List < DynamicSrslVariable > m_FunctionArguments = new List < DynamicSrslVariable >();
     private ObjectPoolFastMemory < FastMemorySpace > m_PoolFastMemoryFastMemory;
-    //private ObjectPool < FastCallMemorySpace > m_PoolFastCallMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
-    // private FastMemorySpace m_CurrentCallMemorySpace;
     private Scope m_CurrentScope;
     private FastMemorySpace m_CurrentMemorySpace;
     private FastMemorySpace m_LastMemorySpaceDebug;
-    //private Stack < FastMemorySpace > m_TempMemoryStack = new Stack < FastMemorySpace >();
     private Stack < FastMemorySpace > m_CallStack = new Stack < FastMemorySpace >();
     private Dictionary < string, FastMethodInfo > CachedMethods = new Dictionary < string, FastMethodInfo >();
     private int m_LastGetLocalVarId = -1;
@@ -63,7 +58,6 @@ public class SrslVm
         m_CurrentMemorySpace = m_GlobalMemorySpace;
         string moduleName = "System";
         FastMemorySpace callSpace = new FastMemorySpace( "", m_GlobalMemorySpace, 0, m_CurrentChunk, m_CurrentInstructionPointer, 4 );
-        //m_TempMemoryStack.Push( callSpace );
         m_GlobalMemorySpace.Modules.Add( callSpace );
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable(new SrslChunkWrapper( new BinaryChunk())), "System.Object" );
@@ -75,8 +69,6 @@ public class SrslVm
         
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable(new SrslChunkWrapper( m_CompiledChunks["System.CSharpInterface"])), "System.CSharpInterface" );
-        
-        //TempMemoryStack.Push(m_GlobalMemorySpace);
     }
     
     public SrslVmInterpretResult Interpret( BinaryChunk mainChunk, Dictionary <string, BinaryChunk > compiledChunks, SymbolTableBuilder symbolTableBuilder )
@@ -87,12 +79,9 @@ public class SrslVm
         m_CurrentInstructionPointer = 0;
         m_CurrentScope = symbolTableBuilder.CurrentScope;
         m_GlobalMemorySpace = new FastGlobalMemorySpace((symbolTableBuilder.CurrentScope as BaseScope).NumberOfSymbols);
-        //m_TempMemoryStack = new Stack < FastMemorySpace >();
         m_CallStack = new Stack < FastMemorySpace >();
-        m_VmTosCache = new DynamicSrslVariable[2];
         m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory<FastMemorySpace>(() => new FastMemorySpace("", null, 0, null, 0,0), 150);
         InitMemorySpaces();
-        //m_PoolFastCallMemory = new ObjectPool<FastCallMemorySpace>(() => new FastCallMemorySpace("", null, 0, null, 0), 100);
         return Run();
     }
     
@@ -394,7 +383,6 @@ public class SrslVm
                         {
                             FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace( "", m_CurrentMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount );
                             classInstanceMemorySpace.m_EnclosingSpace = m_CurrentMemorySpace;
-                            //classInstanceMemorySpace.Name = m_CurrentMemorySpace.Name + "ClassInstance";
                             classInstanceMemorySpace.CallerChunk = m_CurrentChunk;
                             classInstanceMemorySpace.CallerIntructionPointer = m_CurrentInstructionPointer;
                             classInstanceMemorySpace.StackCountAtBegin = m_VmStack.Count;
@@ -719,7 +707,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only check equality with Integers and Floating Point Numbers!" );
                         }
                         break;
                     }
@@ -734,7 +722,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only check equality with Integers and Floating Point Numbers!" );
                         }
                         break;
                     }
@@ -764,7 +752,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only add Integers and Floating Point Numbers!" );
                         }
                         
                         break;
@@ -781,7 +769,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only subtract Integers and Floating Point Numbers!" );
                         }
                         break;
                     }
@@ -797,7 +785,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only multiply Integers and Floating Point Numbers!" );
                         }
                         break;
                     }
@@ -813,7 +801,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only divide Integers and Floating Point Numbers!" );
                         }
                         break;
                     }
@@ -828,7 +816,7 @@ public class SrslVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new Exception( "Can only modulo Integers and Floating Point Numbers!" );
                         }
                         break;
                     }
@@ -850,7 +838,6 @@ public class SrslVm
                         FastMemorySpace block = m_PoolFastMemoryFastMemory.Get();
                         block.ResetPropertiesArray( memberCount );
                         block.m_EnclosingSpace = m_CurrentMemorySpace;
-                        //block.Name = m_CurrentMemorySpace.Name + "Block" + m_CurrentInstructionPointer.ToString();
                         block.StackCountAtBegin = m_VmStack.Count;
                         m_CurrentMemorySpace = block;
                         m_CallStack.Push( m_CurrentMemorySpace );
