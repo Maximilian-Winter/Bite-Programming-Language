@@ -5,7 +5,7 @@ The idea was it, to have a dynamically interpreted language in C#, to support mo
 Right now only the basic functionality of the language is implemented!
 
 Example Code for calculating the first 37 fibonacci numbers a 1000x times:
-`
+``
 module MainModule;
 
 import System;
@@ -45,4 +45,4 @@ while(count3 < 1000)
     count3++;
 }
 Console.WriteLine(temp);
-`
+``
