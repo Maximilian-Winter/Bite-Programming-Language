@@ -35,6 +35,8 @@ public class SrslVm
     private Stack<DynamicSrslVariable> m_VmStack;
     private Dictionary <string, BinaryChunk > m_CompiledChunks;
 
+    private DynamicSrslVariable m_TopMostStackItem;
+    
     private List < DynamicSrslVariable > m_FunctionArguments = new List < DynamicSrslVariable >();
     private ObjectPoolFastMemory < FastMemorySpace > m_PoolFastMemoryFastMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
@@ -181,10 +183,14 @@ public class SrslVm
                         m_FunctionArguments.Clear();
                         for ( int i = 0; i < numberOfArguments; i++ )
                         {
+                            if ( m_TopMostStackItem != null )
+                            {
+                                m_FunctionArguments.Add( m_TopMostStackItem );
+                                m_TopMostStackItem = m_VmStack.Pop();
+                                continue;
+                            }
                             m_FunctionArguments.Add( m_VmStack.Pop() );
                         }
-                        
-                       
                         break;
                     }
                     case SrslVmOpCodes.OpCallFunction:
@@ -216,7 +222,15 @@ public class SrslVm
 
                             if ( returnVal != null )
                             {
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(returnVal) );
+                                if ( m_TopMostStackItem != null )
+                                {
+                                    m_VmStack.Push( m_TopMostStackItem );
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
+                                }
+                                else
+                                {
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
+                                }
                             }
                         }
                         
@@ -225,9 +239,13 @@ public class SrslVm
                     case SrslVmOpCodes.OpCallMemberFunction:
                     {
                         ConstantValue constant = ReadConstant(); 
-                        if ( m_VmStack.Peek().ObjectData is StaticWrapper wrapper )
+                        if ( m_TopMostStackItem == null )
                         {
-                            m_VmStack.Pop();
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+                        
+                        if ( m_TopMostStackItem.ObjectData is StaticWrapper wrapper )
+                        {
                             string methodName = constant.StringConstantValue;
                             object[] functionArguments = new object[m_FunctionArguments.Count];
                             Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
@@ -242,13 +260,11 @@ public class SrslVm
                             object returnVal = wrapper.InvokeMember( methodName, functionArguments, functionArgumentTypes );
                             if ( returnVal != null )
                             {
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(returnVal) );
+                                m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
                             }
                         }
-                        else if ( m_VmStack.Peek().ObjectData is FastMemorySpace fastMemorySpace )
+                        else if ( m_TopMostStackItem.ObjectData is FastMemorySpace fastMemorySpace )
                         {
-                            m_VmStack.Pop();
-                            
                             string methodName = constant.StringConstantValue;
                             DynamicSrslVariable call = fastMemorySpace.Get( methodName );
                             
@@ -278,7 +294,7 @@ public class SrslVm
 
                                     if ( returnVal != null )
                                     {
-                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(returnVal) );
+                                        m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
                                     }
                                 }
                             }
@@ -287,9 +303,8 @@ public class SrslVm
                                 throw new Exception( "Error expected Function, got null!" );
                             }
                         }
-                        else if ( m_VmStack.Peek().ObjectData is object obj )
+                        else if ( m_TopMostStackItem.ObjectData is object obj )
                         {
-                            m_VmStack.Pop();
                             string callString = obj + "." + constant.StringConstantValue;
                             if ( CachedMethods.ContainsKey( callString ) )
                             {
@@ -302,10 +317,10 @@ public class SrslVm
                                   //  functionArgumentTypes[it] = functionArgument.GetType();
                                     it++;
                                 }
-                                object returnVal = CachedMethods[callString].Invoke( m_VmStack.Pop().ObjectData, functionArguments );
+                                object returnVal = CachedMethods[callString].Invoke( m_TopMostStackItem.ObjectData, functionArguments );
                                 if ( returnVal != null )
                                 {
-                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(returnVal) );
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
                                 }
                             }
                             else
@@ -325,10 +340,10 @@ public class SrslVm
                                 {
                                     FastMethodInfo fastMethodInfo = new FastMethodInfo( method );
                                     CachedMethods.Add( callString, fastMethodInfo );
-                                    object returnVal = fastMethodInfo.Invoke( m_VmStack.Pop().ObjectData, functionArguments );
+                                    object returnVal = fastMethodInfo.Invoke( m_TopMostStackItem.ObjectData, functionArguments );
                                     if ( returnVal != null )
                                     {
-                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(returnVal) );
+                                        m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
                                     }
                                 }
                                 else
@@ -354,14 +369,23 @@ public class SrslVm
                             m_CurrentMemorySpace = classInstanceMemorySpace;
                             m_CurrentChunk = classWrapper.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace) );
+                            if ( m_TopMostStackItem == null )
+                            {
+                                m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace);
+                            }
+                            else
+                            {
+                                m_VmStack.Push( m_TopMostStackItem );
+                                m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace);
+                            }
+                            
                             m_CallStack.Push( m_CurrentMemorySpace );
                         }
                         break;
                     }
                     case SrslVmOpCodes.OpDefineLocalVar:
                     {
-                        m_CurrentMemorySpace.Define( m_VmStack.Pop() );
+                        m_CurrentMemorySpace.Define( m_TopMostStackItem );
                         break;
                     }
                     case SrslVmOpCodes.OpDeclareLocalVar:
@@ -401,21 +425,46 @@ public class SrslVm
                         m_LastGetLocalVarDepth = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         m_LastGetLocalClassId = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         m_LastGetLocalVarId = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        m_VmStack.Push( m_CurrentMemorySpace.Get( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId ) );
+                        if ( m_TopMostStackItem == null )
+                        {
+                            m_TopMostStackItem = m_CurrentMemorySpace.Get( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId );
+                        }
+                        else
+                        {
+                            m_VmStack.Push( m_TopMostStackItem );
+                            m_TopMostStackItem = m_CurrentMemorySpace.Get( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId );
+                        }
+                        
                         break;
                     }
                     case SrslVmOpCodes.OpGetModule:
                     {
                         int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         FastMemorySpace obj = m_GlobalMemorySpace.Modules[id];
-                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(obj) );
+                        if ( m_TopMostStackItem == null )
+                        {
+                            m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(obj);
+                        }
+                        else
+                        {
+                            m_VmStack.Push( m_TopMostStackItem );
+                            m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(obj);
+                        }
                         break;
                     }
                     case SrslVmOpCodes.OpGetMember:
                     {
                         int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         FastMemorySpace obj = (FastMemorySpace)m_VmStack.Pop().ObjectData;
-                        m_VmStack.Push( obj.Get( -1, 0, -1, id ) );
+                        if ( m_TopMostStackItem == null )
+                        {
+                            m_TopMostStackItem = obj.Get( -1, 0, -1, id );
+                        }
+                        else
+                        {
+                            m_VmStack.Push( m_TopMostStackItem );
+                            m_TopMostStackItem = obj.Get( -1, 0, -1, id );
+                        }
                         break;
                     }
                     case SrslVmOpCodes.OpSetMember:
@@ -435,7 +484,17 @@ public class SrslVm
                         m_LastGetLocalVarModuleId = moduleId;
                         m_LastGetLocalVarDepth = depth;
                         m_LastGetLocalClassId = classId;
-                        m_VmStack.Push( m_CurrentMemorySpace.Get( moduleId, depth, classId, id ) );
+                        
+                        if ( m_TopMostStackItem == null )
+                        {
+                            m_TopMostStackItem = m_CurrentMemorySpace.Get( moduleId, depth, classId, id );
+                        }
+                        else
+                        {
+                            m_VmStack.Push( m_TopMostStackItem );
+                            m_TopMostStackItem = m_CurrentMemorySpace.Get( moduleId, depth, classId, id );
+                        }
+                        
                         break;
                     }
                     case SrslVmOpCodes.OpConstant:
@@ -445,19 +504,51 @@ public class SrslVm
                         switch ( constantValue.ConstantType )
                         {
                             case ConstantValueType.Integer:
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( constantValue.IntegerConstantValue ) );
+                                if ( m_TopMostStackItem == null )
+                                {
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable( constantValue.IntegerConstantValue );
+                                }
+                                else
+                                {
+                                    m_VmStack.Push( m_TopMostStackItem );
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable( constantValue.IntegerConstantValue );
+                                }
                                 break;
 
                             case ConstantValueType.Double:
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(constantValue.DoubleConstantValue) );
+                                if ( m_TopMostStackItem == null )
+                                {
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.DoubleConstantValue) ;
+                                }
+                                else
+                                {
+                                    m_VmStack.Push( m_TopMostStackItem );
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.DoubleConstantValue) ;
+                                }
                                 break;
 
                             case ConstantValueType.String:
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(constantValue.StringConstantValue) );
+                                if ( m_TopMostStackItem == null )
+                                {
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.StringConstantValue) ;
+                                }
+                                else
+                                {
+                                    m_VmStack.Push( m_TopMostStackItem );
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.StringConstantValue) ;
+                                }
                                 break;
 
                             case ConstantValueType.Bool:
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(constantValue.BoolConstantValue) );
+                                if ( m_TopMostStackItem == null )
+                                {
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.BoolConstantValue)  ;
+                                }
+                                else
+                                {
+                                    m_VmStack.Push( m_TopMostStackItem );
+                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.BoolConstantValue)  ;
+                                }
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -469,7 +560,12 @@ public class SrslVm
                         int jumpCodeHeaderStart= m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         int jumpCodeBodyEnd = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;;
 
-                        if (  m_VmStack.Pop().DynamicType == DynamicVariableType.True )
+                        if ( m_TopMostStackItem == null )
+                        {
+                            m_TopMostStackItem = m_VmStack.Pop()  ;
+                        }
+                        
+                        if (  m_TopMostStackItem.DynamicType == DynamicVariableType.True )
                         {
                             m_CurrentChunk.Code[jumpCodeBodyEnd] = (byte)SrslVmOpCodes.OpJump;
                             IntByteStruct intByteStruct = new IntByteStruct();
@@ -507,7 +603,12 @@ public class SrslVm
                     {
                         if ( m_SetMember )
                         {
-                            FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
+                            if ( m_TopMostStackItem == null )
+                            {
+                                m_TopMostStackItem = m_VmStack.Pop()  ;
+                            }
+                            
+                            FastMemorySpace fastMemorySpace = (FastMemorySpace)m_TopMostStackItem.ObjectData;
 
                             if ( fastMemorySpace.Exist( -1, 0, -1, m_LastGetLocalVarId ) )
                             {
@@ -522,44 +623,53 @@ public class SrslVm
                         }
                         else
                         {
-                            m_VmStack.Pop();
-                            DynamicSrslVariable value = m_VmStack.Pop();
-                            m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
+                            if ( m_TopMostStackItem == null )
+                            {
+                                m_VmStack.Pop();
+                                m_TopMostStackItem = m_VmStack.Pop();
+                            }
+                            else
+                            {
+                                m_TopMostStackItem = m_VmStack.Pop();
+                            }
+                            m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, m_TopMostStackItem );
                         }
                         break;
                     }
                     case SrslVmOpCodes.OpNegate:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
-
-                        if ( value.DynamicType < DynamicVariableType.True )
+                        if ( m_TopMostStackItem == null )
                         {
-                            value.NumberData =  value.NumberData *= -1;
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+
+                        if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
+                        {
+                            m_TopMostStackItem.NumberData =  m_TopMostStackItem.NumberData *= -1;
                         }
                         else
                         {
                             throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
                         }
                         
-                        m_VmStack.Push( value );
-                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         break;
                     }
                     case SrslVmOpCodes.OpAffirm:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
-
-                        if ( value.DynamicType < DynamicVariableType.True )
+                        if ( m_TopMostStackItem == null )
                         {
-                            value.NumberData =  value.NumberData *= 1;
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+
+                        if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
+                        {
+                            m_TopMostStackItem.NumberData =  m_TopMostStackItem.NumberData *= 1;
                         }
                         else
                         {
                             throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
                         }
                         
-                        m_VmStack.Push( value );
-                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         break;
                     }
                     case SrslVmOpCodes.OpCompliment:
@@ -568,80 +678,84 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpPrefixDecrement:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
-
-                        if ( value.DynamicType < DynamicVariableType.True )
+                        if ( m_TopMostStackItem == null )
                         {
-                            value.NumberData =  value.NumberData -= 1;
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+
+                        if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
+                        {
+                            m_TopMostStackItem.NumberData =  m_TopMostStackItem.NumberData -= 1;
                         }
                         else
                         {
                             throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
                         }
                         
-                        m_VmStack.Push( value );
-                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         break;
                     }
                     case SrslVmOpCodes.OpPrefixIncrement:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
-
-                        if ( value.DynamicType < DynamicVariableType.True )
+                        if ( m_TopMostStackItem == null )
                         {
-                            value.NumberData =  value.NumberData += 1;
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+
+                        if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
+                        {
+                            m_TopMostStackItem.NumberData =  m_TopMostStackItem.NumberData += 1;
                         }
                         else
                         {
                             throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
                         }
                         
-                        m_VmStack.Push( value );
-                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         break;
                     }
                     case SrslVmOpCodes.OpPostfixDecrement:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
-
-                        if ( value.DynamicType < DynamicVariableType.True )
+                        if ( m_TopMostStackItem == null )
                         {
-                            value.NumberData =  value.NumberData -= 1;
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+
+                        if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
+                        {
+                            m_TopMostStackItem.NumberData =  m_TopMostStackItem.NumberData -= 1;
                         }
                         else
                         {
                             throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
                         }
                         
-                        m_VmStack.Push( value );
-                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         break;
                     }
                     case SrslVmOpCodes.OpPostfixIncrement:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
-
-                        if ( value.DynamicType < DynamicVariableType.True)
+                        if ( m_TopMostStackItem == null )
                         {
-                            value.NumberData =  value.NumberData += 1;
+                            m_TopMostStackItem = m_VmStack.Pop();
+                        }
+
+                        if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True)
+                        {
+                            m_TopMostStackItem.NumberData =  m_TopMostStackItem.NumberData += 1;
                         }
                         else
                         {
                             throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
                         }
                         
-                        m_VmStack.Push( value );
-                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         break;
                     }
                     case SrslVmOpCodes.OpSmaller:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( (valueLhs.DynamicType == 0|| valueLhs.DynamicType < DynamicVariableType.True) &&  (valueRhs.DynamicType == 0 || valueRhs.DynamicType < DynamicVariableType.True))
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData < valueRhs.NumberData) );
+                            m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData < valueRhs.NumberData);
                         }
                         else
                         {
@@ -653,12 +767,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpSmallerEqual:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData <= valueRhs.NumberData) );
+                            m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData <= valueRhs.NumberData);
                         }
                         else
                         {
@@ -668,12 +782,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpGreater:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData > valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData > valueRhs.NumberData) );
                         }
                         else
                         {
@@ -683,12 +797,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpGreaterEqual:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if (valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData >= valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData >= valueRhs.NumberData) );
                         }
                         else
                         {
@@ -698,12 +812,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpEqual:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData == valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData == valueRhs.NumberData) );
                         }
                         else
                         {
@@ -713,12 +827,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpNotEqual:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData != valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData != valueRhs.NumberData) );
                         }
                         else
                         {
@@ -728,7 +842,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpNot:
                     {
-                        DynamicSrslVariable value = m_VmStack.Pop();
+                        DynamicSrslVariable value = m_TopMostStackItem;
 
                         if ( value.DynamicType == DynamicVariableType.True )
                         {
@@ -738,17 +852,18 @@ public class SrslVm
                         {
                             value.DynamicType = DynamicVariableType.True;
                         }
-                        m_VmStack.Push( value );
+
+                        m_TopMostStackItem = value;
                         break;
                     }
                     case SrslVmOpCodes.OpAdd:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData + valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData + valueRhs.NumberData) );
                         }
                         else
                         {
@@ -760,12 +875,12 @@ public class SrslVm
                     
                     case SrslVmOpCodes.OpSubtract:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData - valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData - valueRhs.NumberData) );
                         }
                         else
                         {
@@ -776,12 +891,12 @@ public class SrslVm
 
                     case SrslVmOpCodes.OpMultiply:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData * valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData * valueRhs.NumberData) );
                         }
                         else
                         {
@@ -792,12 +907,12 @@ public class SrslVm
 
                     case SrslVmOpCodes.OpDivide:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData / valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData / valueRhs.NumberData) );
                         }
                         else
                         {
@@ -807,12 +922,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpModulo:
                     {
-                        DynamicSrslVariable valueRhs = m_VmStack.Pop();
+                        DynamicSrslVariable valueRhs = m_TopMostStackItem;
                         DynamicSrslVariable valueLhs = m_VmStack.Pop();
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData % valueRhs.NumberData) );
+                            m_TopMostStackItem = ( DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData % valueRhs.NumberData) );
                         }
                         else
                         {
@@ -823,10 +938,8 @@ public class SrslVm
                     case SrslVmOpCodes.OpJumpIfFalse:
                     {
                         int offset =  m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        
-                        DynamicSrslVariable value = m_VmStack.Pop();
 
-                        if ( value.DynamicType == DynamicVariableType.False )
+                        if ( m_TopMostStackItem.DynamicType == DynamicVariableType.False )
                         {
                             m_CurrentInstructionPointer = offset;
                         }
@@ -846,11 +959,6 @@ public class SrslVm
                     
                     case SrslVmOpCodes.OpExitBlock:
                     {
-                        DynamicSrslVariable returnVal = null;
-                        if ( m_KeepLastItemOnStackToReturn )
-                        {
-                            returnVal = m_VmStack.Pop();
-                        }
                         if ( m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count )
                         {
                             int stackCounter = m_VmStack.Count - m_CurrentMemorySpace.StackCountAtBegin;
@@ -862,10 +970,6 @@ public class SrslVm
                        
                         m_PoolFastMemoryFastMemory.Return( m_CallStack.Pop() );
                         m_CurrentMemorySpace = m_CallStack.Peek();
-                        if ( m_KeepLastItemOnStackToReturn )
-                        {
-                            m_VmStack.Push( returnVal );
-                        }
                         break;
                     }
                     case SrslVmOpCodes.OpKeepLastItemOnStack:
@@ -875,8 +979,6 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpReturn:
                     {
-                        DynamicSrslVariable returnVal = m_VmStack.Pop();
-                        
                         if ( m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count )
                         {
                             int stackCounter = m_VmStack.Count - m_CurrentMemorySpace.StackCountAtBegin;
@@ -895,7 +997,6 @@ public class SrslVm
                         m_PoolFastMemoryFastMemory.Return( m_CallStack.Pop() );
                         m_CurrentMemorySpace = m_CallStack.Peek();
                         m_KeepLastItemOnStackToReturn = false;
-                        m_VmStack.Push( returnVal );
                         break;
                     }
 
