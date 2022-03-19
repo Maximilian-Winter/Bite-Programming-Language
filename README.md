@@ -44,5 +44,5 @@ while(count3 < 1000)
     }
     count3++;
 }
-Console.WriteLine(temp);
+Print(temp);
 ```
