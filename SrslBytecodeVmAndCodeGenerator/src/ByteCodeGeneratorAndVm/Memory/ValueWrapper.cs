@@ -16,7 +16,7 @@ public enum DynamicVariableType : uint
 }
 
 [StructLayout(LayoutKind.Explicit)]
-public class DynamicSrslVariable : DynamicObject
+public class DynamicSrslVariable
 {
     [FieldOffset(4)]public DynamicVariableType DynamicType;
     [FieldOffset(0)]public double NumberData;
