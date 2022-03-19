@@ -1,4 +1,4 @@
-﻿#define SRSL_VM_DEBUG_TRACE_EXECUTION
+﻿//#define SRSL_VM_DEBUG_TRACE_EXECUTION
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
