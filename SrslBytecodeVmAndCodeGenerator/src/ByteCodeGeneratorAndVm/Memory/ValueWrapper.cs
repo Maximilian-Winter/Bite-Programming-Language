@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 namespace Srsl_Parser.Runtime
@@ -15,7 +16,7 @@ public enum DynamicVariableType : uint
 }
 
 [StructLayout(LayoutKind.Explicit)]
-public class DynamicSrslVariable
+public class DynamicSrslVariable : DynamicObject
 {
     [FieldOffset(4)]public DynamicVariableType DynamicType;
     [FieldOffset(0)]public double NumberData;
