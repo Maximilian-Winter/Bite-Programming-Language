@@ -10,7 +10,7 @@ public class PrintFunctionVm : ISrslVmCallable
 
     public object Call( List < DynamicSrslVariable > arguments )
     {
-        if ( arguments[0] != null )
+        if ( arguments[0].DynamicType != DynamicVariableType.Null )
         {
             Console.WriteLine( arguments[0].ToString() );
         }
