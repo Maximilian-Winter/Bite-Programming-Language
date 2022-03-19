@@ -169,7 +169,7 @@
     <ItemGroup>
       <Content Include="src\Ast\AstNodes.txt" />
       <Content Include="src\Grammar\SRSL.g4" />
-      <Content Include="src\TestProgram\CSharpSystemModule.srsl.bak" />
+      <Content Include="src\TestProgram\CSharpSystemModule.srsl" />
       <Content Include="src\TestProgram\MainModule.srsl" />
     </ItemGroup>
     <ItemGroup>

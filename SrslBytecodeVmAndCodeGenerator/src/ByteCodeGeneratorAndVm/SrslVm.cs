@@ -155,26 +155,14 @@ public class SrslVm
                         string moduleName = ReadConstant().StringConstantValue;
                         int depth = 0;
                         m_CurrentScope = (BaseScope)m_CurrentScope.resolve( moduleName, out int moduleId, ref depth );
-                        int numberOfMembers = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        /*FastMemorySpace moduleSpace = m_PoolFastMemory.Get();
-                        moduleSpace.m_EnclosingSpace = m_GlobalMemorySpace;
-                        moduleSpace.Name = m_GlobalMemorySpace.Name + moduleName;*/
-                        
-                        //FastMemorySpace s = moduleSpace;
-
+                        int numberOfMembers = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);
+                        m_CurrentInstructionPointer += 4;
                         FastModuleMemorySpace callSpace = new FastModuleMemorySpace( "", m_GlobalMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, numberOfMembers );
-                        //m_TempMemoryStack.Push( callSpace );
                         m_GlobalMemorySpace.Modules.Add( callSpace );
                         m_CurrentChunk = CompiledChunks[moduleName];
                         m_CurrentInstructionPointer = 0;
                         m_CurrentMemorySpace = callSpace;
                         m_CallStack.Push( callSpace );
-                        break;
-                    }
-                    case SrslVmOpCodes.OpImportModule:
-                    {
-                        /*dynamic constant = ReadConstant();
-                        m_ImportedModules.Add( constant );*/
                         break;
                     }
                     case SrslVmOpCodes.OpDefineClass:
@@ -217,18 +205,12 @@ public class SrslVm
 
                         if ( call.ObjectData is SrslChunkWrapper function )
                         {
-                            /* FastMemorySpace memorySpace = m_PoolFastMemory.Get();
-                             memorySpace.m_EnclosingSpace = m_TempMemoryStack.Peek();
-                             memorySpace.StackCountAtBegin = m_VmStack.Count;
-                             memorySpace.Name = m_TempMemoryStack.Peek().Name + method;*/
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
                             callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
-                            //callSpace.Name = m_CallStack.Peek().Name + method;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
                             callSpace.StackCountAtBegin = m_VmStack.Count;
-                            //m_TempMemoryStack.Push( callSpace );
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
 
@@ -286,16 +268,11 @@ public class SrslVm
                             {
                                 if ( call.ObjectData is SrslChunkWrapper function )
                                 {
-                                    /*FastMemorySpace memorySpace = m_PoolFastMemory.Get();
-                                    memorySpace.m_EnclosingSpace = m_TempMemoryStack.Peek();
-                                    memorySpace.StackCountAtBegin = m_VmStack.Count;
-                                    memorySpace.Name = m_TempMemoryStack.Peek() + methodName;*/
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
                                     callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                                     callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                     callSpace.CallerChunk = m_CurrentChunk;
                                     callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                                    //callSpace.Name = m_CurrentMemorySpace.Name + methodName;
                                     callSpace.StackCountAtBegin = m_VmStack.Count;
                                     m_CurrentMemorySpace = callSpace;
                                     m_CallStack.Push( callSpace );
@@ -455,7 +432,6 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpSetMember:
                     {
-                        //m_SetMemberPopCount = (int)ReadConstant();
                         int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         m_SetMember = true;
                         m_LastGetLocalVarId = id;
@@ -498,7 +474,6 @@ public class SrslVm
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }
-                        //;
                         break;
                     }
                     case SrslVmOpCodes.OpWhileLoop:
@@ -508,7 +483,6 @@ public class SrslVm
 
                         if (  m_VmStack.Pop().DynamicType == DynamicVariableType.True )
                         {
-                            //DynamicVariableExtension.ReturnDynamicSrslVariable(  );
                             m_CurrentChunk.Code[jumpCodeBodyEnd] = (byte)SrslVmOpCodes.OpJump;
                             IntByteStruct intByteStruct = new IntByteStruct();
                             intByteStruct.integer = jumpCodeHeaderStart;
@@ -519,7 +493,6 @@ public class SrslVm
                         }
                         else
                         {
-                            //DynamicVariableExtension.ReturnDynamicSrslVariable(  );
                             m_CurrentInstructionPointer = jumpCodeBodyEnd + 10;
                             m_CurrentChunk.Code[jumpCodeBodyEnd] = 0;
                             m_CurrentChunk.Code[jumpCodeBodyEnd + 1] = 0;
@@ -544,24 +517,9 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpAssign:
                     {
-                        SrslVmOpCodes nextOpCode = ReadInstruction();
-                        int moduleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        int depth = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        int classId = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        m_LastGetLocalVarId = id;
-                        m_LastGetLocalVarModuleId = moduleId;
-                        m_LastGetLocalVarDepth = depth;
-                        m_LastGetLocalClassId = classId;
-
-                        if ( nextOpCode == SrslVmOpCodes.OpSetLocalVar )
+                        if ( m_SetMember )
                         {
-                            DynamicSrslVariable value = m_VmStack.Pop();
-                            m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
-                        }
-                        else
-                        {
-                            FastMemorySpace fastMemorySpace = (FastMemorySpace)m_CurrentMemorySpace.Get( moduleId, depth, classId, id ).ObjectData;
+                            FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
 
                             if ( fastMemorySpace.Exist( -1, 0, -1, m_LastGetLocalVarId ) )
                             {
@@ -571,6 +529,14 @@ public class SrslVm
                             {
                                 fastMemorySpace.Define( m_VmStack.Pop() );
                             }
+                            
+                            m_SetMember = false;
+                        }
+                        else
+                        {
+                            m_VmStack.Pop();
+                            DynamicSrslVariable value = m_VmStack.Pop();
+                            m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, value );
                         }
                         break;
                     }

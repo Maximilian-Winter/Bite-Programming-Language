@@ -752,6 +752,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         {
             case AssignmentTypes.Assignment:
                 Compile( node.Assignment );
+                m_IsCompilingAssignmentLhs = true;
+                Compile( node.Call );
+                m_IsCompilingAssignmentLhs = false;
                 switch ( node.OperatorType )
                 {
                     case AssignmentOperatorTypes.Assign:
@@ -801,9 +804,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                m_IsCompilingAssignmentLhs = true;
-                Compile( node.Call );
-                m_IsCompilingAssignmentLhs = false;
+               
                 
                 break;
 

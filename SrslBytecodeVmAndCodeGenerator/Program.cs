@@ -24,7 +24,7 @@ public class Program
 
         SrslVm srslVm = new SrslVm();
       
-        int k = 1;
+        int k = 5;
         long elapsedMillisecondsAccu = 0;
         for ( int i = 0; i < k; i++ )
         {
