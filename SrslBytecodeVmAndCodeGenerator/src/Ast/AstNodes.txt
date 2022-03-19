@@ -1,0 +1,114 @@
+/*
+ * AST Nodes
+  Program
+      Declaration
+      
+                 Declarations
+                 
+                 
+                 NamespaceDeclaration
+                                        Idenifier
+                                        ?VariableDeclarations
+                                        ?FunctionDeclarations
+                                        ?ClassDeclaration
+                                        ?StructDeclaration     
+                                     
+                 ClassDeclaration
+                                        ?BaseName
+                                        ?Modifiers
+                                        Idenifier
+                                        ?VariableDeclarations
+                                        ?FunctionDeclarations
+                                        ?GetterDeclarations
+                                        ?SetterDeclarations
+                                             
+                 StructDeclaration
+                                        ?Modifiers
+                                         Idenifier
+                                        ?VariableDeclarations
+                                        ?FunctionDeclarations
+                                        ?GetterDeclarations
+                                        ?SetterDeclarations
+                                         
+                 FunctionDeclaration
+                                        ?Modifiers
+                                         Idenifier
+                                        ?Parameters     
+                                        ?VariableDeclarations
+                                        ?FunctionDeclarations
+                                        ?Statements
+                                         
+                 ClassInstanceDeclaration
+                                        ?Modifiers
+                                         VariableDeclaration
+                                         ClassName   
+                                        
+                 VariableDeclaration
+                                         ?Modifiers
+                                          Identifier
+                                         ?Initializer
+                                         
+                 GetterDeclaration 
+                                         Identifier
+                                         ReturnStatement
+                                   
+                 SetterDeclaration 
+                                         Identifier
+                                         Assignment
+                                   
+                  
+                        
+                                                                    
+     Statement
+                            ExprStatement
+                                         Expression 
+                                                
+                            ForStatement
+                                        ?VariableDeclaration
+                                        ?ExprStatement
+                                        ?ExprStatement
+                                         Block
+                                         
+                            IfStatement
+                                         Expression
+                                         Block
+                                        ?Block
+                                         
+                                         
+                            ReturnStatement
+                                          ExprStatement 
+                                          
+                            WhileStatement
+                                          Expression
+                                          Block   
+                            
+                            Block
+                                          ?Declarations                  
+                                          
+                                                   
+     Expression
+                    Assignment
+                    
+                      
+                       
+                    Assignment
+                                  call
+                                  AssignmentType
+                                  ?Assignment
+                                  
+                    call         
+                                  primary 
+                                  ?Arguments 
+                                  ?Identifiers
+                               
+                    primary
+                                  ?Identifier
+                                  ?Element
+                                  ?Literals
+                                  ?Identifiers                     
+                  
+                    Element      
+                                 Identifier
+                                 ?Identifier
+                                 ?Literal          
+ */
