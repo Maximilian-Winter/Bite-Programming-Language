@@ -3,36 +3,36 @@ using System.Collections.Generic;
 namespace MemoizeSharp
 {
 
-public class ModuleNode : HeteroAstNode
-{
-    public ModuleIdentifier ModuleIdent;
-    public List<ModuleIdentifier> ImportedModules;
-    public List<ModuleIdentifier> UsedModules;
-    public List < StatementNode > Statements;
-   
-    
-    #region Public
-
-    public ModuleNode()
+    public class ModuleNode : HeteroAstNode
     {
-        ModuleIdent = new ModuleIdentifier();
-        Statements = new List < StatementNode >();
-    }
+        public ModuleIdentifier ModuleIdent;
+        public List<ModuleIdentifier> ImportedModules;
+        public List<ModuleIdentifier> UsedModules;
+        public List<StatementNode> Statements;
 
-    public void AddStatements(List < StatementNode > statementNodes)
-    {
-        foreach ( StatementNode statementNode in statementNodes )
+
+        #region Public
+
+        public ModuleNode()
         {
-            Statements.Add( statementNode );
+            ModuleIdent = new ModuleIdentifier();
+            Statements = new List<StatementNode>();
         }
-    }
 
-    public override object Accept( IAstVisitor visitor )
-    {
-        return visitor.Visit( this );
-    }
+        public void AddStatements(List<StatementNode> statementNodes)
+        {
+            foreach (StatementNode statementNode in statementNodes)
+            {
+                Statements.Add(statementNode);
+            }
+        }
 
-    #endregion
-}
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

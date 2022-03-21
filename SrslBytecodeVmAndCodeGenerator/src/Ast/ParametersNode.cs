@@ -3,18 +3,18 @@ using System.Collections.Generic;
 namespace MemoizeSharp
 {
 
-public class ParametersNode : HeteroAstNode
-{
-    public List < Identifier > Identifiers;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class ParametersNode : HeteroAstNode
     {
-        return visitor.Visit( this );
-    }
+        public List<Identifier> Identifiers;
 
-    #endregion
-}
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

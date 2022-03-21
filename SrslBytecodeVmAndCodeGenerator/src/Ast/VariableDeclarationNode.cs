@@ -1,20 +1,20 @@
 namespace MemoizeSharp
 {
 
-public class VariableDeclarationNode : DeclarationNode
-{
-    public ModifiersNode Modifiers;
-    public Identifier VarId;
-    public InitializerNode Initializer;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class VariableDeclarationNode : DeclarationNode
     {
-        return visitor.Visit( this );
-    }
+        public ModifiersNode Modifiers;
+        public Identifier VarId;
+        public InitializerNode Initializer;
 
-    #endregion
-}
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

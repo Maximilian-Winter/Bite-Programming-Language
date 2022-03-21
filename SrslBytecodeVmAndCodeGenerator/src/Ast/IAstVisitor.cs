@@ -1,9 +1,9 @@
 namespace MemoizeSharp
 {
 
-public interface IAstVisitor
-{
-    object Visit( HeteroAstNode heteroAstNode );
-}
+    public interface IAstVisitor
+    {
+        object Visit(HeteroAstNode heteroAstNode);
+    }
 
 }

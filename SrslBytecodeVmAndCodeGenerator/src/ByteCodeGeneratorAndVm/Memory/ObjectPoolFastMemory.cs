@@ -4,43 +4,43 @@ using System.Collections.Generic;
 namespace Srsl_Parser.Runtime
 {
 
-public class ObjectPoolFastMemory<T> where T: class
-{
-    private readonly Queue<T> _objects;
-    private readonly Func<T> _objectGenerator;
-
-    public ObjectPoolFastMemory(Func<T> objectGenerator, int poolInitSize)
+    public class ObjectPoolFastMemory<T> where T : class
     {
-        _objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
-        _objects = new Queue<T>();
+        private readonly Queue<T> _objects;
+        private readonly Func<T> _objectGenerator;
 
-        for ( int i = 0; i < poolInitSize; i++ )
+        public ObjectPoolFastMemory(Func<T> objectGenerator, int poolInitSize)
         {
-            _objects.Enqueue( objectGenerator() );
-        }
-    }
+            _objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
+            _objects = new Queue<T>();
 
-    public T Get()
-    {
-        if ( _objects.Count > 0 )
-        {
-            return _objects.Dequeue();
+            for (int i = 0; i < poolInitSize; i++)
+            {
+                _objects.Enqueue(objectGenerator());
+            }
         }
 
-        return _objectGenerator();
-    }
-
-    public void Return(T item)
-    {
-        FastMemorySpace fastMemorySpace = ( item as FastMemorySpace );
-        /*for ( int i = 0; i < fastMemorySpace.Properties.Count; i++ )
+        public T Get()
         {
-            DynamicVariableExtension.ReturnDynamicSrslVariable( fastMemorySpace.Properties[i] );
-        }*/
-        fastMemorySpace.Properties = Array.Empty<DynamicSrslVariable>();
-        fastMemorySpace.NamesToProperties.Clear();
-        _objects.Enqueue(item);
-    } 
-}
+            if (_objects.Count > 0)
+            {
+                return _objects.Dequeue();
+            }
+
+            return _objectGenerator();
+        }
+
+        public void Return(T item)
+        {
+            FastMemorySpace fastMemorySpace = (item as FastMemorySpace);
+            /*for ( int i = 0; i < fastMemorySpace.Properties.Count; i++ )
+            {
+                DynamicVariableExtension.ReturnDynamicSrslVariable( fastMemorySpace.Properties[i] );
+            }*/
+            fastMemorySpace.Properties = Array.Empty<DynamicSrslVariable>();
+            fastMemorySpace.NamesToProperties.Clear();
+            _objects.Enqueue(item);
+        }
+    }
 
 }

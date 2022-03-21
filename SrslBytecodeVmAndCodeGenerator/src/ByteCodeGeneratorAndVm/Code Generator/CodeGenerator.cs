@@ -1,1280 +1,1278 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Reflection;
-using MemoizeSharp;
+﻿using MemoizeSharp;
 using Srsl_Parser.SymbolTable;
+using System;
+using System.Collections.Generic;
 
 namespace Srsl_Parser.Runtime
 {
 
-public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
-{
-    public Dictionary <string, Chunk > CompilingChunks;
-    public Dictionary <string, BinaryChunk > CompiledChunks;
-    public SymbolTableBuilder SymbolTableBuilder;
-    
-    public Chunk MainChunk;
-    
-    public BinaryChunk CompiledMainChunk;
-    
-    private Chunk m_CompilingChunk;
-    
-    private int m_CurrentEnterBlockCount = 0;
-    private string m_CurrentModuleName = "";
-    private string m_CurrentClassName = "";
-    
-    private bool m_IsCompilingAssignmentLhs = false;
-    
-    private SrslVmOpCodes m_CallNodeTypeForAssignment = SrslVmOpCodes.OpNone;
+    public class CodeGenerator : HeteroAstVisitor<object>, IAstVisitor
+    {
+        public Dictionary<string, Chunk> CompilingChunks;
+        public Dictionary<string, BinaryChunk> CompiledChunks;
+        public SymbolTableBuilder SymbolTableBuilder;
 
-    private int m_MaxStackDepth = 0;
-    private SrslVmOpCodes m_ConstructingOpCode;
-    private List <int> m_ConstructingOpCodeData;
-    private int m_ConstructingLine;
-    public Chunk CurrentChunk()
-    {
-        return m_CompilingChunk;
-    }
-    private void BeginConstuctingByteCodeInstruction(SrslVmOpCodes byteCode, int line = 0)
-    {
-        m_ConstructingOpCode = byteCode;
-        m_ConstructingOpCodeData = new List < int >();
-        m_ConstructingLine = line;
-    }
-    
-    private void AddToConstuctingByteCodeInstruction(int opCodeData)
-    {
-        m_ConstructingOpCodeData.Add( opCodeData );
-    }
-    private void EndConstuctingByteCodeInstruction()
-    {
-        ByteCode byCode = new ByteCode( m_ConstructingOpCode );
-        byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
-        CurrentChunk().WriteToChunk( byCode, m_ConstructingLine );
-        m_ConstructingOpCodeData = null;
-        m_ConstructingOpCode = SrslVmOpCodes.OpNone;
-    }
-    
-    private int EmitByteCode(SrslVmOpCodes byteCode, int line = 0)
-    {
-        return CurrentChunk().WriteToChunk( byteCode, line );
-    }
-    
-    private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int line)
-    {
-        ByteCode byCode = new ByteCode( byteCode, opCodeData );
-        return CurrentChunk().WriteToChunk( byCode, line );
-    }
-    
-    private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int opCodeData2, int line)
-    {
-        ByteCode byCode = new ByteCode( byteCode, opCodeData, opCodeData2 );
-        return CurrentChunk().WriteToChunk( byCode, line );
-    }
-    
-    private int EmitByteCode(ByteCode byteCode, int line = 0)
-    {
-        return CurrentChunk().WriteToChunk( byteCode, line );
-    }
-    
-    private int EmitByteCode(SrslVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
-    {
-        return CurrentChunk().WriteToChunk( byteCode, constantValue, line );
-    }
-    
-    private int EmitReturn(int line = 0)
-    {
-        return EmitByteCode( SrslVmOpCodes.OpReturn, line );
-    }
-    
-    private int EmitConstant(ConstantValue value, int line = 0)
-    {
-        return EmitByteCode(SrslVmOpCodes.OpConstant, value, line);
-    }
-    
-    
-    private object Compile( HeteroAstNode astNode )
-    {
-        return astNode.Accept( this );
-    }
-    #region Public
+        public Chunk MainChunk;
 
-    public CodeGenerator()
-    {
-        SymbolTableBuilder = new SymbolTableBuilder();
-        CompilingChunks = new Dictionary < string, Chunk >();
-        MainChunk = new Chunk();
-        m_CompilingChunk = MainChunk;
-    }
-    
-    
-    public object CompileProgram( ProgramNode programNode )
-    {
-        SymbolTableBuilder = new SymbolTableBuilder();
-        SymbolTableBuilder.BuildProgramSymbolTable( programNode );
-        
-        CompilingChunks = new Dictionary < string, Chunk >();
-        MainChunk = new Chunk();
-        m_CompilingChunk = MainChunk;
-        programNode.Accept( this );
-        CompiledChunks = new Dictionary < string, BinaryChunk >();
-        foreach ( KeyValuePair<string,Chunk> compilingChunk in CompilingChunks )
+        public BinaryChunk CompiledMainChunk;
+
+        private Chunk m_CompilingChunk;
+
+        private int m_CurrentEnterBlockCount = 0;
+        private string m_CurrentModuleName = "";
+        private string m_CurrentClassName = "";
+
+        private bool m_IsCompilingAssignmentLhs = false;
+
+        private SrslVmOpCodes m_CallNodeTypeForAssignment = SrslVmOpCodes.OpNone;
+
+        private int m_MaxStackDepth = 0;
+        private SrslVmOpCodes m_ConstructingOpCode;
+        private List<int> m_ConstructingOpCodeData;
+        private int m_ConstructingLine;
+        public Chunk CurrentChunk()
         {
-            CompiledChunks.Add( compilingChunk.Key, new BinaryChunk( compilingChunk.Value.SerializeToBytes(), compilingChunk.Value.Constants, compilingChunk.Value.Lines ));
+            return m_CompilingChunk;
+        }
+        private void BeginConstuctingByteCodeInstruction(SrslVmOpCodes byteCode, int line = 0)
+        {
+            m_ConstructingOpCode = byteCode;
+            m_ConstructingOpCodeData = new List<int>();
+            m_ConstructingLine = line;
         }
 
-        CompiledMainChunk = new BinaryChunk( MainChunk.SerializeToBytes(), MainChunk.Constants, MainChunk.Lines );
-        return null;
-    }
-    
-
-    public override object Visit( ProgramNode node )
-    {
-        Chunk saveChunk1 = m_CompilingChunk;
-        /*int d = 0;
-        ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
-        EmitByteCode( SrslVmOpCodes.OpDefineModule,  new ConstantValue("System"));
-        //EmitByteCode( mod.InsertionOrderNumber);
-        m_CompilingChunk = new Chunk();
-        CompilingChunks.Add( "System", m_CompilingChunk);
-        Chunk saveChunk2 = m_CompilingChunk;
-        
-        int d2 = 0;
-        ClassSymbol c = m.resolve( "Object", out int moduleId2, ref d2 ) as ClassSymbol;
-        EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue("System.Object") );
-        //EmitByteCode( symbol.InsertionOrderNumber );
-        m_CompilingChunk = new Chunk();
-        CompilingChunks.Add( "System.Object", m_CompilingChunk);
-        m_CompilingChunk = saveChunk2;
-        
-        int d4 = 0;
-        MethodSymbol method = m.resolve( "Print", out int moduleId4, ref d4 ) as MethodSymbol;
-        EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue("System.Print") );
-        //EmitByteCode( symbol.InsertionOrderNumber );
-        m_CompilingChunk = new Chunk();
-        CompilingChunks.Add( "System.Print", m_CompilingChunk);
-        m_CompilingChunk = saveChunk2;
-        
-        int d5 = 0;
-        MethodSymbol method2 = m.resolve( "CSharpInterfaceCall", out int moduleId5, ref d5 ) as MethodSymbol;
-        EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue("System.CSharpInterfaceCall") );
-        //EmitByteCode( symbol.InsertionOrderNumber );
-        m_CompilingChunk = new Chunk();
-        CompilingChunks.Add( "System.CSharpInterfaceCall", m_CompilingChunk);
-        m_CompilingChunk = saveChunk2;
-        
-        int d3 = 0;
-        ClassSymbol c2 = m.resolve( "CSharpInterface", out int moduleId3, ref d3 ) as ClassSymbol;
-        EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue("System.CSharpInterface") );*/
-        //EmitByteCode( symbol.InsertionOrderNumber );
-        int d = 0;
-        ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
-
-        int d2 = 0;
-        ClassSymbol c = m.resolve( "Object", out int moduleId2, ref d2 ) as ClassSymbol;
-        
-        m_CompilingChunk = new Chunk();
-        
-        ByteCode byteCode = new ByteCode( SrslVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber );
-        EmitByteCode( byteCode );
-        EmitByteCode( byteCode );
-        EmitByteCode( byteCode );
-        EmitByteCode( byteCode );
-        
-        CompilingChunks.Add( "System.CSharpInterface", m_CompilingChunk);
-
-        m_CompilingChunk = saveChunk1;
-        
-        
-        foreach ( KeyValuePair < string, ModuleNode > module in node.ModuleNodes )
+        private void AddToConstuctingByteCodeInstruction(int opCodeData)
         {
-            //ModuleSymbol moduleSymbol = m_SymbolTableBuilder.CurrentScope.resolve( module.Key ) as ModuleSymbol;
-            
-            if ( module.Key != node.MainModule )
+            m_ConstructingOpCodeData.Add(opCodeData);
+        }
+        private void EndConstuctingByteCodeInstruction()
+        {
+            ByteCode byCode = new ByteCode(m_ConstructingOpCode);
+            byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
+            CurrentChunk().WriteToChunk(byCode, m_ConstructingLine);
+            m_ConstructingOpCodeData = null;
+            m_ConstructingOpCode = SrslVmOpCodes.OpNone;
+        }
+
+        private int EmitByteCode(SrslVmOpCodes byteCode, int line = 0)
+        {
+            return CurrentChunk().WriteToChunk(byteCode, line);
+        }
+
+        private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int line)
+        {
+            ByteCode byCode = new ByteCode(byteCode, opCodeData);
+            return CurrentChunk().WriteToChunk(byCode, line);
+        }
+
+        private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int opCodeData2, int line)
+        {
+            ByteCode byCode = new ByteCode(byteCode, opCodeData, opCodeData2);
+            return CurrentChunk().WriteToChunk(byCode, line);
+        }
+
+        private int EmitByteCode(ByteCode byteCode, int line = 0)
+        {
+            return CurrentChunk().WriteToChunk(byteCode, line);
+        }
+
+        private int EmitByteCode(SrslVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
+        {
+            return CurrentChunk().WriteToChunk(byteCode, constantValue, line);
+        }
+
+        private int EmitReturn(int line = 0)
+        {
+            return EmitByteCode(SrslVmOpCodes.OpReturn, line);
+        }
+
+        private int EmitConstant(ConstantValue value, int line = 0)
+        {
+            return EmitByteCode(SrslVmOpCodes.OpConstant, value, line);
+        }
+
+
+        private object Compile(HeteroAstNode astNode)
+        {
+            return astNode.Accept(this);
+        }
+        #region Public
+
+        public CodeGenerator()
+        {
+            SymbolTableBuilder = new SymbolTableBuilder();
+            CompilingChunks = new Dictionary<string, Chunk>();
+            MainChunk = new Chunk();
+            m_CompilingChunk = MainChunk;
+        }
+
+
+        public object CompileProgram(ProgramNode programNode)
+        {
+            SymbolTableBuilder = new SymbolTableBuilder();
+            SymbolTableBuilder.BuildProgramSymbolTable(programNode);
+
+            CompilingChunks = new Dictionary<string, Chunk>();
+            MainChunk = new Chunk();
+            m_CompilingChunk = MainChunk;
+            programNode.Accept(this);
+            CompiledChunks = new Dictionary<string, BinaryChunk>();
+            foreach (KeyValuePair<string, Chunk> compilingChunk in CompilingChunks)
             {
-                Compile( module.Value );
+                CompiledChunks.Add(compilingChunk.Key, new BinaryChunk(compilingChunk.Value.SerializeToBytes(), compilingChunk.Value.Constants, compilingChunk.Value.Lines));
             }
+
+            CompiledMainChunk = new BinaryChunk(MainChunk.SerializeToBytes(), MainChunk.Constants, MainChunk.Lines);
+            return null;
         }
 
-        if ( node.ModuleNodes.ContainsKey( node.MainModule ) )
-        {
-            Compile( node.ModuleNodes[node.MainModule]);
-        }
-        else
-        {
-            throw new Exception( "Main Module: " + node.MainModule + " not found!" );
-        }
-        
-        return null;
-    }
 
-    public override object Visit( ModuleNode node )
-    {
-        m_CurrentModuleName = node.ModuleIdent.ToString();
-        Chunk saveChunk = m_CompilingChunk;
-        int d = 0;
-        ModuleSymbol mod = SymbolTableBuilder.CurrentScope.resolve( m_CurrentModuleName, out int moduleId, ref d ) as ModuleSymbol;
-        if ( CompilingChunks.ContainsKey(m_CurrentModuleName ) )
+        public override object Visit(ProgramNode node)
         {
-            m_CompilingChunk = CompilingChunks[m_CurrentModuleName];
-        }
-        else
-        {
-            CurrentChunk().
-                WriteToChunk(
-                    SrslVmOpCodes.OpDefineModule,
-                    new ConstantValue( m_CurrentModuleName ),
-                    mod.NumberOfSymbols,
-                    0 );
+            Chunk saveChunk1 = m_CompilingChunk;
+            /*int d = 0;
+            ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
+            EmitByteCode( SrslVmOpCodes.OpDefineModule,  new ConstantValue("System"));
+            //EmitByteCode( mod.InsertionOrderNumber);
             m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( m_CurrentModuleName, m_CompilingChunk);
-        }
+            CompilingChunks.Add( "System", m_CompilingChunk);
+            Chunk saveChunk2 = m_CompilingChunk;
 
-        /*foreach ( ModuleIdentifier importedModule in node.ImportedModules )
-        {
-            EmitByteCode( SrslVmOpCodes.OpImportModule, importedModule.ToString(), importedModule.DebugInfoAstNode.LineNumber );
-        }*/
-        
-        foreach ( StatementNode statement in node.Statements )
-        {
-            if ( statement is ClassDeclarationNode classDeclarationNode )
-            {
-                Compile( classDeclarationNode );
-            }
-            else if ( statement is StructDeclarationNode structDeclaration )
-            {
-                Compile( structDeclaration );
-            }
-            else if ( statement is FunctionDeclarationNode functionDeclarationNode )
-            {
-                Compile( functionDeclarationNode );
-            }
-            else if ( statement is VariableDeclarationNode variable )
-            {
-                Compile( variable );
-            }
-            else if ( statement is ClassInstanceDeclarationNode classInstance )
-            {
-                Compile( classInstance );
-            }
-            else if ( statement is StatementNode stat )
-            {
-                Compile( stat );
-            }
-        }
-        m_CompilingChunk = saveChunk;
-        return null;
-    }
-
-    public override object Visit( ModifiersNode node )
-    {
-        return null;
-    }
-
-    public override object Visit( DeclarationNode node )
-    {
-        return null;
-    }
-
-    public override object Visit( UsingStatementNode node )
-    {
-        EmitByteCode( SrslVmOpCodes.OpUsingStatmentHeader );
-        Compile( node.UsingNode );
-        EmitByteCode( SrslVmOpCodes.OpUsingStatmentBody );
-        Compile( node.UsingBlock );
-
-        return null;
-    }
-
-    public override object Visit( DeclarationsNode node )
-    {
-        EmitByteCode( SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0 );
-        
-        m_CurrentEnterBlockCount++;
-        if ( node.Classes != null )
-        {
-            foreach ( ClassDeclarationNode declaration in node.Classes )
-            {
-                Compile( declaration );
-            }
-        }
-
-        if ( node.Structs != null )
-        {
-            foreach ( StructDeclarationNode declaration in node.Structs )
-            {
-                Compile( declaration );
-            }
-        }
-
-        if ( node.Functions != null )
-        {
-            foreach ( FunctionDeclarationNode declaration in node.Functions )
-            {
-                Compile( declaration );
-            }
-        }
-
-        if ( node.ClassInstances != null )
-        {
-            foreach ( ClassInstanceDeclarationNode declaration in node.ClassInstances )
-            {
-                Compile( declaration );
-            }
-        }
-
-        if ( node.Variables != null )
-        {
-            foreach ( VariableDeclarationNode declaration in node.Variables )
-            {
-                Compile( declaration );
-            }
-        }
-
-        if ( node.Statements != null )
-        {
-            foreach ( StatementNode declaration in node.Statements )
-            {
-                Compile( declaration );
-            }
-        }
-        EmitByteCode( SrslVmOpCodes.OpExitBlock );
-        m_CurrentEnterBlockCount--;
-        return null;
-    }
-
-    public override object Visit( ClassDeclarationNode node )
-    {
-        int d = 0;
-        ClassSymbol symbol = (ClassSymbol)node.AstScopeNode.resolve( node.ClassId.Id ,out int moduleId, ref d);
-        m_CurrentClassName = symbol.QualifiedName;
-        Chunk saveChunk = m_CompilingChunk;
-        if ( CompilingChunks.ContainsKey(m_CurrentClassName ) )
-        {
-            m_CompilingChunk = CompilingChunks[m_CurrentClassName];
-        }
-        else
-        {
-            EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName) );
-            //EmitByteCode( symbol.InsertionOrderNumber );
-            m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( m_CurrentClassName, m_CompilingChunk);
-        }
-        
-        foreach ( FieldSymbol field in symbol.Fields )
-        {
-            if ( field.DefinitionNode != null && field.DefinitionNode is VariableDeclarationNode variableDeclarationNode )
-            {
-                Compile( variableDeclarationNode );
-            }
-            else if ( field.DefinitionNode != null && field.DefinitionNode is ClassInstanceDeclarationNode classInstance )
-            {
-                Compile( classInstance );
-            }
-            else
-            {
-                
-                EmitByteCode( SrslVmOpCodes.OpDefineLocalVar );
-                
-                //EmitByteCode( field.Type );
-            }
-        }
-        
-        foreach ( MethodSymbol method in symbol.DefinedMethods )
-        {
-            if ( method.DefNode != null )
-            {
-                Compile( method.DefNode );
-            }
-            else
-            {
-                EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue(method.QualifiedName) );
-                //EmitByteCode( method.InsertionOrderNumber );
-            }
-        }
-        m_CompilingChunk = saveChunk;
-        return null;
-    }
-
-    public override object Visit( FunctionDeclarationNode node )
-    {
-        Chunk saveChunk = m_CompilingChunk;
-        int d = 0;
-        FunctionSymbol symbol = node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref d ) as FunctionSymbol;
-        if ( CompilingChunks.ContainsKey( symbol.QualifiedName ) )
-        {
-            m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
-        }
-        else
-        {
-            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName) );
-            //EmitByteCode( symbol.InsertionOrderNumber );
-            m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( symbol.QualifiedName, m_CompilingChunk);
-        }
-        /*if ( node.Parameters != null )
-        {
-            foreach ( Identifier parametersIdentifier in node.Parameters.Identifiers )
-            {
-                EmitByteCode( SrslVmOpCodes.OpDefineLocalVar, parametersIdentifier.Id );
-            }
-        }*/
-
-        if ( node.FunctionBlock != null )
-        {
-            Compile( node.FunctionBlock );
-        }
-
-        m_CompilingChunk = saveChunk;
-        return null;
-    }
-
-    public override object Visit( VariableDeclarationNode node )
-    {
-        int d = 0;
-        DynamicVariable variableSymbol = node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d) as DynamicVariable;
-
-
-        if ( node.Initializer != null )
-        {
-            Compile( node.Initializer );
-            EmitByteCode( SrslVmOpCodes.OpDefineLocalVar );
-
-        }
-        else
-        {
-            EmitByteCode( SrslVmOpCodes.OpDeclareLocalVar );
-        }
-        return null;
-    }
-
-    public override object Visit( ClassInstanceDeclarationNode node )
-    {
-        int d = 0;
-        DynamicVariable variableSymbol = node.AstScopeNode.resolve( node.InstanceId.Id, out int moduleId, ref d ) as DynamicVariable;
-        int d2 = 0;
-        ClassSymbol classSymbol = node.AstScopeNode.resolve( node.ClassName.Id, out int moduleId2, ref d2 ) as ClassSymbol;
-        if ( node.IsVariableRedeclaration )
-        {
-            ByteCode byteCode = new ByteCode(
-                SrslVmOpCodes.OpSetLocalInstance,
-                moduleId,
-                d,
-                variableSymbol.InsertionOrderNumber,
-                moduleId2,
-                d2,
-                classSymbol.InsertionOrderNumber,
-            classSymbol.NumberOfSymbols);
-            
-            EmitByteCode( byteCode );
-        }
-        else
-        {
-            ByteCode byteCode = new ByteCode(
-                SrslVmOpCodes.OpDefineLocalInstance,
-                moduleId2,
-                d2,
-                classSymbol.InsertionOrderNumber, 
-                classSymbol.NumberOfSymbols);
-            
-            EmitByteCode( byteCode );
-        }
-        
-        return null;
-    }
-
-    public override object Visit( CallNode node )
-    {
-        if ( node.Arguments != null && node.Arguments.Expressions != null )
-        {
-            foreach ( ExpressionNode argumentsExpression in node.Arguments.Expressions )
-            {
-                Compile( argumentsExpression );
-            }
-            ByteCode byteCode = new ByteCode(
-                SrslVmOpCodes.OpBindToFunction,
-                node.Arguments.Expressions.Count);
-            
-            EmitByteCode( byteCode );
-        }
-        
-        if ( node.ElementAccess != null )
-        {
-            foreach ( CallElementEntry callElementEntry in node.ElementAccess )
-            {
-                if ( callElementEntry.CallElementType == CallElementTypes.Call )
-                {
-                    Compile( callElementEntry.Call );
-                }
-                else
-                {
-                    EmitConstant( new ConstantValue(callElementEntry.Identifier) );
-                }
-            }
-            ByteCode byteCode = new ByteCode(
-                SrslVmOpCodes.OpElementAccess,
-                node.ElementAccess.Count);
-            EmitByteCode( byteCode );
-        }
-        
-        if ( node.IsFunctionCall )
-        {
-            //EmitByteCode( SrslVmOpCodes.OpCallFunction );
-            int d = 0;
-            FunctionSymbol functionSymbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d) as FunctionSymbol;
-            EmitByteCode( SrslVmOpCodes.OpCallFunction, new ConstantValue(functionSymbol.QualifiedName) );
-        }
-        else
-        {
-            if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
-            {
-                if ( m_IsCompilingAssignmentLhs && (node.CallEntries == null || node.CallEntries.Count == 0) )
-                {
-                    BeginConstuctingByteCodeInstruction( SrslVmOpCodes.OpSetLocalVar );
-                    Compile( node.Primary );
-                }
-                else
-                {
-                    int d = 0;
-                    Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
-                    if ( var is ModuleSymbol m )
-                    {
-                        BeginConstuctingByteCodeInstruction( SrslVmOpCodes.OpGetModule );
-                        AddToConstuctingByteCodeInstruction( m.InsertionOrderNumber );
-                        EndConstuctingByteCodeInstruction();
-                    }
-                    else
-                    {
-                        BeginConstuctingByteCodeInstruction( SrslVmOpCodes.OpGetLocalVar );
-                        Compile( node.Primary );
-                    }
-                   
-                }
-                
-            }
-            else
-            {
-                Compile( node.Primary );
-            }
-           
-        }
-        
-        if ( node.CallEntries != null )
-        {
-            int i = 0;
-            int d = 0;
             int d2 = 0;
-            bool isModuleSymbol = false;
-            Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
-            ModuleSymbol moduleSymbol = null;
-            ClassSymbol classSymbol = null;
-            if ( var is ModuleSymbol m )
+            ClassSymbol c = m.resolve( "Object", out int moduleId2, ref d2 ) as ClassSymbol;
+            EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue("System.Object") );
+            //EmitByteCode( symbol.InsertionOrderNumber );
+            m_CompilingChunk = new Chunk();
+            CompilingChunks.Add( "System.Object", m_CompilingChunk);
+            m_CompilingChunk = saveChunk2;
+
+            int d4 = 0;
+            MethodSymbol method = m.resolve( "Print", out int moduleId4, ref d4 ) as MethodSymbol;
+            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue("System.Print") );
+            //EmitByteCode( symbol.InsertionOrderNumber );
+            m_CompilingChunk = new Chunk();
+            CompilingChunks.Add( "System.Print", m_CompilingChunk);
+            m_CompilingChunk = saveChunk2;
+
+            int d5 = 0;
+            MethodSymbol method2 = m.resolve( "CSharpInterfaceCall", out int moduleId5, ref d5 ) as MethodSymbol;
+            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue("System.CSharpInterfaceCall") );
+            //EmitByteCode( symbol.InsertionOrderNumber );
+            m_CompilingChunk = new Chunk();
+            CompilingChunks.Add( "System.CSharpInterfaceCall", m_CompilingChunk);
+            m_CompilingChunk = saveChunk2;
+
+            int d3 = 0;
+            ClassSymbol c2 = m.resolve( "CSharpInterface", out int moduleId3, ref d3 ) as ClassSymbol;
+            EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue("System.CSharpInterface") );*/
+            //EmitByteCode( symbol.InsertionOrderNumber );
+            int d = 0;
+            ModuleSymbol m = node.AstScopeNode.resolve("System", out int moduleId, ref d) as ModuleSymbol;
+
+            int d2 = 0;
+            ClassSymbol c = m.resolve("Object", out int moduleId2, ref d2) as ClassSymbol;
+
+            m_CompilingChunk = new Chunk();
+
+            ByteCode byteCode = new ByteCode(SrslVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber);
+            EmitByteCode(byteCode);
+            EmitByteCode(byteCode);
+            EmitByteCode(byteCode);
+            EmitByteCode(byteCode);
+
+            CompilingChunks.Add("System.CSharpInterface", m_CompilingChunk);
+
+            m_CompilingChunk = saveChunk1;
+
+
+            foreach (KeyValuePair<string, ModuleNode> module in node.ModuleNodes)
             {
-                moduleSymbol = m;
-                isModuleSymbol = true;
+                //ModuleSymbol moduleSymbol = m_SymbolTableBuilder.CurrentScope.resolve( module.Key ) as ModuleSymbol;
+
+                if (module.Key != node.MainModule)
+                {
+                    Compile(module.Value);
+                }
+            }
+
+            if (node.ModuleNodes.ContainsKey(node.MainModule))
+            {
+                Compile(node.ModuleNodes[node.MainModule]);
             }
             else
             {
-                classSymbol = node.AstScopeNode.resolve( (var as DynamicVariable).Type.Name, out int moduleId2,  ref d2) as ClassSymbol;
+                throw new Exception("Main Module: " + node.MainModule + " not found!");
             }
-            
-            //DynamicVariable dynamicVariable = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d) as DynamicVariable;
-            
-            foreach ( CallEntry terminalNode in node.CallEntries )
+
+            return null;
+        }
+
+        public override object Visit(ModuleNode node)
+        {
+            m_CurrentModuleName = node.ModuleIdent.ToString();
+            Chunk saveChunk = m_CompilingChunk;
+            int d = 0;
+            ModuleSymbol mod = SymbolTableBuilder.CurrentScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
+            if (CompilingChunks.ContainsKey(m_CurrentModuleName))
             {
-                
-                if ( terminalNode.Arguments != null && terminalNode.Arguments.Expressions != null )
+                m_CompilingChunk = CompilingChunks[m_CurrentModuleName];
+            }
+            else
+            {
+                CurrentChunk().
+                    WriteToChunk(
+                        SrslVmOpCodes.OpDefineModule,
+                        new ConstantValue(m_CurrentModuleName),
+                        mod.NumberOfSymbols,
+                        0);
+                m_CompilingChunk = new Chunk();
+                CompilingChunks.Add(m_CurrentModuleName, m_CompilingChunk);
+            }
+
+            /*foreach ( ModuleIdentifier importedModule in node.ImportedModules )
+            {
+                EmitByteCode( SrslVmOpCodes.OpImportModule, importedModule.ToString(), importedModule.DebugInfoAstNode.LineNumber );
+            }*/
+
+            foreach (StatementNode statement in node.Statements)
+            {
+                if (statement is ClassDeclarationNode classDeclarationNode)
                 {
-                    foreach ( ExpressionNode argumentsExpression in terminalNode.Arguments.Expressions )
-                    {
-                        Compile( argumentsExpression );
-                    }
-                    ByteCode byteCode = new ByteCode(
-                        SrslVmOpCodes.OpBindToFunction,
-                        terminalNode.Arguments.Expressions.Count);
-                    
-                    EmitByteCode( byteCode );
+                    Compile(classDeclarationNode);
                 }
-                
-                if ( terminalNode.ElementAccess != null )
+                else if (statement is StructDeclarationNode structDeclaration)
                 {
-                    foreach ( CallElementEntry callElementEntry in terminalNode.ElementAccess )
+                    Compile(structDeclaration);
+                }
+                else if (statement is FunctionDeclarationNode functionDeclarationNode)
+                {
+                    Compile(functionDeclarationNode);
+                }
+                else if (statement is VariableDeclarationNode variable)
+                {
+                    Compile(variable);
+                }
+                else if (statement is ClassInstanceDeclarationNode classInstance)
+                {
+                    Compile(classInstance);
+                }
+                else if (statement is StatementNode stat)
+                {
+                    Compile(stat);
+                }
+            }
+            m_CompilingChunk = saveChunk;
+            return null;
+        }
+
+        public override object Visit(ModifiersNode node)
+        {
+            return null;
+        }
+
+        public override object Visit(DeclarationNode node)
+        {
+            return null;
+        }
+
+        public override object Visit(UsingStatementNode node)
+        {
+            EmitByteCode(SrslVmOpCodes.OpUsingStatmentHeader);
+            Compile(node.UsingNode);
+            EmitByteCode(SrslVmOpCodes.OpUsingStatmentBody);
+            Compile(node.UsingBlock);
+
+            return null;
+        }
+
+        public override object Visit(DeclarationsNode node)
+        {
+            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
+
+            m_CurrentEnterBlockCount++;
+            if (node.Classes != null)
+            {
+                foreach (ClassDeclarationNode declaration in node.Classes)
+                {
+                    Compile(declaration);
+                }
+            }
+
+            if (node.Structs != null)
+            {
+                foreach (StructDeclarationNode declaration in node.Structs)
+                {
+                    Compile(declaration);
+                }
+            }
+
+            if (node.Functions != null)
+            {
+                foreach (FunctionDeclarationNode declaration in node.Functions)
+                {
+                    Compile(declaration);
+                }
+            }
+
+            if (node.ClassInstances != null)
+            {
+                foreach (ClassInstanceDeclarationNode declaration in node.ClassInstances)
+                {
+                    Compile(declaration);
+                }
+            }
+
+            if (node.Variables != null)
+            {
+                foreach (VariableDeclarationNode declaration in node.Variables)
+                {
+                    Compile(declaration);
+                }
+            }
+
+            if (node.Statements != null)
+            {
+                foreach (StatementNode declaration in node.Statements)
+                {
+                    Compile(declaration);
+                }
+            }
+            EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            m_CurrentEnterBlockCount--;
+            return null;
+        }
+
+        public override object Visit(ClassDeclarationNode node)
+        {
+            int d = 0;
+            ClassSymbol symbol = (ClassSymbol)node.AstScopeNode.resolve(node.ClassId.Id, out int moduleId, ref d);
+            m_CurrentClassName = symbol.QualifiedName;
+            Chunk saveChunk = m_CompilingChunk;
+            if (CompilingChunks.ContainsKey(m_CurrentClassName))
+            {
+                m_CompilingChunk = CompilingChunks[m_CurrentClassName];
+            }
+            else
+            {
+                EmitByteCode(SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
+                //EmitByteCode( symbol.InsertionOrderNumber );
+                m_CompilingChunk = new Chunk();
+                CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
+            }
+
+            foreach (FieldSymbol field in symbol.Fields)
+            {
+                if (field.DefinitionNode != null && field.DefinitionNode is VariableDeclarationNode variableDeclarationNode)
+                {
+                    Compile(variableDeclarationNode);
+                }
+                else if (field.DefinitionNode != null && field.DefinitionNode is ClassInstanceDeclarationNode classInstance)
+                {
+                    Compile(classInstance);
+                }
+                else
+                {
+
+                    EmitByteCode(SrslVmOpCodes.OpDefineLocalVar);
+
+                    //EmitByteCode( field.Type );
+                }
+            }
+
+            foreach (MethodSymbol method in symbol.DefinedMethods)
+            {
+                if (method.DefNode != null)
+                {
+                    Compile(method.DefNode);
+                }
+                else
+                {
+                    EmitByteCode(SrslVmOpCodes.OpDefineMethod, new ConstantValue(method.QualifiedName));
+                    //EmitByteCode( method.InsertionOrderNumber );
+                }
+            }
+            m_CompilingChunk = saveChunk;
+            return null;
+        }
+
+        public override object Visit(FunctionDeclarationNode node)
+        {
+            Chunk saveChunk = m_CompilingChunk;
+            int d = 0;
+            FunctionSymbol symbol = node.AstScopeNode.resolve(node.FunctionId.Id, out int moduleId, ref d) as FunctionSymbol;
+            if (CompilingChunks.ContainsKey(symbol.QualifiedName))
+            {
+                m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
+            }
+            else
+            {
+                EmitByteCode(SrslVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
+                //EmitByteCode( symbol.InsertionOrderNumber );
+                m_CompilingChunk = new Chunk();
+                CompilingChunks.Add(symbol.QualifiedName, m_CompilingChunk);
+            }
+            /*if ( node.Parameters != null )
+            {
+                foreach ( Identifier parametersIdentifier in node.Parameters.Identifiers )
+                {
+                    EmitByteCode( SrslVmOpCodes.OpDefineLocalVar, parametersIdentifier.Id );
+                }
+            }*/
+
+            if (node.FunctionBlock != null)
+            {
+                Compile(node.FunctionBlock);
+            }
+
+            m_CompilingChunk = saveChunk;
+            return null;
+        }
+
+        public override object Visit(VariableDeclarationNode node)
+        {
+            int d = 0;
+            DynamicVariable variableSymbol = node.AstScopeNode.resolve(node.VarId.Id, out int moduleId, ref d) as DynamicVariable;
+
+
+            if (node.Initializer != null)
+            {
+                Compile(node.Initializer);
+                EmitByteCode(SrslVmOpCodes.OpDefineLocalVar);
+
+            }
+            else
+            {
+                EmitByteCode(SrslVmOpCodes.OpDeclareLocalVar);
+            }
+            return null;
+        }
+
+        public override object Visit(ClassInstanceDeclarationNode node)
+        {
+            int d = 0;
+            DynamicVariable variableSymbol = node.AstScopeNode.resolve(node.InstanceId.Id, out int moduleId, ref d) as DynamicVariable;
+            int d2 = 0;
+            ClassSymbol classSymbol = node.AstScopeNode.resolve(node.ClassName.Id, out int moduleId2, ref d2) as ClassSymbol;
+            if (node.IsVariableRedeclaration)
+            {
+                ByteCode byteCode = new ByteCode(
+                    SrslVmOpCodes.OpSetLocalInstance,
+                    moduleId,
+                    d,
+                    variableSymbol.InsertionOrderNumber,
+                    moduleId2,
+                    d2,
+                    classSymbol.InsertionOrderNumber,
+                classSymbol.NumberOfSymbols);
+
+                EmitByteCode(byteCode);
+            }
+            else
+            {
+                ByteCode byteCode = new ByteCode(
+                    SrslVmOpCodes.OpDefineLocalInstance,
+                    moduleId2,
+                    d2,
+                    classSymbol.InsertionOrderNumber,
+                    classSymbol.NumberOfSymbols);
+
+                EmitByteCode(byteCode);
+            }
+
+            return null;
+        }
+
+        public override object Visit(CallNode node)
+        {
+            if (node.Arguments != null && node.Arguments.Expressions != null)
+            {
+                foreach (ExpressionNode argumentsExpression in node.Arguments.Expressions)
+                {
+                    Compile(argumentsExpression);
+                }
+                ByteCode byteCode = new ByteCode(
+                    SrslVmOpCodes.OpBindToFunction,
+                    node.Arguments.Expressions.Count);
+
+                EmitByteCode(byteCode);
+            }
+
+            if (node.ElementAccess != null)
+            {
+                foreach (CallElementEntry callElementEntry in node.ElementAccess)
+                {
+                    if (callElementEntry.CallElementType == CallElementTypes.Call)
                     {
-                        if ( callElementEntry.CallElementType == CallElementTypes.Call )
+                        Compile(callElementEntry.Call);
+                    }
+                    else
+                    {
+                        EmitConstant(new ConstantValue(callElementEntry.Identifier));
+                    }
+                }
+                ByteCode byteCode = new ByteCode(
+                    SrslVmOpCodes.OpElementAccess,
+                    node.ElementAccess.Count);
+                EmitByteCode(byteCode);
+            }
+
+            if (node.IsFunctionCall)
+            {
+                //EmitByteCode( SrslVmOpCodes.OpCallFunction );
+                int d = 0;
+                FunctionSymbol functionSymbol = node.AstScopeNode.resolve(node.Primary.PrimaryId.Id, out int moduleId, ref d) as FunctionSymbol;
+                EmitByteCode(SrslVmOpCodes.OpCallFunction, new ConstantValue(functionSymbol.QualifiedName));
+            }
+            else
+            {
+                if (node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier)
+                {
+                    if (m_IsCompilingAssignmentLhs && (node.CallEntries == null || node.CallEntries.Count == 0))
+                    {
+                        BeginConstuctingByteCodeInstruction(SrslVmOpCodes.OpSetLocalVar);
+                        Compile(node.Primary);
+                    }
+                    else
+                    {
+                        int d = 0;
+                        Symbol var = node.AstScopeNode.resolve(node.Primary.PrimaryId.Id, out int moduleId, ref d);
+                        if (var is ModuleSymbol m)
                         {
-                            Compile( callElementEntry.Call );
+                            BeginConstuctingByteCodeInstruction(SrslVmOpCodes.OpGetModule);
+                            AddToConstuctingByteCodeInstruction(m.InsertionOrderNumber);
+                            EndConstuctingByteCodeInstruction();
                         }
                         else
                         {
-                            EmitConstant( new ConstantValue(callElementEntry.Identifier) );
+                            BeginConstuctingByteCodeInstruction(SrslVmOpCodes.OpGetLocalVar);
+                            Compile(node.Primary);
                         }
+
                     }
-                    ByteCode byteCode = new ByteCode(
-                        SrslVmOpCodes.OpElementAccess,
-                        terminalNode.ElementAccess.Count);
 
-                    EmitByteCode( byteCode );
                 }
-                
-                if ( terminalNode.IsFunctionCall )
+                else
                 {
-                    if ( isModuleSymbol )
-                    {
-                        int d4 = 0;
-                        FunctionSymbol memberSymbol = moduleSymbol.resolve(
-                            terminalNode.Primary.PrimaryId.Id,
-                            out int moduleId4,
-                            ref d4 ) as FunctionSymbol;
+                    Compile(node.Primary);
+                }
 
-                        if ( memberSymbol == null )
+            }
+
+            if (node.CallEntries != null)
+            {
+                int i = 0;
+                int d = 0;
+                int d2 = 0;
+                bool isModuleSymbol = false;
+                Symbol var = node.AstScopeNode.resolve(node.Primary.PrimaryId.Id, out int moduleId, ref d);
+                ModuleSymbol moduleSymbol = null;
+                ClassSymbol classSymbol = null;
+                if (var is ModuleSymbol m)
+                {
+                    moduleSymbol = m;
+                    isModuleSymbol = true;
+                }
+                else
+                {
+                    classSymbol = node.AstScopeNode.resolve((var as DynamicVariable).Type.Name, out int moduleId2, ref d2) as ClassSymbol;
+                }
+
+                //DynamicVariable dynamicVariable = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d) as DynamicVariable;
+
+                foreach (CallEntry terminalNode in node.CallEntries)
+                {
+
+                    if (terminalNode.Arguments != null && terminalNode.Arguments.Expressions != null)
+                    {
+                        foreach (ExpressionNode argumentsExpression in terminalNode.Arguments.Expressions)
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id) );
+                            Compile(argumentsExpression);
+                        }
+                        ByteCode byteCode = new ByteCode(
+                            SrslVmOpCodes.OpBindToFunction,
+                            terminalNode.Arguments.Expressions.Count);
+
+                        EmitByteCode(byteCode);
+                    }
+
+                    if (terminalNode.ElementAccess != null)
+                    {
+                        foreach (CallElementEntry callElementEntry in terminalNode.ElementAccess)
+                        {
+                            if (callElementEntry.CallElementType == CallElementTypes.Call)
+                            {
+                                Compile(callElementEntry.Call);
+                            }
+                            else
+                            {
+                                EmitConstant(new ConstantValue(callElementEntry.Identifier));
+                            }
+                        }
+                        ByteCode byteCode = new ByteCode(
+                            SrslVmOpCodes.OpElementAccess,
+                            terminalNode.ElementAccess.Count);
+
+                        EmitByteCode(byteCode);
+                    }
+
+                    if (terminalNode.IsFunctionCall)
+                    {
+                        if (isModuleSymbol)
+                        {
+                            int d4 = 0;
+                            FunctionSymbol memberSymbol = moduleSymbol.resolve(
+                                terminalNode.Primary.PrimaryId.Id,
+                                out int moduleId4,
+                                ref d4) as FunctionSymbol;
+
+                            if (memberSymbol == null)
+                            {
+                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                            }
+                            else
+                            {
+                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
+                            }
+
                         }
                         else
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName) );
+                            int d4 = 0;
+                            FunctionSymbol memberSymbol = classSymbol.resolve(
+                                terminalNode.Primary.PrimaryId.Id,
+                                out int moduleId4,
+                                ref d4) as FunctionSymbol;
+
+                            if (memberSymbol == null)
+                            {
+                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                            }
+                            else
+                            {
+                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
+                            }
+
                         }
 
                     }
                     else
                     {
-                        int d4 = 0;
-                        FunctionSymbol memberSymbol = classSymbol.resolve(
-                            terminalNode.Primary.PrimaryId.Id,
-                            out int moduleId4,
-                            ref d4 ) as FunctionSymbol;
-
-                        if ( memberSymbol == null )
+                        if (terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier)
                         {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id) );
-                        }
-                        else
-                        {
-                            EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName) );
-                        }
-
-                    }
-                    
-                }
-                else
-                {
-                    if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
-                    {
-                        if ( m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1 )
-                        {
-                            if ( isModuleSymbol )
+                            if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1)
                             {
-                                int d4 = 0;
+                                if (isModuleSymbol)
+                                {
+                                    int d4 = 0;
 
-                                Symbol memberSymbol = moduleSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
-                                    out int moduleId4,
-                                    ref d4 );
-                            
-                                ByteCode byteCode = new ByteCode(
-                                    SrslVmOpCodes.OpSetMember,
-                                    memberSymbol.InsertionOrderNumber);
-                                EmitByteCode( byteCode );
+                                    Symbol memberSymbol = moduleSymbol.resolve(
+                                        terminalNode.Primary.PrimaryId.Id,
+                                        out int moduleId4,
+                                        ref d4);
 
+                                    ByteCode byteCode = new ByteCode(
+                                        SrslVmOpCodes.OpSetMember,
+                                        memberSymbol.InsertionOrderNumber);
+                                    EmitByteCode(byteCode);
+
+                                }
+                                else
+                                {
+                                    int d4 = 0;
+
+                                    Symbol memberSymbol = classSymbol.resolve(
+                                        terminalNode.Primary.PrimaryId.Id,
+                                        out int moduleId4,
+                                        ref d4);
+
+                                    ByteCode byteCode = new ByteCode(
+                                        SrslVmOpCodes.OpSetMember,
+                                        memberSymbol.InsertionOrderNumber);
+                                    EmitByteCode(byteCode);
+                                }
                             }
                             else
                             {
-                                int d4 = 0;
+                                if (isModuleSymbol)
+                                {
+                                    int d4 = 0;
 
-                                Symbol memberSymbol = classSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
-                                    out int moduleId4,
-                                    ref d4 );
-                            
-                                ByteCode byteCode = new ByteCode(
-                                    SrslVmOpCodes.OpSetMember,
-                                    memberSymbol.InsertionOrderNumber);
-                                EmitByteCode( byteCode );
+                                    Symbol memberSymbol = moduleSymbol.resolve(
+                                        terminalNode.Primary.PrimaryId.Id,
+                                        out int moduleId4,
+                                        ref d4);
+
+                                    ByteCode byteCode = new ByteCode(
+                                        SrslVmOpCodes.OpGetMember,
+                                        memberSymbol.InsertionOrderNumber);
+                                    EmitByteCode(byteCode);
+
+                                }
+                                else
+                                {
+                                    int d4 = 0;
+
+                                    Symbol memberSymbol = classSymbol.resolve(
+                                        terminalNode.Primary.PrimaryId.Id,
+                                        out int moduleId4,
+                                        ref d4);
+
+                                    ByteCode byteCode = new ByteCode(
+                                        SrslVmOpCodes.OpGetMember,
+                                        memberSymbol.InsertionOrderNumber);
+                                    EmitByteCode(byteCode);
+                                }
+
                             }
-                        }
-                        else
-                        {
-                            if ( isModuleSymbol )
-                            {
-                                int d4 = 0;
-
-                                Symbol memberSymbol = moduleSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
-                                    out int moduleId4,
-                                    ref d4 );
-                
-                                ByteCode byteCode = new ByteCode(
-                                    SrslVmOpCodes.OpGetMember,
-                                    memberSymbol.InsertionOrderNumber);
-                                EmitByteCode( byteCode );
-
-                            }
-                            else
-                            {
-                                int d4 = 0;
-
-                                Symbol memberSymbol = classSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
-                                    out int moduleId4,
-                                    ref d4 );
-                
-                                ByteCode byteCode = new ByteCode(
-                                    SrslVmOpCodes.OpGetMember,
-                                    memberSymbol.InsertionOrderNumber);
-                                EmitByteCode( byteCode );
-                            }
-                            
                         }
                     }
+                    i++;
                 }
-                i++;
             }
+
+            return null;
         }
-
-        return null;
-    }
-    public override object Visit( ArgumentsNode node )
-    {
-
-        return null;
-    }
-
-    public override object Visit( ParametersNode node )
-    {
-
-        return null;
-    }
-
-    public override object Visit( AssignmentNode node )
-    {
-        switch ( node.Type )
+        public override object Visit(ArgumentsNode node)
         {
-            case AssignmentTypes.Assignment:
-                Compile( node.Assignment );
-                m_IsCompilingAssignmentLhs = true;
-                Compile( node.Call );
-                m_IsCompilingAssignmentLhs = false;
-                switch ( node.OperatorType )
-                {
-                    case AssignmentOperatorTypes.Assign:
-                        EmitByteCode( SrslVmOpCodes.OpAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.DivAssign:
-                        EmitByteCode( SrslVmOpCodes.OpDivideAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.MultAssign:
-                        EmitByteCode( SrslVmOpCodes.OpMultiplyAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.PlusAssign:
-                        EmitByteCode( SrslVmOpCodes.OpPlusAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.MinusAssign:
-                        EmitByteCode( SrslVmOpCodes.OpMinusAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.ModuloAssignOperator:
-                        EmitByteCode( SrslVmOpCodes.OpModuloAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.BitwiseAndAssignOperator:
-                        EmitByteCode( SrslVmOpCodes.OpBitwiseAndAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.BitwiseOrAssignOperator:
-                        EmitByteCode( SrslVmOpCodes.OpBitwiseOrAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.BitwiseXorAssignOperator:
-                        EmitByteCode( SrslVmOpCodes.OpBitwiseXorAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator:
-                        EmitByteCode( SrslVmOpCodes.OpBitwiseLeftShiftAssign );
-                        break;
-
-                    case AssignmentOperatorTypes.BitwiseRightShiftAssignOperator:
-                        EmitByteCode( SrslVmOpCodes.OpBitwiseRightShiftAssign );
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-               
-                
-                break;
-
-            case AssignmentTypes.Binary:
-                Compile( node.Binary );
-
-                break;
-
-            case AssignmentTypes.Ternary:
-                Compile( node.Ternary );
-
-                break;
-
-            case AssignmentTypes.Call:
-                Compile( node.Call );
-
-                break;
-
-            case AssignmentTypes.Primary:
-                Compile( node.PrimaryNode );
-
-                break;
-
-            case AssignmentTypes.UnaryPostfix:
-                Compile( node.UnaryPostfix );
-
-                break;
-
-            case AssignmentTypes.UnaryPrefix:
-                Compile( node.UnaryPrefix );
-
-                break;
-
-            default:
-                throw new Exception( "Invalid Type" );
-        }
-
-        return null;
-    }
-
-    public override object Visit( ExpressionNode node )
-    {
-        Compile( node.Assignment );
-
-        return null;
-    }
-
-    public override object Visit( BlockStatementNode node )
-    {
-        Compile( node.Declarations );
-        return null;
-    }
-
-    public override object Visit( StatementNode node )
-    {
-        if ( node is ExpressionStatementNode expressionStatementNode )
-        {
-            Compile( expressionStatementNode );
 
             return null;
         }
 
-        if ( node is ForStatementNode forStatementNode )
+        public override object Visit(ParametersNode node)
         {
-            Compile( forStatementNode );
 
             return null;
         }
 
-        if ( node is IfStatementNode ifStatementNode )
+        public override object Visit(AssignmentNode node)
         {
-            Compile( ifStatementNode );
-
-            return null;
-        }
-
-        if ( node is WhileStatementNode whileStatement )
-        {
-            Compile( whileStatement );
-
-            return null;
-        }
-
-        if ( node is ReturnStatementNode returnStatement )
-        {
-            Compile( returnStatement );
-
-            return null;
-        }
-
-        if ( node is BlockStatementNode blockStatementNode )
-        {
-            Compile( blockStatementNode );
-
-            return null;
-        }
-
-        return null;
-    }
-
-    public override object Visit( ExpressionStatementNode node )
-    {
-        Compile( node.Expression );
-
-        return null;
-    }
-
-    public override object Visit( IfStatementNode node )
-    {
-        Compile( node.Expression );
-        int thenJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
-        Compile( node.ThenBlock );
-        CurrentChunk().Code[thenJump] = new ByteCode( SrslVmOpCodes.OpJumpIfFalse, CurrentChunk().SerializeToBytes().Length );
-
-        return null;
-    }
-
-    public override object Visit( ForStatementNode node )
-    {
-        EmitByteCode( SrslVmOpCodes.OpForLoopHeader );
-        if ( node.VariableDeclaration != null )
-        {
-            Compile( node.VariableDeclaration );
-        }
-
-        if ( node.Expression1 != null )
-        {
-            Compile( node.Expression1 );
-        }
-
-        if ( node.Expression2 != null )
-        {
-            Compile( node.Expression2 );
-        }
-
-        if ( node.ExpressionStatement != null )
-        {
-            Compile( node.ExpressionStatement );
-        }
-        EmitByteCode( SrslVmOpCodes.OpForLoopBody );
-        Compile( node.Block );
-        return null;
-    }
-
-    public override object Visit( WhileStatementNode node )
-    {
-        int jumpCodeWhileBegin = CurrentChunk().SerializeToBytes().Length;
-        Compile( node.Expression );
-        int toFix = EmitByteCode( SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin,0, 0 );
-        Compile( node.WhileBlock );
-        CurrentChunk().Code[toFix] = new ByteCode( SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, CurrentChunk().SerializeToBytes().Length );
-        EmitByteCode( SrslVmOpCodes.OpNone, 0, 0 );
-        EmitByteCode( SrslVmOpCodes.OpNone, 0, 0 );
-        return null;
-    }
-
-    public override object Visit( ReturnStatementNode node )
-    {
-        Compile( node.ExpressionStatement );
-        EmitByteCode( SrslVmOpCodes.OpKeepLastItemOnStack );
-        for ( int i = 0; i < m_CurrentEnterBlockCount; i++ )
-        {
-            EmitByteCode( SrslVmOpCodes.OpExitBlock );
-        }
-        EmitReturn();
-
-        return null;
-    }
-
-    public override object Visit( InitializerNode node )
-    {
-        Compile( node.Expression );
-
-        return null;
-    }
-
-    public override object Visit( BinaryOperationNode node )
-    {
-        dynamic left = Compile( node.LeftOperand );
-        dynamic right = Compile( node.RightOperand );
-
-        while ( left is BinaryOperationNode )
-        {
-            left = Compile( left as BinaryOperationNode );
-        }
-
-        while ( right is BinaryOperationNode )
-        {
-            right = Compile( right as BinaryOperationNode );
-        }
-        
-        switch ( node.Operator )
-        {
-            case BinaryOperationNode.BinaryOperatorType.Plus:
-                EmitByteCode( SrslVmOpCodes.OpAdd );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Minus:
-                EmitByteCode( SrslVmOpCodes.OpSubtract );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Mult:
-                EmitByteCode( SrslVmOpCodes.OpMultiply );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Div:
-                EmitByteCode( SrslVmOpCodes.OpDivide );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Modulo:
-                EmitByteCode( SrslVmOpCodes.OpModulo );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Equal:
-                EmitByteCode( SrslVmOpCodes.OpEqual );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.NotEqual:
-                EmitByteCode( SrslVmOpCodes.OpNotEqual );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Less:
-                EmitByteCode( SrslVmOpCodes.OpSmaller );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.LessOrEqual:
-                EmitByteCode( SrslVmOpCodes.OpSmallerEqual );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Greater:
-                EmitByteCode( SrslVmOpCodes.OpGreater );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.GreaterOrEqual:
-                EmitByteCode( SrslVmOpCodes.OpGreaterEqual );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.And:
-                EmitByteCode( SrslVmOpCodes.OpAnd );
-                break;
-
-            case BinaryOperationNode.BinaryOperatorType.Or:
-                EmitByteCode( SrslVmOpCodes.OpOr );
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        
-        return null;
-    }
-
-    public override object Visit( TernaryOperationNode node )
-    {
-        return null;
-    }
-
-    public override object Visit( PrimaryNode node )
-    {
-        switch ( node.PrimaryType )
-        {
-            case PrimaryNode.PrimaryTypes.Identifier:
+            switch (node.Type)
             {
-                int d = 0;
-                Symbol symbol = node.AstScopeNode.resolve( node.PrimaryId.Id, out int moduleId, ref d);
-                AddToConstuctingByteCodeInstruction( moduleId );
-                AddToConstuctingByteCodeInstruction( d );
+                case AssignmentTypes.Assignment:
+                    Compile(node.Assignment);
+                    m_IsCompilingAssignmentLhs = true;
+                    Compile(node.Call);
+                    m_IsCompilingAssignmentLhs = false;
+                    switch (node.OperatorType)
+                    {
+                        case AssignmentOperatorTypes.Assign:
+                            EmitByteCode(SrslVmOpCodes.OpAssign);
+                            break;
 
-                if ( symbol.SymbolScope is ClassSymbol s)
-                {
-                    AddToConstuctingByteCodeInstruction( s.InsertionOrderNumber );
-                }
-                else
-                {
-                    AddToConstuctingByteCodeInstruction( -1 );
-                }
-                AddToConstuctingByteCodeInstruction( symbol.InsertionOrderNumber );
-                EndConstuctingByteCodeInstruction();
-                return null; 
+                        case AssignmentOperatorTypes.DivAssign:
+                            EmitByteCode(SrslVmOpCodes.OpDivideAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.MultAssign:
+                            EmitByteCode(SrslVmOpCodes.OpMultiplyAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.PlusAssign:
+                            EmitByteCode(SrslVmOpCodes.OpPlusAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.MinusAssign:
+                            EmitByteCode(SrslVmOpCodes.OpMinusAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.ModuloAssignOperator:
+                            EmitByteCode(SrslVmOpCodes.OpModuloAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.BitwiseAndAssignOperator:
+                            EmitByteCode(SrslVmOpCodes.OpBitwiseAndAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.BitwiseOrAssignOperator:
+                            EmitByteCode(SrslVmOpCodes.OpBitwiseOrAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.BitwiseXorAssignOperator:
+                            EmitByteCode(SrslVmOpCodes.OpBitwiseXorAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator:
+                            EmitByteCode(SrslVmOpCodes.OpBitwiseLeftShiftAssign);
+                            break;
+
+                        case AssignmentOperatorTypes.BitwiseRightShiftAssignOperator:
+                            EmitByteCode(SrslVmOpCodes.OpBitwiseRightShiftAssign);
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+
+                    break;
+
+                case AssignmentTypes.Binary:
+                    Compile(node.Binary);
+
+                    break;
+
+                case AssignmentTypes.Ternary:
+                    Compile(node.Ternary);
+
+                    break;
+
+                case AssignmentTypes.Call:
+                    Compile(node.Call);
+
+                    break;
+
+                case AssignmentTypes.Primary:
+                    Compile(node.PrimaryNode);
+
+                    break;
+
+                case AssignmentTypes.UnaryPostfix:
+                    Compile(node.UnaryPostfix);
+
+                    break;
+
+                case AssignmentTypes.UnaryPrefix:
+                    Compile(node.UnaryPrefix);
+
+                    break;
+
+                default:
+                    throw new Exception("Invalid Type");
             }
-                
-            
-            case PrimaryNode.PrimaryTypes.ThisReference:
-                int d2 = 0;
-                Symbol thisSymbol = node.AstScopeNode.resolve( "this", out int moduleId2, ref d2 );
-                AddToConstuctingByteCodeInstruction( moduleId2 );
-                AddToConstuctingByteCodeInstruction( d2 );
-                AddToConstuctingByteCodeInstruction( thisSymbol.InsertionOrderNumber );
-                EndConstuctingByteCodeInstruction();
-                return null;
 
-            case PrimaryNode.PrimaryTypes.BooleanLiteral:
-                EmitConstant(new ConstantValue(node.BooleanLiteral.Value));
-                return null;
-
-            case PrimaryNode.PrimaryTypes.IntegerLiteral:
-                EmitConstant(new ConstantValue(node.IntegerLiteral.Value));
-                return null;
-
-            case PrimaryNode.PrimaryTypes.FloatLiteral:
-                EmitConstant(new ConstantValue(node.FloatLiteral.Value));
-                return null;
-
-            case PrimaryNode.PrimaryTypes.StringLiteral:
-                EmitConstant(new ConstantValue(node.StringLiteral));
-                return null;
-
-            case PrimaryNode.PrimaryTypes.Expression:
-                node.Expression.Accept( this );
-                return null;
-            
-            case PrimaryNode.PrimaryTypes.NullReference:
-                EmitConstant(new ConstantValue(null));
-                return null;
-
-            case PrimaryNode.PrimaryTypes.Default:
-            default:
-                throw new ArgumentOutOfRangeException(
-                    nameof( node.PrimaryType ),
-                    node.PrimaryType,
-                    null );
+            return null;
         }
-    }
 
-    public override object Visit( StructDeclarationNode node )
-    {
-        return null;
-    }
-
-    public override object Visit( UnaryPostfixOperation node )
-    {
-        Compile( node.Primary );
-        switch ( node.Operator )
+        public override object Visit(ExpressionNode node)
         {
-            case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
-                EmitByteCode( SrslVmOpCodes.OpPostfixIncrement );
-                break;
+            Compile(node.Assignment);
 
-            case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
-                EmitByteCode( SrslVmOpCodes.OpPostfixDecrement );
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException();
+            return null;
         }
-        
-        return null;
-    }
 
-    public override object Visit( UnaryPrefixOperation node )
-    {
-        Compile( node.Primary );
-        switch ( node.Operator )
+        public override object Visit(BlockStatementNode node)
         {
-            case UnaryPrefixOperation.UnaryPrefixOperatorType.Plus:
-                EmitByteCode( SrslVmOpCodes.OpAffirm );
-                break;
-
-            case UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment:
-                EmitByteCode( SrslVmOpCodes.OpCompliment );
-                break;
-
-            case UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus:
-                EmitByteCode( SrslVmOpCodes.OpPrefixIncrement );
-                break;
-
-            case UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus:
-                EmitByteCode( SrslVmOpCodes.OpPrefixDecrement );
-                break;
-
-            case UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot:
-                EmitByteCode( SrslVmOpCodes.OpNot );
-                break;
-
-            case UnaryPrefixOperation.UnaryPrefixOperatorType.Negate:
-                EmitByteCode( SrslVmOpCodes.OpNegate );
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException();
+            Compile(node.Declarations);
+            return null;
         }
-        return null;
-    }
 
-    public override object Visit( HeteroAstNode node )
-    {
-        switch ( node )
+        public override object Visit(StatementNode node)
         {
-            case ProgramNode program:
-                return Visit( program );
+            if (node is ExpressionStatementNode expressionStatementNode)
+            {
+                Compile(expressionStatementNode);
 
-            case ModuleNode module:
-                return Visit( module );
-
-            case ClassDeclarationNode classDeclarationNode:
-                return Visit( classDeclarationNode );
-
-            case StructDeclarationNode structDeclaration:
-                return Visit( structDeclaration );
-
-            case FunctionDeclarationNode functionDeclarationNode:
-                return Visit( functionDeclarationNode );
-
-            case VariableDeclarationNode variable:
-                return Visit( variable );
-
-            case ClassInstanceDeclarationNode classInstance:
-                return Visit( classInstance );
-
-            case UsingStatementNode usingStatementNode:
-                return Visit( usingStatementNode );
-
-            case ExpressionStatementNode expressionStatementNode:
-                return Visit( expressionStatementNode );
-
-            case ForStatementNode forStatementNode:
-                return Visit( forStatementNode );
-
-            case WhileStatementNode whileStatement:
-                return Visit( whileStatement );
-
-            case IfStatementNode ifStatementNode:
-                return Visit( ifStatementNode );
-
-            case ReturnStatementNode returnStatement:
-                return Visit( returnStatement );
-
-            case BlockStatementNode blockStatementNode:
-                return Visit( blockStatementNode );
-
-            case AssignmentNode assignmentNode:
-                return Visit( assignmentNode );
-
-            case CallNode callNode:
-                return Visit( callNode );
-
-            case BinaryOperationNode binaryOperation:
-                return Visit( binaryOperation );
-
-            case TernaryOperationNode ternaryOperationNode:
-                return Visit( ternaryOperationNode );
-
-            case PrimaryNode primaryNode:
-                return Visit( primaryNode );
-
-            case DeclarationsNode declarationsNode:
-                return Visit( declarationsNode );
-
-            case UnaryPostfixOperation postfixOperation:
-                return Visit( postfixOperation );
-
-            case UnaryPrefixOperation prefixOperation:
-                return Visit( prefixOperation );
-
-            case StatementNode stat:
-                return Visit( stat );
-
-            case ExpressionNode expression:
-                return Visit( expression );
-
-            case InitializerNode initializerNode:
-                return Visit( initializerNode.Expression );
-
-            default:
                 return null;
-        }
-    }
+            }
 
-    #endregion
-    
-}
+            if (node is ForStatementNode forStatementNode)
+            {
+                Compile(forStatementNode);
+
+                return null;
+            }
+
+            if (node is IfStatementNode ifStatementNode)
+            {
+                Compile(ifStatementNode);
+
+                return null;
+            }
+
+            if (node is WhileStatementNode whileStatement)
+            {
+                Compile(whileStatement);
+
+                return null;
+            }
+
+            if (node is ReturnStatementNode returnStatement)
+            {
+                Compile(returnStatement);
+
+                return null;
+            }
+
+            if (node is BlockStatementNode blockStatementNode)
+            {
+                Compile(blockStatementNode);
+
+                return null;
+            }
+
+            return null;
+        }
+
+        public override object Visit(ExpressionStatementNode node)
+        {
+            Compile(node.Expression);
+
+            return null;
+        }
+
+        public override object Visit(IfStatementNode node)
+        {
+            Compile(node.Expression);
+            int thenJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
+            Compile(node.ThenBlock);
+            CurrentChunk().Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, CurrentChunk().SerializeToBytes().Length);
+
+            return null;
+        }
+
+        public override object Visit(ForStatementNode node)
+        {
+            EmitByteCode(SrslVmOpCodes.OpForLoopHeader);
+            if (node.VariableDeclaration != null)
+            {
+                Compile(node.VariableDeclaration);
+            }
+
+            if (node.Expression1 != null)
+            {
+                Compile(node.Expression1);
+            }
+
+            if (node.Expression2 != null)
+            {
+                Compile(node.Expression2);
+            }
+
+            if (node.ExpressionStatement != null)
+            {
+                Compile(node.ExpressionStatement);
+            }
+            EmitByteCode(SrslVmOpCodes.OpForLoopBody);
+            Compile(node.Block);
+            return null;
+        }
+
+        public override object Visit(WhileStatementNode node)
+        {
+            int jumpCodeWhileBegin = CurrentChunk().SerializeToBytes().Length;
+            Compile(node.Expression);
+            int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
+            Compile(node.WhileBlock);
+            CurrentChunk().Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, CurrentChunk().SerializeToBytes().Length);
+            EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
+            EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
+            return null;
+        }
+
+        public override object Visit(ReturnStatementNode node)
+        {
+            Compile(node.ExpressionStatement);
+            EmitByteCode(SrslVmOpCodes.OpKeepLastItemOnStack);
+            for (int i = 0; i < m_CurrentEnterBlockCount; i++)
+            {
+                EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            }
+            EmitReturn();
+
+            return null;
+        }
+
+        public override object Visit(InitializerNode node)
+        {
+            Compile(node.Expression);
+
+            return null;
+        }
+
+        public override object Visit(BinaryOperationNode node)
+        {
+            dynamic left = Compile(node.LeftOperand);
+            dynamic right = Compile(node.RightOperand);
+
+            while (left is BinaryOperationNode)
+            {
+                left = Compile(left as BinaryOperationNode);
+            }
+
+            while (right is BinaryOperationNode)
+            {
+                right = Compile(right as BinaryOperationNode);
+            }
+
+            switch (node.Operator)
+            {
+                case BinaryOperationNode.BinaryOperatorType.Plus:
+                    EmitByteCode(SrslVmOpCodes.OpAdd);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Minus:
+                    EmitByteCode(SrslVmOpCodes.OpSubtract);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Mult:
+                    EmitByteCode(SrslVmOpCodes.OpMultiply);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Div:
+                    EmitByteCode(SrslVmOpCodes.OpDivide);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Modulo:
+                    EmitByteCode(SrslVmOpCodes.OpModulo);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Equal:
+                    EmitByteCode(SrslVmOpCodes.OpEqual);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.NotEqual:
+                    EmitByteCode(SrslVmOpCodes.OpNotEqual);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Less:
+                    EmitByteCode(SrslVmOpCodes.OpSmaller);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.LessOrEqual:
+                    EmitByteCode(SrslVmOpCodes.OpSmallerEqual);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Greater:
+                    EmitByteCode(SrslVmOpCodes.OpGreater);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.GreaterOrEqual:
+                    EmitByteCode(SrslVmOpCodes.OpGreaterEqual);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.And:
+                    EmitByteCode(SrslVmOpCodes.OpAnd);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.Or:
+                    EmitByteCode(SrslVmOpCodes.OpOr);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return null;
+        }
+
+        public override object Visit(TernaryOperationNode node)
+        {
+            return null;
+        }
+
+        public override object Visit(PrimaryNode node)
+        {
+            switch (node.PrimaryType)
+            {
+                case PrimaryNode.PrimaryTypes.Identifier:
+                    {
+                        int d = 0;
+                        Symbol symbol = node.AstScopeNode.resolve(node.PrimaryId.Id, out int moduleId, ref d);
+                        AddToConstuctingByteCodeInstruction(moduleId);
+                        AddToConstuctingByteCodeInstruction(d);
+
+                        if (symbol.SymbolScope is ClassSymbol s)
+                        {
+                            AddToConstuctingByteCodeInstruction(s.InsertionOrderNumber);
+                        }
+                        else
+                        {
+                            AddToConstuctingByteCodeInstruction(-1);
+                        }
+                        AddToConstuctingByteCodeInstruction(symbol.InsertionOrderNumber);
+                        EndConstuctingByteCodeInstruction();
+                        return null;
+                    }
+
+
+                case PrimaryNode.PrimaryTypes.ThisReference:
+                    int d2 = 0;
+                    Symbol thisSymbol = node.AstScopeNode.resolve("this", out int moduleId2, ref d2);
+                    AddToConstuctingByteCodeInstruction(moduleId2);
+                    AddToConstuctingByteCodeInstruction(d2);
+                    AddToConstuctingByteCodeInstruction(thisSymbol.InsertionOrderNumber);
+                    EndConstuctingByteCodeInstruction();
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.BooleanLiteral:
+                    EmitConstant(new ConstantValue(node.BooleanLiteral.Value));
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.IntegerLiteral:
+                    EmitConstant(new ConstantValue(node.IntegerLiteral.Value));
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.FloatLiteral:
+                    EmitConstant(new ConstantValue(node.FloatLiteral.Value));
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.StringLiteral:
+                    EmitConstant(new ConstantValue(node.StringLiteral));
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.Expression:
+                    node.Expression.Accept(this);
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.NullReference:
+                    EmitConstant(new ConstantValue(null));
+                    return null;
+
+                case PrimaryNode.PrimaryTypes.Default:
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(node.PrimaryType),
+                        node.PrimaryType,
+                        null);
+            }
+        }
+
+        public override object Visit(StructDeclarationNode node)
+        {
+            return null;
+        }
+
+        public override object Visit(UnaryPostfixOperation node)
+        {
+            Compile(node.Primary);
+            switch (node.Operator)
+            {
+                case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
+                    EmitByteCode(SrslVmOpCodes.OpPostfixIncrement);
+                    break;
+
+                case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
+                    EmitByteCode(SrslVmOpCodes.OpPostfixDecrement);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return null;
+        }
+
+        public override object Visit(UnaryPrefixOperation node)
+        {
+            Compile(node.Primary);
+            switch (node.Operator)
+            {
+                case UnaryPrefixOperation.UnaryPrefixOperatorType.Plus:
+                    EmitByteCode(SrslVmOpCodes.OpAffirm);
+                    break;
+
+                case UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment:
+                    EmitByteCode(SrslVmOpCodes.OpCompliment);
+                    break;
+
+                case UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus:
+                    EmitByteCode(SrslVmOpCodes.OpPrefixIncrement);
+                    break;
+
+                case UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus:
+                    EmitByteCode(SrslVmOpCodes.OpPrefixDecrement);
+                    break;
+
+                case UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot:
+                    EmitByteCode(SrslVmOpCodes.OpNot);
+                    break;
+
+                case UnaryPrefixOperation.UnaryPrefixOperatorType.Negate:
+                    EmitByteCode(SrslVmOpCodes.OpNegate);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            return null;
+        }
+
+        public override object Visit(HeteroAstNode node)
+        {
+            switch (node)
+            {
+                case ProgramNode program:
+                    return Visit(program);
+
+                case ModuleNode module:
+                    return Visit(module);
+
+                case ClassDeclarationNode classDeclarationNode:
+                    return Visit(classDeclarationNode);
+
+                case StructDeclarationNode structDeclaration:
+                    return Visit(structDeclaration);
+
+                case FunctionDeclarationNode functionDeclarationNode:
+                    return Visit(functionDeclarationNode);
+
+                case VariableDeclarationNode variable:
+                    return Visit(variable);
+
+                case ClassInstanceDeclarationNode classInstance:
+                    return Visit(classInstance);
+
+                case UsingStatementNode usingStatementNode:
+                    return Visit(usingStatementNode);
+
+                case ExpressionStatementNode expressionStatementNode:
+                    return Visit(expressionStatementNode);
+
+                case ForStatementNode forStatementNode:
+                    return Visit(forStatementNode);
+
+                case WhileStatementNode whileStatement:
+                    return Visit(whileStatement);
+
+                case IfStatementNode ifStatementNode:
+                    return Visit(ifStatementNode);
+
+                case ReturnStatementNode returnStatement:
+                    return Visit(returnStatement);
+
+                case BlockStatementNode blockStatementNode:
+                    return Visit(blockStatementNode);
+
+                case AssignmentNode assignmentNode:
+                    return Visit(assignmentNode);
+
+                case CallNode callNode:
+                    return Visit(callNode);
+
+                case BinaryOperationNode binaryOperation:
+                    return Visit(binaryOperation);
+
+                case TernaryOperationNode ternaryOperationNode:
+                    return Visit(ternaryOperationNode);
+
+                case PrimaryNode primaryNode:
+                    return Visit(primaryNode);
+
+                case DeclarationsNode declarationsNode:
+                    return Visit(declarationsNode);
+
+                case UnaryPostfixOperation postfixOperation:
+                    return Visit(postfixOperation);
+
+                case UnaryPrefixOperation prefixOperation:
+                    return Visit(prefixOperation);
+
+                case StatementNode stat:
+                    return Visit(stat);
+
+                case ExpressionNode expression:
+                    return Visit(expression);
+
+                case InitializerNode initializerNode:
+                    return Visit(initializerNode.Expression);
+
+                default:
+                    return null;
+            }
+        }
+
+        #endregion
+
+    }
 
 }

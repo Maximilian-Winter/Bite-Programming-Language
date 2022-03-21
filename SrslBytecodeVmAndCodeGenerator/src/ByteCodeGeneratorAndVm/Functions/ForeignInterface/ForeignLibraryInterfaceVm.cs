@@ -1,232 +1,232 @@
-﻿using System.Collections.Generic;
+﻿using MemoizeSharp.Ast;
+using System.Collections.Generic;
 using System.Reflection;
-using MemoizeSharp.Ast;
 
 namespace Srsl_Parser.Runtime
 {
 
-public class ForeignLibraryInterfaceVm : ISrslVmCallable
-{
-    #region Public
-
-    public object Call( List < DynamicSrslVariable > arguments )
+    public class ForeignLibraryInterfaceVm : ISrslVmCallable
     {
-        if ( arguments.Count > 0 )
+        #region Public
+
+        public object Call(List<DynamicSrslVariable> arguments)
         {
-            if ( arguments[0].ObjectData is FastMemorySpace fliObject )
+            if (arguments.Count > 0)
             {
-                string typeString = fliObject.Get( -1, 0, -1, 0 ).StringData;
-                if ( !string.IsNullOrEmpty( typeString ) )
+                if (arguments[0].ObjectData is FastMemorySpace fliObject)
                 {
-                    System.Type type = System.Type.GetType( typeString );
-                    DynamicSrslVariable methodString = fliObject.Get( -1, 0, -1, 1 );
-                    if ( methodString.DynamicType == DynamicVariableType.String && !string.IsNullOrEmpty( methodString.StringData ) )
+                    string typeString = fliObject.Get(-1, 0, -1, 0).StringData;
+                    if (!string.IsNullOrEmpty(typeString))
                     {
-                        List < System.Type > argTypes = new List < System.Type >();
-
-                        if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instanceTypes )
+                        System.Type type = System.Type.GetType(typeString);
+                        DynamicSrslVariable methodString = fliObject.Get(-1, 0, -1, 1);
+                        if (methodString.DynamicType == DynamicVariableType.String && !string.IsNullOrEmpty(methodString.StringData))
                         {
-                            foreach (DynamicSrslVariable instanceProperty in instanceTypes.Properties )
+                            List<System.Type> argTypes = new List<System.Type>();
+
+                            if (fliObject.Get("Arguments").ObjectData is FastMemorySpace instanceTypes)
                             {
-                                argTypes.Add( instanceProperty.GetType() );
-                            }
-                        }
-
-                        
-                        MethodInfo method = type.GetMethod( methodString.StringData, argTypes.ToArray() );
-
-                        if ( method != null && method.IsStatic )
-                        {
-                            if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
-                            {
-                                List < object > args = new List < object >();
-
-                                foreach ( DynamicSrslVariable instanceProperty in instance.Properties )
+                                foreach (DynamicSrslVariable instanceProperty in instanceTypes.Properties)
                                 {
-                                    args.Add( instanceProperty.ToObject() );
+                                    argTypes.Add(instanceProperty.GetType());
                                 }
-
-                                return method.Invoke( null, args.ToArray() );
                             }
 
-                            return method.Invoke( null, null );
-                        }
 
-                        if ( method != null && !method.IsStatic )
-                        {
-                            if ( fliObject.Get( "ObjectInstance" ) is object objectInstance )
+                            MethodInfo method = type.GetMethod(methodString.StringData, argTypes.ToArray());
+
+                            if (method != null && method.IsStatic)
                             {
-                                if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
+                                if (fliObject.Get("Arguments").ObjectData is FastMemorySpace instance)
                                 {
-                                    List < object > args = new List < object >();
+                                    List<object> args = new List<object>();
 
-                                    foreach ( DynamicSrslVariable instanceProperty in instance.Properties )
+                                    foreach (DynamicSrslVariable instanceProperty in instance.Properties)
                                     {
-                                        args.Add( instanceProperty.ToObject() );
+                                        args.Add(instanceProperty.ToObject());
                                     }
 
-                                    return method.Invoke( objectInstance, args.ToArray() );
+                                    return method.Invoke(null, args.ToArray());
                                 }
 
-                                return method.Invoke( objectInstance, null );
+                                return method.Invoke(null, null);
+                            }
+
+                            if (method != null && !method.IsStatic)
+                            {
+                                if (fliObject.Get("ObjectInstance") is object objectInstance)
+                                {
+                                    if (fliObject.Get("Arguments").ObjectData is FastMemorySpace instance)
+                                    {
+                                        List<object> args = new List<object>();
+
+                                        foreach (DynamicSrslVariable instanceProperty in instance.Properties)
+                                        {
+                                            args.Add(instanceProperty.ToObject());
+                                        }
+
+                                        return method.Invoke(objectInstance, args.ToArray());
+                                    }
+
+                                    return method.Invoke(objectInstance, null);
+                                }
+                                else
+                                {
+                                    List<System.Type> constructorArgTypes = new List<System.Type>();
+
+                                    if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
+                                    {
+                                        foreach (DynamicSrslVariable instanceProperty in
+                                                 constructorInstanceTypes.Properties)
+                                        {
+                                            constructorArgTypes.Add(instanceProperty.GetType());
+                                        }
+                                    }
+
+                                    List<object> constructorArgs = new List<object>();
+
+                                    if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
+                                    {
+                                        foreach (DynamicSrslVariable instanceProperty in constructorInstance.
+                                                     Properties)
+                                        {
+                                            constructorArgs.Add(instanceProperty.ToObject());
+                                        }
+                                    }
+
+                                    ConstructorInfo constructor = type.GetConstructor(constructorArgTypes.ToArray());
+                                    object classObject = constructor.Invoke(constructorArgs.ToArray());
+                                    fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject));
+
+                                    if (fliObject.Get("Arguments").ObjectData is FastMemorySpace instance)
+                                    {
+                                        List<object> args = new List<object>();
+
+                                        foreach (DynamicSrslVariable instanceProperty in instance.Properties)
+                                        {
+                                            args.Add(instanceProperty.ToObject());
+                                        }
+
+                                        return method.Invoke(classObject, args.ToArray());
+                                    }
+
+                                    return method.Invoke(classObject, null);
+                                }
                             }
                             else
                             {
-                                List < System.Type > constructorArgTypes = new List < System.Type >();
-
-                                if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace constructorInstanceTypes )
+                                if (type.IsSealed && type.IsAbstract)
                                 {
-                                    foreach ( DynamicSrslVariable instanceProperty in
-                                             constructorInstanceTypes.Properties )
+                                    StaticWrapper wrapper = new StaticWrapper(type);
+                                    fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(wrapper));
+
+                                    return wrapper;
+                                }
+                                else
+                                {
+                                    List<System.Type> constructorArgTypes = new List<System.Type>();
+
+                                    if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
                                     {
-                                        constructorArgTypes.Add( instanceProperty.GetType() );
+                                        foreach (DynamicSrslVariable instanceProperty in constructorInstanceTypes.
+                                                     Properties)
+                                        {
+                                            constructorArgTypes.Add(instanceProperty.GetType());
+                                        }
+                                    }
+
+                                    List<object> constructorArgs = new List<object>();
+
+                                    if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
+                                    {
+                                        foreach (DynamicSrslVariable instanceProperty in constructorInstance.
+                                                     Properties)
+                                        {
+                                            constructorArgs.Add(instanceProperty.ToObject());
+                                        }
+                                    }
+
+                                    if (constructorArgs.Count == 0)
+                                    {
+                                        ConstructorInfo constructor = type.GetConstructor(System.Type.EmptyTypes);
+                                        object classObject = constructor.Invoke(new object[] { });
+                                        fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject));
+
+                                        return classObject;
+                                    }
+                                    else
+                                    {
+                                        ConstructorInfo constructor = type.GetConstructor(constructorArgTypes.ToArray());
+                                        object classObject = constructor.Invoke(constructorArgs.ToArray());
+                                        fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject));
+
+                                        return classObject;
                                     }
                                 }
 
-                                List < object > constructorArgs = new List < object >();
-
-                                if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace constructorInstance )
-                                {
-                                    foreach ( DynamicSrslVariable instanceProperty in constructorInstance.
-                                                 Properties )
-                                    {
-                                        constructorArgs.Add( instanceProperty.ToObject() );
-                                    }
-                                }
-
-                                ConstructorInfo constructor = type.GetConstructor( constructorArgTypes.ToArray() );
-                                object classObject = constructor.Invoke( constructorArgs.ToArray() );
-                                fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject) );
-
-                                if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
-                                {
-                                    List < object > args = new List < object >();
-
-                                    foreach ( DynamicSrslVariable instanceProperty in instance.Properties )
-                                    {
-                                        args.Add( instanceProperty.ToObject() );
-                                    }
-
-                                    return method.Invoke( classObject, args.ToArray() );
-                                }
-
-                                return method.Invoke( classObject, null );
                             }
                         }
                         else
                         {
-                            if ( type.IsSealed && type.IsAbstract )
+                            if (type.IsSealed && type.IsAbstract)
                             {
-                                StaticWrapper wrapper = new StaticWrapper( type );
-                                fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(wrapper));
+                                StaticWrapper wrapper = new StaticWrapper(type);
+                                fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(wrapper));
 
                                 return wrapper;
                             }
                             else
                             {
-                                List < System.Type > constructorArgTypes = new List < System.Type >();
+                                List<System.Type> constructorArgTypes = new List<System.Type>();
 
-                                if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace constructorInstanceTypes )
+                                if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
                                 {
-                                    foreach ( DynamicSrslVariable instanceProperty in constructorInstanceTypes.
-                                                 Properties )
+                                    foreach (DynamicSrslVariable instanceProperty in constructorInstanceTypes.
+                                                 Properties)
                                     {
-                                        constructorArgTypes.Add( instanceProperty.GetType() );
+                                        constructorArgTypes.Add(instanceProperty.GetType());
                                     }
                                 }
 
-                                List < object > constructorArgs = new List < object >();
+                                List<object> constructorArgs = new List<object>();
 
-                                if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace constructorInstance )
+                                if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
                                 {
-                                    foreach ( DynamicSrslVariable instanceProperty in constructorInstance.
-                                                 Properties )
+                                    foreach (DynamicSrslVariable instanceProperty in constructorInstance.
+                                                 Properties)
                                     {
-                                        constructorArgs.Add( instanceProperty.ToObject() );
+                                        constructorArgs.Add(instanceProperty.ToObject());
                                     }
                                 }
 
-                                if ( constructorArgs.Count == 0 )
+                                if (constructorArgs.Count == 0)
                                 {
-                                    ConstructorInfo constructor = type.GetConstructor( System.Type.EmptyTypes );
-                                    object classObject = constructor.Invoke( new object[] { } );
-                                    fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject) );
+                                    ConstructorInfo constructor = type.GetConstructor(System.Type.EmptyTypes);
+                                    object classObject = constructor.Invoke(new object[] { });
+                                    fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject));
 
                                     return classObject;
                                 }
                                 else
                                 {
-                                    ConstructorInfo constructor = type.GetConstructor( constructorArgTypes.ToArray() );
-                                    object classObject = constructor.Invoke( constructorArgs.ToArray() );
-                                    fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject) );
+                                    ConstructorInfo constructor = type.GetConstructor(constructorArgTypes.ToArray());
+                                    object classObject = constructor.Invoke(constructorArgs.ToArray());
+                                    fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject));
 
                                     return classObject;
                                 }
                             }
-                            
-                        }
-                    }
-                    else
-                    {
-                        if ( type.IsSealed && type.IsAbstract )
-                        {
-                            StaticWrapper wrapper = new StaticWrapper( type );
-                            fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(wrapper));
-
-                            return wrapper;
-                        }
-                        else
-                        {
-                            List < System.Type > constructorArgTypes = new List < System.Type >();
-
-                            if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace constructorInstanceTypes )
-                            {
-                                foreach ( DynamicSrslVariable instanceProperty in constructorInstanceTypes.
-                                             Properties )
-                                {
-                                    constructorArgTypes.Add( instanceProperty.GetType() );
-                                }
-                            }
-
-                            List < object > constructorArgs = new List < object >();
-
-                            if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace constructorInstance )
-                            {
-                                foreach ( DynamicSrslVariable instanceProperty in constructorInstance.
-                                             Properties )
-                                {
-                                    constructorArgs.Add( instanceProperty.ToObject() );
-                                }
-                            }
-
-                            if ( constructorArgs.Count == 0 )
-                            {
-                                ConstructorInfo constructor = type.GetConstructor( System.Type.EmptyTypes );
-                                object classObject = constructor.Invoke( new object[] { } );
-                                fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject) );
-
-                                return classObject;
-                            }
-                            else
-                            {
-                                ConstructorInfo constructor = type.GetConstructor( constructorArgTypes.ToArray() );
-                                object classObject = constructor.Invoke( constructorArgs.ToArray() );
-                                fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject) );
-
-                                return classObject;
-                            }
                         }
                     }
                 }
+
+                return null;
             }
 
             return null;
         }
 
-        return null;
+        #endregion
     }
-
-    #endregion
-}
 
 }

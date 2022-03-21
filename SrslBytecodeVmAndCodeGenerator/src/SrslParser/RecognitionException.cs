@@ -3,15 +3,15 @@
 namespace Srsl_Parser
 {
 
-public abstract class RecognitionException : Exception
-{
-    #region Public
-
-    public RecognitionException( string msg ) : base( msg )
+    public abstract class RecognitionException : Exception
     {
-    }
+        #region Public
 
-    #endregion
-}
+        public RecognitionException(string msg) : base(msg)
+        {
+        }
+
+        #endregion
+    }
 
 }

@@ -3,9 +3,6 @@ module MainModule;
 import System;
 using System;
 
-import CSharpSystem;
-using CSharpSystem;
-
 
 function FindFibonacciNumber(n)
 {

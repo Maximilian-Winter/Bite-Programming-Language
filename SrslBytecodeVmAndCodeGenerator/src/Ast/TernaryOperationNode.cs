@@ -1,20 +1,20 @@
 namespace MemoizeSharp
 {
 
-public class TernaryOperationNode : ExpressionNode
-{
-    public ExpressionNode LeftOperand;
-    public ExpressionNode MidOperand;
-    public ExpressionNode RightOperand;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class TernaryOperationNode : ExpressionNode
     {
-        return visitor.Visit( this );
-    }
+        public ExpressionNode LeftOperand;
+        public ExpressionNode MidOperand;
+        public ExpressionNode RightOperand;
 
-    #endregion
-}
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

@@ -1,11 +1,11 @@
 ﻿namespace MemoizeSharp
 {
 
-public enum CallElementTypes
-{
-    StringLiteral,
-    IntegerLiteral,
-    Call
-}
+    public enum CallElementTypes
+    {
+        StringLiteral,
+        IntegerLiteral,
+        Call
+    }
 
 }

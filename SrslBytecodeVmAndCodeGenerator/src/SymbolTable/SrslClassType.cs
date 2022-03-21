@@ -3,38 +3,38 @@
 namespace Srsl_Parser.SymbolTable
 {
 
-public class SrslClassType : Type
-{
-    private static readonly List < string > s_SrslClassTypes = new List < string >();
-    private static int s_ClassTypeIndex = 0;
-
-    public string Name { get; }
-
-    public int TypeIndex => s_ClassTypeIndex;
-
-    #region Public
-
-    public SrslClassType( string typeName )
+    public class SrslClassType : Type
     {
-        Name = typeName;
+        private static readonly List<string> s_SrslClassTypes = new List<string>();
+        private static int s_ClassTypeIndex = 0;
 
-        if ( s_SrslClassTypes.Contains( typeName ) )
+        public string Name { get; }
+
+        public int TypeIndex => s_ClassTypeIndex;
+
+        #region Public
+
+        public SrslClassType(string typeName)
         {
-            s_ClassTypeIndex = s_SrslClassTypes.FindIndex( s => s == typeName );
+            Name = typeName;
+
+            if (s_SrslClassTypes.Contains(typeName))
+            {
+                s_ClassTypeIndex = s_SrslClassTypes.FindIndex(s => s == typeName);
+            }
+            else
+            {
+                s_ClassTypeIndex = s_SrslClassTypes.Count;
+                s_SrslClassTypes.Add(typeName);
+            }
         }
-        else
+
+        public override string ToString()
         {
-            s_ClassTypeIndex = s_SrslClassTypes.Count;
-            s_SrslClassTypes.Add( typeName );
+            return $" Type: {Name}";
         }
-    }
 
-    public override string ToString()
-    {
-        return $" Type: {Name}";
+        #endregion
     }
-
-    #endregion
-}
 
 }

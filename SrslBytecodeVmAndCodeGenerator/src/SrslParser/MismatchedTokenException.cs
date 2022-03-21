@@ -1,15 +1,15 @@
 ﻿namespace Srsl_Parser
 {
 
-public class MismatchedTokenException : RecognitionException
-{
-    #region Public
-
-    public MismatchedTokenException( string msg ) : base( msg )
+    public class MismatchedTokenException : RecognitionException
     {
-    }
+        #region Public
 
-    #endregion
-}
+        public MismatchedTokenException(string msg) : base(msg)
+        {
+        }
+
+        #endregion
+    }
 
 }

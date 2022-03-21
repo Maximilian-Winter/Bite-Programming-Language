@@ -1,16 +1,16 @@
 namespace MemoizeSharp
 {
 
-public abstract class DeclarationNode : StatementNode
-{
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public abstract class DeclarationNode : StatementNode
     {
-        return visitor.Visit( this );
-    }
+        #region Public
 
-    #endregion
-}
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

@@ -1,18 +1,18 @@
 namespace MemoizeSharp
 {
 
-public class ExpressionNode : HeteroAstNode
-{
-    public AssignmentNode Assignment;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class ExpressionNode : HeteroAstNode
     {
-        return visitor.Visit( this );
-    }
+        public AssignmentNode Assignment;
 
-    #endregion
-}
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

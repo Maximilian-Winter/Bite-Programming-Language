@@ -1,86 +1,85 @@
-﻿using System;
+﻿using MemoizeSharp;
+using System;
 using System.Collections.Generic;
-using MemoizeSharp;
-using Srsl_Parser.Runtime;
 
 namespace Srsl_Parser.SymbolTable
 {
 
-public class ModuleSymbol :  SymbolWithScope
-{
-    private string m_ModuleName;
-    private List <ModuleIdentifier> m_ImportedModules;
-    private List <ModuleIdentifier> m_UsedModules;
-    public string ScopeName => m_ModuleName + "ModuleSymbol" ;
-    private List <string> m_SearchedModules = new List < string >();
-    public List < ModuleIdentifier > ImportedModules
+    public class ModuleSymbol : SymbolWithScope
     {
-        get => m_ImportedModules;
-    }
-
-    public List < ModuleIdentifier > UsedModules
-    {
-        get => m_UsedModules;
-    }
-
-    public override Symbol resolve( string name, out int moduleid, ref int depth)
-    {
-        if ( symbols.ContainsKey( name ) )
+        private string m_ModuleName;
+        private List<ModuleIdentifier> m_ImportedModules;
+        private List<ModuleIdentifier> m_UsedModules;
+        public string ScopeName => m_ModuleName + "ModuleSymbol";
+        private List<string> m_SearchedModules = new List<string>();
+        public List<ModuleIdentifier> ImportedModules
         {
-            moduleid = InsertionOrderNumber;
-            return symbols[name];
+            get => m_ImportedModules;
         }
 
-        Scope parent = EnclosingScope;
-        depth++;
-        if ( parent != null )
+        public List<ModuleIdentifier> UsedModules
         {
-            Symbol symbol = parent.resolve( name,out moduleid, ref depth );
-            if ( symbol == null )
+            get => m_UsedModules;
+        }
+
+        public override Symbol resolve(string name, out int moduleid, ref int depth)
+        {
+            if (symbols.ContainsKey(name))
             {
-                foreach ( ModuleIdentifier importedModule in UsedModules )
+                moduleid = InsertionOrderNumber;
+                return symbols[name];
+            }
+
+            Scope parent = EnclosingScope;
+            depth++;
+            if (parent != null)
+            {
+                Symbol symbol = parent.resolve(name, out moduleid, ref depth);
+                if (symbol == null)
                 {
-                    if ( !m_SearchedModules.Contains( importedModule.ToString() ) )
+                    foreach (ModuleIdentifier importedModule in UsedModules)
                     {
-                        int i;
-                        int d = 0;
-                        SymbolWithScope module = parent.resolve( importedModule.ToString(), out i, ref d ) as SymbolWithScope;
-
-                        if ( module == null )
+                        if (!m_SearchedModules.Contains(importedModule.ToString()))
                         {
-                            throw new Exception( "Module: " + importedModule + ". Not found in Scope: " + parent.Name );
-                        }
-                        m_SearchedModules.Add( importedModule.ToString() );
-                        symbol = module.resolve( name, out moduleid,ref d );
+                            int i;
+                            int d = 0;
+                            SymbolWithScope module = parent.resolve(importedModule.ToString(), out i, ref d) as SymbolWithScope;
 
-                        if ( symbol != null )
-                        {
-                            m_SearchedModules.Clear();
-                            return symbol;
+                            if (module == null)
+                            {
+                                throw new Exception("Module: " + importedModule + ". Not found in Scope: " + parent.Name);
+                            }
+                            m_SearchedModules.Add(importedModule.ToString());
+                            symbol = module.resolve(name, out moduleid, ref d);
+
+                            if (symbol != null)
+                            {
+                                m_SearchedModules.Clear();
+                                return symbol;
+                            }
+                            depth++;
                         }
-                        depth++;
                     }
                 }
+                depth++;
+                m_SearchedModules.Clear();
+                return symbol;
             }
-            depth++;
             m_SearchedModules.Clear();
-            return symbol;
+            moduleid = -2;
+            return null;
         }
-        m_SearchedModules.Clear();
-        moduleid = -2;
-        return null;
+
+        #region Public
+
+        public ModuleSymbol(string moduleIdentifier, List<ModuleIdentifier> importedModules, List<ModuleIdentifier> usedModules) : base(moduleIdentifier)
+        {
+            m_ModuleName = moduleIdentifier;
+            m_ImportedModules = importedModules;
+            m_UsedModules = usedModules;
+        }
+
+        #endregion
     }
-
-    #region Public
-
-    public ModuleSymbol(string moduleIdentifier, List <ModuleIdentifier> importedModules, List <ModuleIdentifier> usedModules ) : base( moduleIdentifier )
-    {
-        m_ModuleName = moduleIdentifier;
-        m_ImportedModules = importedModules;
-        m_UsedModules = usedModules;
-    }
-
-    #endregion
-}
 
 }

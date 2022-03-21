@@ -1,15 +1,15 @@
 ﻿namespace Srsl_Parser
 {
 
-public class NoViableAltException : RecognitionException
-{
-    #region Public
-
-    public NoViableAltException( string msg ) : base( msg )
+    public class NoViableAltException : RecognitionException
     {
-    }
+        #region Public
 
-    #endregion
-}
+        public NoViableAltException(string msg) : base(msg)
+        {
+        }
+
+        #endregion
+    }
 
 }

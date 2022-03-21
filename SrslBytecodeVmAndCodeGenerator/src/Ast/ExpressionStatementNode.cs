@@ -1,18 +1,18 @@
 namespace MemoizeSharp
 {
 
-public class ExpressionStatementNode : StatementNode
-{
-    public ExpressionNode Expression;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class ExpressionStatementNode : StatementNode
     {
-        return visitor.Visit( this );
-    }
+        public ExpressionNode Expression;
 
-    #endregion
-}
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

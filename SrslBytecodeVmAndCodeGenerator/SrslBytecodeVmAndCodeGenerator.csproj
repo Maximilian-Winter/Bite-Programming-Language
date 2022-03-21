@@ -117,7 +117,6 @@
         <Compile Include="src\ByteCodeGeneratorAndVm\Functions\ISrslVmCallable.cs" />
         <Compile Include="src\ByteCodeGeneratorAndVm\Functions\PrintFunctionVm.cs" />
         <Compile Include="src\ByteCodeGeneratorAndVm\Memory\ConstantValueType.cs" />
-        <Compile Include="src\ByteCodeGeneratorAndVm\Memory\DeepClone.cs" />
         <Compile Include="src\ByteCodeGeneratorAndVm\Memory\DynamicVariableExtension.cs" />
         <Compile Include="src\ByteCodeGeneratorAndVm\Memory\FastClassMemorySpace.cs" />
         <Compile Include="src\ByteCodeGeneratorAndVm\Memory\FastGlobalMemorySpace.cs" />
@@ -169,7 +168,7 @@
     <ItemGroup>
       <Content Include="src\Ast\AstNodes.txt" />
       <Content Include="src\Grammar\SRSL.g4" />
-      <Content Include="src\TestProgram\CSharpSystemModule.srsl" />
+      <Content Include="src\TestProgram\CSharpSystemModule.srsl.bak" />
       <Content Include="src\TestProgram\MainModule.srsl" />
     </ItemGroup>
     <ItemGroup>

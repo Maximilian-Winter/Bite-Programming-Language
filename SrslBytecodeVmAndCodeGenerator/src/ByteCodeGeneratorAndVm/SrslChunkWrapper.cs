@@ -1,25 +1,25 @@
 ﻿namespace Srsl_Parser.Runtime
 {
 
-public class SrslChunkWrapper
-{
-    private BinaryChunk m_ChunkToWrap;
+    public class SrslChunkWrapper
+    {
+        private BinaryChunk m_ChunkToWrap;
 
-    public SrslChunkWrapper()
-    {
-        m_ChunkToWrap = null;
-    }
-    
-    public SrslChunkWrapper( BinaryChunk chunkToWrap )
-    {
-        m_ChunkToWrap = chunkToWrap;
-    }
+        public SrslChunkWrapper()
+        {
+            m_ChunkToWrap = null;
+        }
 
-    public BinaryChunk ChunkToWrap
-    {
-        get => m_ChunkToWrap;
-        set => m_ChunkToWrap = value;
+        public SrslChunkWrapper(BinaryChunk chunkToWrap)
+        {
+            m_ChunkToWrap = chunkToWrap;
+        }
+
+        public BinaryChunk ChunkToWrap
+        {
+            get => m_ChunkToWrap;
+            set => m_ChunkToWrap = value;
+        }
     }
-}
 
 }

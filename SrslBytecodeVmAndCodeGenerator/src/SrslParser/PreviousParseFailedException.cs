@@ -1,15 +1,15 @@
 ﻿namespace Srsl_Parser
 {
 
-public class PreviousParseFailedException : RecognitionException
-{
-    #region Public
-
-    public PreviousParseFailedException() : base( null )
+    public class PreviousParseFailedException : RecognitionException
     {
-    }
+        #region Public
 
-    #endregion
-}
+        public PreviousParseFailedException() : base(null)
+        {
+        }
+
+        #endregion
+    }
 
 }

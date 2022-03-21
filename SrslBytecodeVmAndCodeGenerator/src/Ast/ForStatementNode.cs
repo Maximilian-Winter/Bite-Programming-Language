@@ -1,23 +1,23 @@
 namespace MemoizeSharp
 {
 
-public class ForStatementNode : StatementNode
-{
-    public VariableDeclarationNode VariableDeclaration;
-    public ExpressionStatementNode ExpressionStatement;
-    public ExpressionNode Expression1;
-    public ExpressionNode Expression2;
-
-    public BlockStatementNode Block;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class ForStatementNode : StatementNode
     {
-        return visitor.Visit( this );
-    }
+        public VariableDeclarationNode VariableDeclaration;
+        public ExpressionStatementNode ExpressionStatement;
+        public ExpressionNode Expression1;
+        public ExpressionNode Expression2;
 
-    #endregion
-}
+        public BlockStatementNode Block;
+
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

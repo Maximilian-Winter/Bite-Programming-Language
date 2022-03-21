@@ -3,229 +3,229 @@
 namespace Srsl_Parser.Runtime
 {
 
-public class FastMemorySpace
-{
-    public FastMemorySpace m_EnclosingSpace;
-    public Dictionary < string, DynamicSrslVariable > NamesToProperties = new Dictionary < string, DynamicSrslVariable >();
-    public DynamicSrslVariable[] Properties ;
-    public string Name;
-    public int StackCountAtBegin = 0;
-
-    private int currentMemoryPointer = 0;
-    #region Public
-    
-    public BinaryChunk CallerChunk;
-    public int CallerIntructionPointer;
-    public FastMemorySpace( string name, FastMemorySpace enclosingSpace, int stackCount, BinaryChunk callerChunk, int callerInstructionPointer, int memberCount )
+    public class FastMemorySpace
     {
-        CallerChunk = callerChunk;
-        CallerIntructionPointer = callerInstructionPointer;
-        m_EnclosingSpace = enclosingSpace;
-        Name = name;
-        StackCountAtBegin = stackCount;
-        Properties = new DynamicSrslVariable[memberCount];
-    }
+        public FastMemorySpace m_EnclosingSpace;
+        public Dictionary<string, DynamicSrslVariable> NamesToProperties = new Dictionary<string, DynamicSrslVariable>();
+        public DynamicSrslVariable[] Properties;
+        public string Name;
+        public int StackCountAtBegin = 0;
 
-    public void ResetPropertiesArray( int memberCount )
-    {
-        Properties = new DynamicSrslVariable[memberCount];
-        currentMemoryPointer = 0;
-    }
+        private int currentMemoryPointer = 0;
+        #region Public
 
-    public virtual void Define( DynamicSrslVariable value)
-    {
-        Properties[currentMemoryPointer] = value;
-
-        currentMemoryPointer++;
-    }
-    
-    public virtual void Define( DynamicSrslVariable value, string idStr )
-    {
-        Properties[currentMemoryPointer] = value;
-
-        if ( !string.IsNullOrEmpty( idStr ) )
+        public BinaryChunk CallerChunk;
+        public int CallerIntructionPointer;
+        public FastMemorySpace(string name, FastMemorySpace enclosingSpace, int stackCount, BinaryChunk callerChunk, int callerInstructionPointer, int memberCount)
         {
-            NamesToProperties.Add( idStr, Properties[currentMemoryPointer] );
+            CallerChunk = callerChunk;
+            CallerIntructionPointer = callerInstructionPointer;
+            m_EnclosingSpace = enclosingSpace;
+            Name = name;
+            StackCountAtBegin = stackCount;
+            Properties = new DynamicSrslVariable[memberCount];
         }
 
-        currentMemoryPointer++;
-    }
-    
-    public virtual DynamicSrslVariable Get( string idStr, bool calledFromGlobalMemorySpace = false )
-    {
-        if ( NamesToProperties.ContainsKey( idStr ) )
+        public void ResetPropertiesArray(int memberCount)
         {
-            return NamesToProperties[idStr];
+            Properties = new DynamicSrslVariable[memberCount];
+            currentMemoryPointer = 0;
         }
-        
-        if ( m_EnclosingSpace != null && !calledFromGlobalMemorySpace )
+
+        public virtual void Define(DynamicSrslVariable value)
         {
-            return m_EnclosingSpace.Get( idStr );
+            Properties[currentMemoryPointer] = value;
+
+            currentMemoryPointer++;
         }
-        return DynamicVariableExtension.ToDynamicVariable();
-    }
-    
-    public virtual bool Exist( string idStr, bool calledFromGlobalMemorySpace = false )
-    {
-        if ( NamesToProperties.ContainsKey( idStr ) )
+
+        public virtual void Define(DynamicSrslVariable value, string idStr)
         {
-            return true;
-        }
-        
-        if ( m_EnclosingSpace != null && !calledFromGlobalMemorySpace )
-        {
-            return m_EnclosingSpace.Exist( idStr );
-        }
-        return false;
-    }
-    
-    public virtual void Put( string idStr, DynamicSrslVariable value )
-    {
-        if ( NamesToProperties.ContainsKey( idStr ) )
-        {
-            NamesToProperties[idStr] = value;
-            return;
-        }
-        
-        if ( m_EnclosingSpace != null )
-        {
-            m_EnclosingSpace.Put(idStr, value);
-        }
-    }
-    public virtual DynamicSrslVariable Get( int moduleId ,int depth, int classId, int id )
-    {
-        if ( moduleId >= 0 )
-        {
-            FastMemorySpace currentMemorySpace = this;
-            while ( currentMemorySpace.m_EnclosingSpace != null )
+            Properties[currentMemoryPointer] = value;
+
+            if (!string.IsNullOrEmpty(idStr))
             {
-                currentMemorySpace = currentMemorySpace.m_EnclosingSpace;
+                NamesToProperties.Add(idStr, Properties[currentMemoryPointer]);
             }
 
-            if ( currentMemorySpace is FastGlobalMemorySpace fastGlobalMemorySpace )
+            currentMemoryPointer++;
+        }
+
+        public virtual DynamicSrslVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)
+        {
+            if (NamesToProperties.ContainsKey(idStr))
             {
-                if ( classId >= 0 )
+                return NamesToProperties[idStr];
+            }
+
+            if (m_EnclosingSpace != null && !calledFromGlobalMemorySpace)
+            {
+                return m_EnclosingSpace.Get(idStr);
+            }
+            return DynamicVariableExtension.ToDynamicVariable();
+        }
+
+        public virtual bool Exist(string idStr, bool calledFromGlobalMemorySpace = false)
+        {
+            if (NamesToProperties.ContainsKey(idStr))
+            {
+                return true;
+            }
+
+            if (m_EnclosingSpace != null && !calledFromGlobalMemorySpace)
+            {
+                return m_EnclosingSpace.Exist(idStr);
+            }
+            return false;
+        }
+
+        public virtual void Put(string idStr, DynamicSrslVariable value)
+        {
+            if (NamesToProperties.ContainsKey(idStr))
+            {
+                NamesToProperties[idStr] = value;
+                return;
+            }
+
+            if (m_EnclosingSpace != null)
+            {
+                m_EnclosingSpace.Put(idStr, value);
+            }
+        }
+        public virtual DynamicSrslVariable Get(int moduleId, int depth, int classId, int id)
+        {
+            if (moduleId >= 0)
+            {
+                FastMemorySpace currentMemorySpace = this;
+                while (currentMemorySpace.m_EnclosingSpace != null)
                 {
-                    FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
-                    return fms.Properties[id];
+                    currentMemorySpace = currentMemorySpace.m_EnclosingSpace;
                 }
 
-                return fastGlobalMemorySpace.Modules[moduleId].Properties[id];
+                if (currentMemorySpace is FastGlobalMemorySpace fastGlobalMemorySpace)
+                {
+                    if (classId >= 0)
+                    {
+                        FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                        return fms.Properties[id];
+                    }
+
+                    return fastGlobalMemorySpace.Modules[moduleId].Properties[id];
+                }
+
+                return DynamicVariableExtension.ToDynamicVariable();
+            }
+
+            FastMemorySpace memorySpace = this;
+            for (int i = 0; i < depth; i++)
+            {
+                memorySpace = memorySpace.m_EnclosingSpace;
+            }
+
+            if (memorySpace != null && id < memorySpace.Properties.Length)
+            {
+                return memorySpace.Properties[id];
             }
 
             return DynamicVariableExtension.ToDynamicVariable();
         }
 
-        FastMemorySpace memorySpace = this;
-        for ( int i = 0; i < depth; i++ )
+        public virtual bool Exist(int moduleId, int depth, int classId, int id)
         {
-            memorySpace = memorySpace.m_EnclosingSpace;
-        }
-
-        if ( memorySpace != null && id < memorySpace.Properties.Length)
-        {
-            return memorySpace.Properties[id];
-        }
-
-        return DynamicVariableExtension.ToDynamicVariable();
-    }
-
-    public virtual bool Exist( int moduleId ,int depth, int classId, int id)
-    {
-        if ( moduleId >= 0 )
-        {
-            FastMemorySpace currentMemorySpace = this;
-            while ( currentMemorySpace.m_EnclosingSpace != null )
+            if (moduleId >= 0)
             {
-                currentMemorySpace = currentMemorySpace.m_EnclosingSpace;
+                FastMemorySpace currentMemorySpace = this;
+                while (currentMemorySpace.m_EnclosingSpace != null)
+                {
+                    currentMemorySpace = currentMemorySpace.m_EnclosingSpace;
+                }
+
+                if (currentMemorySpace is FastGlobalMemorySpace fastGlobalMemorySpace)
+                {
+                    if (classId >= 0)
+                    {
+                        FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+
+                        return fms.currentMemoryPointer > id;
+                    }
+                    return fastGlobalMemorySpace.Modules[moduleId].currentMemoryPointer > id;
+                }
+                return false;
             }
 
-            if ( currentMemorySpace is FastGlobalMemorySpace fastGlobalMemorySpace )
+            FastMemorySpace memorySpace = this;
+            for (int i = 0; i < depth; i++)
             {
-                if ( classId >= 0 )
-                {
-                    FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                memorySpace = m_EnclosingSpace;
+            }
 
+            if (memorySpace != null && id < memorySpace.currentMemoryPointer)
+            {
+                if (classId >= 0)
+                {
+                    FastMemorySpace fms = memorySpace.Properties[classId].ObjectData as FastMemorySpace;
                     return fms.currentMemoryPointer > id;
                 }
-                return fastGlobalMemorySpace.Modules[moduleId].currentMemoryPointer > id;
+                return memorySpace.currentMemoryPointer > id;
             }
+
             return false;
         }
-        
-        FastMemorySpace memorySpace = this;
-        for ( int i = 0; i < depth; i++ )
-        {
-            memorySpace = m_EnclosingSpace;
-        }
 
-        if ( memorySpace != null && id < memorySpace.currentMemoryPointer )
+        public virtual void Put(int moduleId, int depth, int classId, int id, DynamicSrslVariable value)
         {
-            if ( classId >= 0 )
+            if (moduleId >= 0)
             {
-                FastMemorySpace fms = memorySpace.Properties[classId].ObjectData as FastMemorySpace;
-                return fms.currentMemoryPointer > id;
-            }
-            return memorySpace.currentMemoryPointer > id;
-        }
-
-        return false;
-    }
-    
-    public virtual void Put( int moduleId ,int depth, int classId, int id, DynamicSrslVariable value )
-    {
-        if ( moduleId >= 0 )
-        {
-            FastMemorySpace currentMemorySpace = this;
-            while ( currentMemorySpace.m_EnclosingSpace != null )
-            {
-                currentMemorySpace = currentMemorySpace.m_EnclosingSpace;
-            }
-
-            if ( currentMemorySpace is FastGlobalMemorySpace fastGlobalMemorySpace )
-            {
-                if ( classId >= 0 )
+                FastMemorySpace currentMemorySpace = this;
+                while (currentMemorySpace.m_EnclosingSpace != null)
                 {
-                    FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                    currentMemorySpace = currentMemorySpace.m_EnclosingSpace;
+                }
+
+                if (currentMemorySpace is FastGlobalMemorySpace fastGlobalMemorySpace)
+                {
+                    if (classId >= 0)
+                    {
+                        FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                        fms.Properties[id] = value;
+                    }
+                    fastGlobalMemorySpace.Modules[moduleId].Properties[id] = value;
+                }
+                return;
+            }
+
+            FastMemorySpace memorySpace = this;
+            for (int i = 0; i < depth; i++)
+            {
+                memorySpace = m_EnclosingSpace;
+            }
+
+            if (memorySpace != null && id < memorySpace.currentMemoryPointer)
+            {
+                if (classId >= 0)
+                {
+                    FastMemorySpace fms = memorySpace.Properties[classId].ObjectData as FastMemorySpace;
                     fms.Properties[id] = value;
                 }
-                fastGlobalMemorySpace.Modules[moduleId].Properties[id] = value;
+                memorySpace.Properties[id] = value;
             }
-            return;
         }
-        
-        FastMemorySpace memorySpace = this;
-        for ( int i = 0; i < depth; i++ )
+        public FastMemorySpace GetEnclosingSpace()
         {
-            memorySpace = m_EnclosingSpace;
-        }
-
-        if ( memorySpace != null && id < memorySpace.currentMemoryPointer )
-        {
-            if ( classId >= 0 )
+            if (m_EnclosingSpace != null)
             {
-                FastMemorySpace fms = memorySpace.Properties[classId].ObjectData as FastMemorySpace;
-                fms.Properties[id] = value;
+                return m_EnclosingSpace;
             }
-            memorySpace.Properties[id] = value;
+
+            return null;
         }
-    }
-    public FastMemorySpace GetEnclosingSpace()
-    {
-        if ( m_EnclosingSpace != null )
+
+        public override string ToString()
         {
-            return m_EnclosingSpace;
+            return Name;
         }
 
-        return null;
+        #endregion
     }
-
-    public override string ToString()
-    {
-        return Name;
-    }
-
-    #endregion
-}
 
 }

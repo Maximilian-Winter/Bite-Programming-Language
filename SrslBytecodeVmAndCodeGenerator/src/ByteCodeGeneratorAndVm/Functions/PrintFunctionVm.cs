@@ -4,25 +4,25 @@ using System.Collections.Generic;
 namespace Srsl_Parser.Runtime
 {
 
-public class PrintFunctionVm : ISrslVmCallable
-{
-    #region Public
-
-    public object Call( List < DynamicSrslVariable > arguments )
+    public class PrintFunctionVm : ISrslVmCallable
     {
-        if ( arguments[0].DynamicType != DynamicVariableType.Null )
+        #region Public
+
+        public object Call(List<DynamicSrslVariable> arguments)
         {
-            Console.WriteLine( arguments[0].ToString() );
-        }
-        else
-        {
-            System.Console.WriteLine( "Error: Passed Null Reference to Function!" );
+            if (arguments[0].DynamicType != DynamicVariableType.Null)
+            {
+                Console.WriteLine(arguments[0].ToString());
+            }
+            else
+            {
+                System.Console.WriteLine("Error: Passed Null Reference to Function!");
+            }
+
+            return null;
         }
 
-        return null;
+        #endregion
     }
-
-    #endregion
-}
 
 }

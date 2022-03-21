@@ -1,24 +1,24 @@
 ﻿namespace Srsl_Parser.SymbolTable
 {
 
-public class MethodSymbol : FunctionSymbol, MemberSymbol
-{
-    public bool IsConstructor;
-
-    public virtual int SlotNumber => slot;
-
-    #region Public
-
-    public MethodSymbol(
-        string name,
-        AccesModifierType accessModifier,
-        ClassAndMemberModifiers classAndMemberModifiers ) : base( name, accessModifier, classAndMemberModifiers )
+    public class MethodSymbol : FunctionSymbol, MemberSymbol
     {
+        public bool IsConstructor;
+
+        public virtual int SlotNumber => slot;
+
+        #region Public
+
+        public MethodSymbol(
+            string name,
+            AccesModifierType accessModifier,
+            ClassAndMemberModifiers classAndMemberModifiers) : base(name, accessModifier, classAndMemberModifiers)
+        {
+        }
+
+        #endregion
+
+        protected internal int slot = -1;
     }
-
-    #endregion
-
-    protected internal int slot = -1;
-}
 
 }

@@ -3,17 +3,17 @@
 namespace Srsl_Parser.SymbolTable
 {
 
-public class ParametersSymbol : BaseSymbol
-{
-    public List < ParameterSymbol > ParameterSymbols;
-
-    #region Public
-
-    public ParametersSymbol( string name ) : base( name )
+    public class ParametersSymbol : BaseSymbol
     {
-    }
+        public List<ParameterSymbol> ParameterSymbols;
 
-    #endregion
-}
+        #region Public
+
+        public ParametersSymbol(string name) : base(name)
+        {
+        }
+
+        #endregion
+    }
 
 }

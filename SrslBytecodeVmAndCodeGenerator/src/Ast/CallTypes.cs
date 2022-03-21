@@ -1,10 +1,10 @@
 ﻿namespace MemoizeSharp
 {
 
-public enum CallTypes
-{
-    Primary,
-    PrimaryCall
-}
+    public enum CallTypes
+    {
+        Primary,
+        PrimaryCall
+    }
 
 }

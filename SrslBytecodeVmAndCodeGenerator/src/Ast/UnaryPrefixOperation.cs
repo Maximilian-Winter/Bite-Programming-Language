@@ -1,29 +1,29 @@
 namespace MemoizeSharp
 {
 
-public class UnaryPrefixOperation : ExpressionNode
-{
-    public enum UnaryPrefixOperatorType
+    public class UnaryPrefixOperation : ExpressionNode
     {
-        Plus,
-        Compliment,
-        PlusPlus,
-        MinusMinus,
-        LogicalNot,
-        Negate
+        public enum UnaryPrefixOperatorType
+        {
+            Plus,
+            Compliment,
+            PlusPlus,
+            MinusMinus,
+            LogicalNot,
+            Negate
+        }
+
+        public ExpressionNode Primary;
+        public UnaryPrefixOperatorType Operator;
+
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
     }
-
-    public ExpressionNode Primary;
-    public UnaryPrefixOperatorType Operator;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
-    {
-        return visitor.Visit( this );
-    }
-
-    #endregion
-}
 
 }

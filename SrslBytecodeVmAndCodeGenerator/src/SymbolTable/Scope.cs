@@ -3,21 +3,21 @@
 namespace Srsl_Parser.SymbolTable
 {
 
-public interface Scope
-{
-    IList < Symbol > AllSymbols { get; }
+    public interface Scope
+    {
+        IList<Symbol> AllSymbols { get; }
 
-    void define( Symbol sym );
+        void define(Symbol sym);
 
-    IList < Scope > EnclosingPathToRoot { get; }
+        IList<Scope> EnclosingPathToRoot { get; }
 
-    Scope EnclosingScope { get; set; }
+        Scope EnclosingScope { get; set; }
 
-    string Name { get; }
+        string Name { get; }
 
-    void nest( Scope scope );
+        void nest(Scope scope);
 
-    Symbol resolve( string name, out int moduleId, ref int depth);
-}
+        Symbol resolve(string name, out int moduleId, ref int depth);
+    }
 
 }

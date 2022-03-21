@@ -1,96 +1,94 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MemoizeSharp;
+﻿using MemoizeSharp;
 
 namespace Srsl_Parser.SymbolTable
 {
 
-public abstract class BaseSymbol : Symbol
-{
-    public virtual string Name => name;
-
-    public virtual Scope SymbolScope
+    public abstract class BaseSymbol : Symbol
     {
-        get => scope;
-        set => scope = value;
-    }
+        public virtual string Name => name;
 
-    public virtual Type Type
-    {
-        get => type;
-        set => type = value;
-    }
-
-    public virtual HeteroAstNode DefNode
-    {
-        set => defNode = value;
-        get => defNode;
-    }
-
-    public virtual int InsertionOrderNumber
-    {
-        get => lexicalOrder;
-        set => lexicalOrder = value;
-    }
-
-    #region Public
-
-    public BaseSymbol( string name )
-    {
-        this.name = name;
-    }
-
-    public override bool Equals( object obj )
-    {
-        if ( !( obj is Symbol ) )
+        public virtual Scope SymbolScope
         {
-            return false;
+            get => scope;
+            set => scope = value;
         }
 
-        if ( obj == this )
+        public virtual Type Type
         {
-            return true;
+            get => type;
+            set => type = value;
         }
 
-        return name.Equals( ( ( Symbol ) obj ).Name );
-    }
-
-    public override int GetHashCode()
-    {
-        return name.GetHashCode();
-    }
-
-    public override string ToString()
-    {
-        string s = "";
-
-        if ( scope != null )
+        public virtual HeteroAstNode DefNode
         {
-            s = scope.Name + ".";
+            set => defNode = value;
+            get => defNode;
         }
 
-        if ( type != null )
+        public virtual int InsertionOrderNumber
         {
-            string ts = type.ToString();
+            get => lexicalOrder;
+            set => lexicalOrder = value;
+        }
 
-            if ( type is SymbolWithScope )
+        #region Public
+
+        public BaseSymbol(string name)
+        {
+            this.name = name;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Symbol))
             {
-                ts = ( ( SymbolWithScope ) type ).getFullyQualifiedName( "." );
+                return false;
             }
 
-            return '<' + s + Name + ":" + ts + '>';
+            if (obj == this)
+            {
+                return true;
+            }
+
+            return name.Equals(((Symbol)obj).Name);
         }
 
-        return s + Name;
+        public override int GetHashCode()
+        {
+            return name.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            string s = "";
+
+            if (scope != null)
+            {
+                s = scope.Name + ".";
+            }
+
+            if (type != null)
+            {
+                string ts = type.ToString();
+
+                if (type is SymbolWithScope)
+                {
+                    ts = ((SymbolWithScope)type).getFullyQualifiedName(".");
+                }
+
+                return '<' + s + Name + ":" + ts + '>';
+            }
+
+            return s + Name;
+        }
+
+        #endregion
+
+        protected internal HeteroAstNode defNode;
+        protected internal int lexicalOrder;
+        protected internal readonly string name;
+        protected internal Scope scope;
+        protected internal Type type;
     }
-
-    #endregion
-
-    protected internal HeteroAstNode defNode;
-    protected internal int lexicalOrder;
-    protected internal readonly string name;
-    protected internal Scope scope;
-    protected internal Type type;
-}
 
 }

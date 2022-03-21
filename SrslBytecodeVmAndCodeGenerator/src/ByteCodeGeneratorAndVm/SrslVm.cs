@@ -1,4 +1,4 @@
-﻿//#define SRSL_VM_DEBUG_TRACE_EXECUTION
+﻿#define SRSL_VM_DEBUG_TRACE_EXECUTION
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -32,7 +32,8 @@ public class SrslVm
 {
     private BinaryChunk m_CurrentChunk;
     private int m_CurrentInstructionPointer;
-    private Stack<DynamicSrslVariable> m_VmStack;
+    private DynamicSrslVariable[] m_VmStack ;
+    private int m_StackPointer;
     private Dictionary <string, BinaryChunk > m_CompiledChunks;
 
     private DynamicSrslVariable m_TopMostStackItem;
@@ -75,7 +76,8 @@ public class SrslVm
     
     public SrslVmInterpretResult Interpret( BinaryChunk mainChunk, Dictionary <string, BinaryChunk > compiledChunks, SymbolTableBuilder symbolTableBuilder )
     {
-        m_VmStack = new Stack<DynamicSrslVariable>();
+        m_VmStack = new DynamicSrslVariable[4096];
+        m_StackPointer = 0;
         m_CurrentChunk = mainChunk;
         m_CompiledChunks = compiledChunks;
         m_CurrentInstructionPointer = 0;
@@ -138,7 +140,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpPopStack:
                     {
-                        m_VmStack.Pop();
+                        m_StackPointer--;
                         break;
                     }
                     case SrslVmOpCodes.OpDefineModule:
@@ -148,7 +150,7 @@ public class SrslVm
                         m_CurrentScope = (BaseScope)m_CurrentScope.resolve( moduleName, out int moduleId, ref depth );
                         int numberOfMembers = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);
                         m_CurrentInstructionPointer += 4;
-                        FastModuleMemorySpace callSpace = new FastModuleMemorySpace( "", m_GlobalMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, numberOfMembers );
+                        FastModuleMemorySpace callSpace = new FastModuleMemorySpace( "", m_GlobalMemorySpace, m_StackPointer, m_CurrentChunk, m_CurrentInstructionPointer, numberOfMembers );
                         m_GlobalMemorySpace.Modules.Add( callSpace );
                         m_CurrentChunk = CompiledChunks[moduleName];
                         m_CurrentInstructionPointer = 0;
@@ -186,10 +188,11 @@ public class SrslVm
                             if ( m_TopMostStackItem != null )
                             {
                                 m_FunctionArguments.Add( m_TopMostStackItem );
-                                m_TopMostStackItem = m_VmStack.Pop();
+                                m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                                 continue;
                             }
-                            m_FunctionArguments.Add( m_VmStack.Pop() );
+                            m_FunctionArguments.Add( m_VmStack[m_StackPointer] );
+                            m_StackPointer--;
                         }
                         break;
                     }
@@ -205,7 +208,7 @@ public class SrslVm
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                            callSpace.StackCountAtBegin = m_VmStack.Count;
+                            callSpace.StackCountAtBegin = m_StackPointer;
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
 
@@ -222,15 +225,7 @@ public class SrslVm
 
                             if ( returnVal != null )
                             {
-                                if ( m_TopMostStackItem != null )
-                                {
-                                    m_VmStack.Push( m_TopMostStackItem );
-                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
-                                }
-                                else
-                                {
-                                    m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
-                                }
+                                m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(returnVal);
                             }
                         }
                         
@@ -241,7 +236,7 @@ public class SrslVm
                         ConstantValue constant = ReadConstant(); 
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
                         
                         if ( m_TopMostStackItem.ObjectData is StaticWrapper wrapper )
@@ -278,7 +273,7 @@ public class SrslVm
                                     callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                     callSpace.CallerChunk = m_CurrentChunk;
                                     callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                                    callSpace.StackCountAtBegin = m_VmStack.Count;
+                                    callSpace.StackCountAtBegin = m_StackPointer;
                                     m_CurrentMemorySpace = callSpace;
                                     m_CallStack.Push( callSpace );
                                     foreach ( var functionArgument in m_FunctionArguments )
@@ -364,7 +359,7 @@ public class SrslVm
                         
                         if ( m_CurrentMemorySpace.Get( moduleIdClass, depthClass, -1, idClass ).ObjectData is SrslChunkWrapper classWrapper )
                         {
-                            FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace( "", m_CurrentMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount );
+                            FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace( "", m_CurrentMemorySpace, m_StackPointer, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount );
                             m_CurrentMemorySpace.Define( DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace)  );
                             m_CurrentMemorySpace = classInstanceMemorySpace;
                             m_CurrentChunk = classWrapper.ChunkToWrap;
@@ -375,7 +370,7 @@ public class SrslVm
                             }
                             else
                             {
-                                m_VmStack.Push( m_TopMostStackItem );
+                               m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                                 m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace);
                             }
                             
@@ -405,11 +400,11 @@ public class SrslVm
                         int classMemberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         if ( m_CurrentMemorySpace.Get( moduleIdClass, depthClass, -1, idClass ).ObjectData is SrslChunkWrapper classWrapper )
                         {
-                            FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace( "", m_CurrentMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount );
+                            FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace( "", m_CurrentMemorySpace, m_StackPointer, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount );
                             classInstanceMemorySpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             classInstanceMemorySpace.CallerChunk = m_CurrentChunk;
                             classInstanceMemorySpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                            classInstanceMemorySpace.StackCountAtBegin = m_VmStack.Count;
+                            classInstanceMemorySpace.StackCountAtBegin = m_StackPointer;
                             m_CurrentMemorySpace.Put( moduleIdLocalInstance, depthLocalInstance, -1, idLocalInstance, DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace)  );
                             m_CurrentMemorySpace = classInstanceMemorySpace;
                             m_CurrentChunk = classWrapper.ChunkToWrap;
@@ -431,7 +426,7 @@ public class SrslVm
                         }
                         else
                         {
-                            m_VmStack.Push( m_TopMostStackItem );
+                           m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                             m_TopMostStackItem = m_CurrentMemorySpace.Get( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId );
                         }
                         
@@ -447,7 +442,7 @@ public class SrslVm
                         }
                         else
                         {
-                            m_VmStack.Push( m_TopMostStackItem );
+                           m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                             m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(obj);
                         }
                         break;
@@ -455,14 +450,14 @@ public class SrslVm
                     case SrslVmOpCodes.OpGetMember:
                     {
                         int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
-                        FastMemorySpace obj = (FastMemorySpace)m_VmStack.Pop().ObjectData;
+                        FastMemorySpace obj = (FastMemorySpace)m_VmStack[m_StackPointer].ObjectData;
                         if ( m_TopMostStackItem == null )
                         {
                             m_TopMostStackItem = obj.Get( -1, 0, -1, id );
                         }
                         else
                         {
-                            m_VmStack.Push( m_TopMostStackItem );
+                           m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                             m_TopMostStackItem = obj.Get( -1, 0, -1, id );
                         }
                         break;
@@ -491,7 +486,7 @@ public class SrslVm
                         }
                         else
                         {
-                            m_VmStack.Push( m_TopMostStackItem );
+                           m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                             m_TopMostStackItem = m_CurrentMemorySpace.Get( moduleId, depth, classId, id );
                         }
                         
@@ -510,7 +505,7 @@ public class SrslVm
                                 }
                                 else
                                 {
-                                    m_VmStack.Push( m_TopMostStackItem );
+                                   m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                                     m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable( constantValue.IntegerConstantValue );
                                 }
                                 break;
@@ -522,7 +517,7 @@ public class SrslVm
                                 }
                                 else
                                 {
-                                    m_VmStack.Push( m_TopMostStackItem );
+                                   m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                                     m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.DoubleConstantValue) ;
                                 }
                                 break;
@@ -534,7 +529,7 @@ public class SrslVm
                                 }
                                 else
                                 {
-                                    m_VmStack.Push( m_TopMostStackItem );
+                                   m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                                     m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.StringConstantValue) ;
                                 }
                                 break;
@@ -546,7 +541,7 @@ public class SrslVm
                                 }
                                 else
                                 {
-                                    m_VmStack.Push( m_TopMostStackItem );
+                                   m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                                     m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(constantValue.BoolConstantValue)  ;
                                 }
                                 break;
@@ -562,7 +557,7 @@ public class SrslVm
 
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop()  ;
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
                         
                         if (  m_TopMostStackItem.DynamicType == DynamicVariableType.True )
@@ -605,18 +600,20 @@ public class SrslVm
                         {
                             if ( m_TopMostStackItem == null )
                             {
-                                m_TopMostStackItem = m_VmStack.Pop()  ;
+                                m_TopMostStackItem = m_VmStack[m_StackPointer]  ;
                             }
                             
                             FastMemorySpace fastMemorySpace = (FastMemorySpace)m_TopMostStackItem.ObjectData;
 
                             if ( fastMemorySpace.Exist( -1, 0, -1, m_LastGetLocalVarId ) )
                             {
-                                fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId, m_VmStack.Pop() );
+                                fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId, m_VmStack[m_StackPointer] );
+                                m_StackPointer--;
                             }
                             else
                             {
-                                fastMemorySpace.Define( m_VmStack.Pop() );
+                                fastMemorySpace.Define( m_VmStack[m_StackPointer] );
+                                m_StackPointer--;
                             }
                             
                             m_SetMember = false;
@@ -625,12 +622,12 @@ public class SrslVm
                         {
                             if ( m_TopMostStackItem == null )
                             {
-                                m_VmStack.Pop();
-                                m_TopMostStackItem = m_VmStack.Pop();
+                                m_StackPointer--;
+                                m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                             }
                             else
                             {
-                                m_TopMostStackItem = m_VmStack.Pop();
+                                m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                             }
                             m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, m_TopMostStackItem );
                         }
@@ -640,7 +637,7 @@ public class SrslVm
                     {
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
 
                         if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
@@ -658,7 +655,7 @@ public class SrslVm
                     {
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
 
                         if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
@@ -680,7 +677,7 @@ public class SrslVm
                     {
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
 
                         if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
@@ -698,7 +695,7 @@ public class SrslVm
                     {
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
 
                         if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
@@ -716,7 +713,7 @@ public class SrslVm
                     {
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
 
                         if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True )
@@ -734,7 +731,7 @@ public class SrslVm
                     {
                         if ( m_TopMostStackItem == null )
                         {
-                            m_TopMostStackItem = m_VmStack.Pop();
+                            m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
 
                         if ( m_TopMostStackItem.DynamicType < DynamicVariableType.True)
@@ -751,7 +748,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpSmaller:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( (valueLhs.DynamicType == 0|| valueLhs.DynamicType < DynamicVariableType.True) &&  (valueRhs.DynamicType == 0 || valueRhs.DynamicType < DynamicVariableType.True))
                         {
@@ -768,7 +765,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpSmallerEqual:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -783,7 +780,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpGreater:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -798,7 +795,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpGreaterEqual:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if (valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -813,7 +810,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpEqual:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -828,7 +825,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpNotEqual:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -859,7 +856,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpAdd:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -876,7 +873,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpSubtract:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -892,7 +889,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpMultiply:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -908,7 +905,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpDivide:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -923,7 +920,7 @@ public class SrslVm
                     case SrslVmOpCodes.OpModulo:
                     {
                         DynamicSrslVariable valueRhs = m_TopMostStackItem;
-                        DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                        m_StackPointer--;DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
                         
                         if ( valueLhs.DynamicType < DynamicVariableType.True &&  valueRhs.DynamicType < DynamicVariableType.True)
                         {
@@ -951,7 +948,7 @@ public class SrslVm
                         FastMemorySpace block = m_PoolFastMemoryFastMemory.Get();
                         block.ResetPropertiesArray( memberCount );
                         block.m_EnclosingSpace = m_CurrentMemorySpace;
-                        block.StackCountAtBegin = m_VmStack.Count;
+                        block.StackCountAtBegin = m_StackPointer;
                         m_CurrentMemorySpace = block;
                         m_CallStack.Push( m_CurrentMemorySpace );
                         break;
@@ -959,12 +956,12 @@ public class SrslVm
                     
                     case SrslVmOpCodes.OpExitBlock:
                     {
-                        if ( m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count )
+                        if ( m_CurrentMemorySpace.StackCountAtBegin < m_StackPointer )
                         {
-                            int stackCounter = m_VmStack.Count - m_CurrentMemorySpace.StackCountAtBegin;
+                            int stackCounter = m_StackPointer - m_CurrentMemorySpace.StackCountAtBegin;
                             for ( int i = 0; i < stackCounter; i++ )
                             {
-                                m_VmStack.Pop();
+                                m_StackPointer--;
                             }
                         }
                        
@@ -979,12 +976,12 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpReturn:
                     {
-                        if ( m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count )
+                        if ( m_CurrentMemorySpace.StackCountAtBegin < m_StackPointer )
                         {
-                            int stackCounter = m_VmStack.Count - m_CurrentMemorySpace.StackCountAtBegin;
+                            int stackCounter = m_StackPointer - m_CurrentMemorySpace.StackCountAtBegin;
                             for ( int i = 0; i < stackCounter; i++ )
                             {
-                                m_VmStack.Pop();
+                                m_StackPointer--;
                             }
                         }
 
@@ -1008,12 +1005,12 @@ public class SrslVm
             {
                 if ( m_CallStack.Count > 0 )
                 {
-                    if ( m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count )
+                    if ( m_CurrentMemorySpace.StackCountAtBegin < m_StackPointer )
                     {
-                        int stackCounter = m_VmStack.Count - m_CurrentMemorySpace.StackCountAtBegin;
+                        int stackCounter = m_StackPointer - m_CurrentMemorySpace.StackCountAtBegin;
                         for ( int i = 0; i < stackCounter; i++ )
                         {
-                            m_VmStack.Pop();
+                            m_StackPointer--;
                         }
                     }
                     

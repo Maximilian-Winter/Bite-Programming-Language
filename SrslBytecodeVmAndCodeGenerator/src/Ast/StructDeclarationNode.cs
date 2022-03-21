@@ -1,20 +1,20 @@
 namespace MemoizeSharp
 {
 
-public class StructDeclarationNode : DeclarationNode
-{
-    public Identifier StructId;
-    public ModifiersNode Modifiers;
-    public BlockStatementNode Block;
-
-    #region Public
-
-    public override object Accept( IAstVisitor visitor )
+    public class StructDeclarationNode : DeclarationNode
     {
-        return visitor.Visit( this );
-    }
+        public Identifier StructId;
+        public ModifiersNode Modifiers;
+        public BlockStatementNode Block;
 
-    #endregion
-}
+        #region Public
+
+        public override object Accept(IAstVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        #endregion
+    }
 
 }

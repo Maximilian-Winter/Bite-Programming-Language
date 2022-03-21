@@ -1,10 +1,10 @@
 ﻿namespace MemoizeSharp
 {
 
-public class DebugInfo
-{
-    public int LineNumber;
-    public int ColumnNumber;
-}
+    public class DebugInfo
+    {
+        public int LineNumber;
+        public int ColumnNumber;
+    }
 
 }
