@@ -27,7 +27,7 @@ namespace Srsl_Parser.Runtime
 
         public static int DissassembleInstruction(this BinaryChunk chunk, int offset)
         {
-            //Console.Write(offset + " ");
+            Console.Write(offset + " ");
 
             SrslVmOpCodes instruction = (SrslVmOpCodes)chunk.Code[offset];
             offset++;
@@ -132,7 +132,7 @@ namespace Srsl_Parser.Runtime
                     }
 
 
-                    //Console.WriteLine(inst);
+                    Console.WriteLine(inst);
                     return offset + 1;
             }
         }

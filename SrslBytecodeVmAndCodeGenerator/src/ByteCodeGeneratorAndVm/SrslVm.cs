@@ -117,13 +117,19 @@ public class SrslVm
                     Console.WriteLine("New Memory Space: {0}", m_CurrentMemorySpace.Name);
                     m_LastMemorySpaceDebug = m_CurrentMemorySpace;
                 }
-                
+                */
                 Console.Write("Stack:   ");
-                foreach( object slot in m_VmStack )
+                if ( m_TopMostStackItem != null )
                 {
-                    Console.Write("[" + slot + "]");
+                    Console.Write("[" + m_TopMostStackItem + "]");
                 }
-                Console.Write("\n");*/
+                for ( int i = 0; i < m_StackPointer; i++ )
+                {
+                    Console.Write("[" + m_VmStack[i] + "]");
+                }
+
+               
+                Console.Write("\n");
                 
                 m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer );
 #endif
@@ -361,16 +367,6 @@ public class SrslVm
                             m_CurrentMemorySpace = classInstanceMemorySpace;
                             m_CurrentChunk = classWrapper.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
-                            if ( m_TopMostStackItem == null )
-                            {
-                                m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace);
-                            }
-                            else
-                            {
-                               m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
-                                m_TopMostStackItem = DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace);
-                            }
-                            
                             m_CallStack.Push( m_CurrentMemorySpace );
                         }
                         break;
