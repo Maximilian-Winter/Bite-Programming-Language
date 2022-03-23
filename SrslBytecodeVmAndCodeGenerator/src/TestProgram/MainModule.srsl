@@ -3,6 +3,8 @@ module MainModule;
 import System;
 using System;
 
+import CSharpSystem;
+using CSharpSystem;
 
 function FindFibonacciNumber(n)
 {
@@ -37,4 +39,4 @@ while(count3 < 1000)
     }
     count3++;
 }
-Print(temp);
+Console.WriteLine(temp);

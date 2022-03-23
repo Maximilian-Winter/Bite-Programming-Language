@@ -1,4 +1,4 @@
-﻿#define SRSL_VM_DEBUG_TRACE_EXECUTION
+﻿//#define SRSL_VM_DEBUG_TRACE_EXECUTION
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ public class SrslVm
     
     public SrslVmInterpretResult Interpret( BinaryChunk mainChunk, Dictionary <string, BinaryChunk > compiledChunks, SymbolTableBuilder symbolTableBuilder )
     {
-        m_VmStack = new DynamicSrslVariable[4096];
+        m_VmStack = new DynamicSrslVariable[512];
         m_StackPointer = 0;
         m_CurrentChunk = mainChunk;
         m_CompiledChunks = compiledChunks;
@@ -374,6 +374,21 @@ public class SrslVm
                     case SrslVmOpCodes.OpDefineLocalVar:
                     {
                         m_CurrentMemorySpace.Define( m_TopMostStackItem );
+
+                        if ( m_StackPointer > -1 )
+                        {
+                            if ( m_StackPointer > 0 )
+                            {
+                               m_TopMostStackItem = m_VmStack[m_StackPointer-1];
+                               m_StackPointer--; 
+                            }
+                            else
+                            {
+                                m_TopMostStackItem = m_VmStack[m_StackPointer];
+                            }
+
+                            
+                        }
                         break;
                     }
                     case SrslVmOpCodes.OpDeclareLocalVar:
@@ -553,6 +568,8 @@ public class SrslVm
                         {
                             m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         }
+
+                        
                         
                         if (  m_TopMostStackItem.DynamicType == DynamicVariableType.True )
                         {
@@ -580,6 +597,8 @@ public class SrslVm
                             m_CurrentChunk.Code[jumpCodeBodyEnd + 9] = 0;
                             
                         }
+                        
+                        m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
                         break;
                     }
                     case SrslVmOpCodes.OpJump:
@@ -594,19 +613,19 @@ public class SrslVm
                         {
                             if ( m_TopMostStackItem == null )
                             {
-                                m_TopMostStackItem = m_VmStack[m_StackPointer]  ;
+                                m_TopMostStackItem = m_VmStack[m_StackPointer-1]  ;
                             }
                             
                             FastMemorySpace fastMemorySpace = (FastMemorySpace)m_TopMostStackItem.ObjectData;
 
                             if ( fastMemorySpace.Exist( -1, 0, -1, m_LastGetLocalVarId ) )
                             {
-                                fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId, m_VmStack[m_StackPointer] );
+                                fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId, m_VmStack[m_StackPointer-1] );
                                 m_StackPointer--;
                             }
                             else
                             {
-                                fastMemorySpace.Define( m_VmStack[m_StackPointer] );
+                                fastMemorySpace.Define( m_VmStack[m_StackPointer-1] );
                                 m_StackPointer--;
                             }
                             
@@ -953,10 +972,7 @@ public class SrslVm
                         if ( m_CurrentMemorySpace.StackCountAtBegin < m_StackPointer )
                         {
                             int stackCounter = m_StackPointer - m_CurrentMemorySpace.StackCountAtBegin;
-                            for ( int i = 0; i < stackCounter; i++ )
-                            {
-                                m_StackPointer--;
-                            }
+                            m_StackPointer -= stackCounter;
                         }
                        
                         m_PoolFastMemoryFastMemory.Return( m_CallStack.Pop() );
