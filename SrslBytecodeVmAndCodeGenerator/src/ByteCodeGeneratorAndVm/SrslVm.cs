@@ -53,7 +53,6 @@ public class SrslVm
     private bool m_SetMember = false;
     private bool m_KeepLastItemOnStackToReturn = false;
     private SrslVmOpCodes m_CurrentByteCodeInstruction = SrslVmOpCodes.OpNone;
-    private int m_CurrentByteCodeInstructionDataPointer = 0;
     public Dictionary < string, BinaryChunk > CompiledChunks => m_CompiledChunks;
 
     protected void InitMemorySpaces()
@@ -93,7 +92,6 @@ public class SrslVm
     {
         m_CurrentByteCodeInstruction = (SrslVmOpCodes)m_CurrentChunk.Code[m_CurrentInstructionPointer];
         m_CurrentInstructionPointer++;
-        m_CurrentByteCodeInstructionDataPointer = 0;
         return m_CurrentByteCodeInstruction;
     }
 
@@ -102,7 +100,6 @@ public class SrslVm
         ConstantValue instruction =
             m_CurrentChunk.Constants[m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24)];
         m_CurrentInstructionPointer += 4;
-        m_CurrentByteCodeInstructionDataPointer++;
         return instruction;
     }
     
@@ -489,6 +486,7 @@ public class SrslVm
                            m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                             m_TopMostStackItem = m_CurrentMemorySpace.Get( moduleId, depth, classId, id );
                         }
+                        
                         
                         break;
                     }
