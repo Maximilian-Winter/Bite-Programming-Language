@@ -14,6 +14,7 @@ namespace Srsl_Parser.Runtime
 [StructLayout(LayoutKind.Explicit)]
 struct IntByteStruct
 {
+        
     [FieldOffset(0)]
     public byte byte0;
     [FieldOffset(1)]
@@ -28,8 +29,40 @@ struct IntByteStruct
 
 }
 
+public class FastMemoryStack
+{
+    private FastMemorySpace[] m_FastMemorySpaces = new FastMemorySpace[1024];
+    private int m_FastMemoryPointer = 0;
+
+    public int Count => m_FastMemoryPointer;
+
+    public FastMemorySpace Peek()
+    {
+        FastMemorySpace fastMemorySpace = m_FastMemorySpaces[m_FastMemoryPointer -1];
+        return fastMemorySpace;
+    }
+    
+    public FastMemorySpace Pop()
+    {
+        FastMemorySpace fastMemorySpace = m_FastMemorySpaces[--m_FastMemoryPointer];
+        return fastMemorySpace;
+    }
+
+    public void Push(FastMemorySpace fastMemorySpace)
+    {
+        m_FastMemorySpaces[m_FastMemoryPointer] = fastMemorySpace;
+
+        if ( m_FastMemoryPointer >= 1023 )
+        {
+            throw new IndexOutOfRangeException("Call Stack Overflow");
+        }
+        m_FastMemoryPointer++;
+    }
+}
+
 public class SrslVm
 {
+    
     private BinaryChunk m_CurrentChunk;
     private int m_CurrentInstructionPointer;
     private DynamicSrslVariable[] m_VmStack ;
@@ -39,12 +72,12 @@ public class SrslVm
     private DynamicSrslVariable m_TopMostStackItem;
     
     private List < DynamicSrslVariable > m_FunctionArguments = new List < DynamicSrslVariable >();
-    private ObjectPoolFastMemory < FastMemorySpace > m_PoolFastMemoryFastMemory;
+    private ObjectPoolFastMemory  m_PoolFastMemoryFastMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
     private Scope m_CurrentScope;
     private FastMemorySpace m_CurrentMemorySpace;
     private FastMemorySpace m_LastMemorySpaceDebug;
-    private Stack < FastMemorySpace > m_CallStack = new Stack < FastMemorySpace >();
+    private FastMemoryStack m_CallStack = new FastMemoryStack();
     private Dictionary < string, FastMethodInfo > CachedMethods = new Dictionary < string, FastMethodInfo >();
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId  = -1;
@@ -54,7 +87,8 @@ public class SrslVm
     private bool m_KeepLastItemOnStackToReturn = false;
     private SrslVmOpCodes m_CurrentByteCodeInstruction = SrslVmOpCodes.OpNone;
     public Dictionary < string, BinaryChunk > CompiledChunks => m_CompiledChunks;
-
+    
+    
     protected void InitMemorySpaces()
     {
         m_CurrentMemorySpace = m_GlobalMemorySpace;
@@ -82,8 +116,8 @@ public class SrslVm
         m_CurrentInstructionPointer = 0;
         m_CurrentScope = symbolTableBuilder.CurrentScope;
         m_GlobalMemorySpace = new FastGlobalMemorySpace((symbolTableBuilder.CurrentScope as BaseScope).NumberOfSymbols);
-        m_CallStack = new Stack < FastMemorySpace >();
-        m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory<FastMemorySpace>(() => new FastMemorySpace("", null, 0, null, 0,0), 150);
+        m_CallStack = new FastMemoryStack();
+        m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
         InitMemorySpaces();
         return Run();
     }
@@ -108,6 +142,7 @@ public class SrslVm
         
         while ( true )
         {
+            
             if ( m_CurrentInstructionPointer < m_CurrentChunk.Code.Length )
             {
 #if SRSL_VM_DEBUG_TRACE_EXECUTION
@@ -117,7 +152,7 @@ public class SrslVm
                     Console.WriteLine("New Memory Space: {0}", m_CurrentMemorySpace.Name);
                     m_LastMemorySpaceDebug = m_CurrentMemorySpace;
                 }
-                */
+               
                 Console.Write("Stack:   ");
                 if ( m_TopMostStackItem != null )
                 {
@@ -130,7 +165,7 @@ public class SrslVm
 
                
                 Console.Write("\n");
-                
+                 */
                 m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer );
 #endif
                 
@@ -479,6 +514,7 @@ public class SrslVm
                     }
                     case SrslVmOpCodes.OpSetLocalVar:
                     {
+                        
                         int moduleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         int depth = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
                         int classId = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer+1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer+3] << 24);m_CurrentInstructionPointer += 4;
@@ -497,8 +533,10 @@ public class SrslVm
                            m_VmStack[m_StackPointer] = m_TopMostStackItem; m_StackPointer++;
                             m_TopMostStackItem = m_CurrentMemorySpace.Get( moduleId, depth, classId, id );
                         }
+                        SrslVmOpCodes nextOpCode = ReadInstruction();
                         
-                        
+                        m_StackPointer--;m_TopMostStackItem = m_VmStack[m_StackPointer];
+                        m_CurrentMemorySpace.Put( m_LastGetLocalVarModuleId, m_LastGetLocalVarDepth, m_LastGetLocalClassId, m_LastGetLocalVarId, m_TopMostStackItem );
                         break;
                     }
                     case SrslVmOpCodes.OpConstant:

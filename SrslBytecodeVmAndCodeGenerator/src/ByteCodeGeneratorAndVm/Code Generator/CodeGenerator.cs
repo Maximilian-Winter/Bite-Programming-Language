@@ -802,7 +802,7 @@ namespace Srsl_Parser.Runtime
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-
+                    
 
                     break;
 
