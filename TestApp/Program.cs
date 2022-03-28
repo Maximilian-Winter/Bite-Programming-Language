@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using Srsl.Ast;
 using Srsl.Parser;
 using Srsl.Runtime;
 using Srsl.Runtime.Bytecode;
@@ -16,12 +18,20 @@ namespace TestApp
 
         public static void Main(string[] args)
         {
-
             SrslParser parser = new SrslParser();
 
-            parser.ParseSrslProgram("MainModule", ".\\TestProgram");
+            var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
+
+            var program = parser.ParseModules("MainModule", files.Select<string, Func<string>>(f =>
+            {
+                return () => File.ReadAllText(f);
+            }));
+
+           //var program = parser.ParseModules("MainModule", files.Select(File.ReadAllText));
+            
             CodeGenerator generator = new CodeGenerator();
-            generator.CompileProgram(parser.Program);
+
+            generator.CompileProgram(program);
 
             SrslVm srslVm = new SrslVm();
 
@@ -53,6 +63,9 @@ namespace TestApp
             }
 
             ChunkDebugHelper.InstructionCounter.Clear();
+
+            Console.ReadLine();
+
         }
 
         #endregion

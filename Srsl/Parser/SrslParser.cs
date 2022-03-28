@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
 using Srsl.Ast;
 
 namespace Srsl.Parser
@@ -7,35 +7,56 @@ namespace Srsl.Parser
 
     public class SrslParser
     {
-        public ProgramNode Program;
-        public virtual void ParseSrslProgram(string mainModule, string pathToFolderWithSrslProgram)
+
+        /// <summary>
+        /// Parses a set of modules and returns a <see cref="ProgramNode"/>
+        /// </summary>
+        /// <param name="mainModule">The name of the Module containing the entry point</param>
+        /// <param name="modules">A set of delegates that return the modules contents</param>
+        /// <returns></returns>
+        public ProgramNode ParseModules(string mainModule, IEnumerable<Func<string>> modules)
         {
-            Program = new ProgramNode();
-            Program.ModuleNodes = new Dictionary<string, ModuleNode>();
-            Program.MainModule = mainModule;
+            ProgramNode program = new ProgramNode(mainModule);
 
-            foreach (string file in Directory.EnumerateFiles(pathToFolderWithSrslProgram, "*.srsl", SearchOption.AllDirectories))
+            foreach (Func<string> srslModule in modules)
             {
-                string readText = File.ReadAllText(file);
-                SrslLexer lexer = new SrslLexer(readText);
+                ModuleNode module = ParseModule(srslModule());
 
-                SrslModuleParser moduleParser = new SrslModuleParser(lexer);
-
-                ModuleNode module = moduleParser.module();
-
-                if (!Program.ModuleNodes.ContainsKey(module.ModuleIdent.ToString()))
-                {
-                    Program.ModuleNodes.Add(module.ModuleIdent.ToString(), module);
-                }
-                else
-                {
-                    Program.ModuleNodes[module.ModuleIdent.ToString()].AddStatements(module.Statements);
-                }
+                program.AddModule(module);
             }
 
+            return program;
         }
 
-        public virtual List<StatementNode> ParseSrslString(string srslStatments)
+        /// <summary>
+        /// Parses a set of modules and returns a <see cref="ProgramNode"/>
+        /// </summary>
+        /// <param name="mainModule">The name of the Module containing the entry point</param>
+        /// <param name="modules">A set of module contents for parsing, each item containing the code of a single module</param>
+        /// <returns></returns>
+        public ProgramNode ParseModules(string mainModule, IEnumerable<string> modules)
+        {
+            ProgramNode program = new ProgramNode(mainModule);
+
+            foreach (string srslModule in modules)
+            {
+                ModuleNode module = ParseModule(srslModule);
+
+                program.AddModule(module);
+            }
+
+            return program;
+        }
+
+        public ModuleNode ParseModule(string srslModule)
+        {
+            SrslLexer lexer = new SrslLexer(srslModule);
+            SrslModuleParser moduleParser = new SrslModuleParser(lexer);
+            ModuleNode module = moduleParser.module();
+            return module;
+        }
+
+        public List<StatementNode> ParseStatements(string srslStatments)
         {
             SrslLexer lexer = new SrslLexer(srslStatments);
             SrslModuleParser statmentParser = new SrslModuleParser(lexer);
