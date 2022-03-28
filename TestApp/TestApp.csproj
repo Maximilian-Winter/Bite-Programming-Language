@@ -59,7 +59,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SrslBytecodeVmAndCodeGenerator\Srsl.csproj">
+    <ProjectReference Include="..\Srsl\Srsl.csproj">
       <Project>{2B941484-FB5E-4B3F-AF7D-BF61238D6F16}</Project>
       <Name>Srsl</Name>
     </ProjectReference>
