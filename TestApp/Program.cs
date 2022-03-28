@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SrslInterpreterBacktrackingMemoizingParserBased
+namespace TestApp
 {
 
     public class Program
@@ -17,7 +17,7 @@ namespace SrslInterpreterBacktrackingMemoizingParserBased
 
             SrslParser parser = new SrslParser();
 
-            parser.ParseSrslProgram("MainModule", "..\\..\\src\\TestProgram\\");
+            parser.ParseSrslProgram("MainModule", ".\\TestProgram");
             CodeGenerator generator = new CodeGenerator();
             generator.CompileProgram(parser.Program);
 
