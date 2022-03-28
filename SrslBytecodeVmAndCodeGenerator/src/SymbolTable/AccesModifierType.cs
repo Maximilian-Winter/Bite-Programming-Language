@@ -1,4 +1,4 @@
-﻿namespace Srsl_Parser.SymbolTable
+﻿namespace Srsl.SymbolTable
 {
 
     public enum AccesModifierType

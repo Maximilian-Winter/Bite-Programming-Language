@@ -1,6 +1,6 @@
-using Srsl_Parser.SymbolTable;
+using Srsl.SymbolTable;
 
-namespace MemoizeSharp
+namespace Srsl.Ast
 {
 
     public abstract class HeteroAstNode

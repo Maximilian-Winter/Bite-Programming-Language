@@ -1,7 +1,7 @@
-using Srsl_Parser;
 using System.Collections.Generic;
+using Srsl.Parser;
 
-namespace MemoizeSharp
+namespace Srsl.Ast
 {
 
     public class ModifiersNode : HeteroAstNode

@@ -1,7 +1,7 @@
-﻿using MemoizeSharp;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Srsl.Ast;
 
-namespace Srsl_Parser.SymbolTable
+namespace Srsl.SymbolTable
 {
 
     public class FunctionSymbol : SymbolWithScope, TypedSymbol

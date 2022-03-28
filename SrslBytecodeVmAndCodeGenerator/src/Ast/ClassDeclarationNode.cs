@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MemoizeSharp
+namespace Srsl.Ast
 {
 
     public class ClassDeclarationNode : DeclarationNode

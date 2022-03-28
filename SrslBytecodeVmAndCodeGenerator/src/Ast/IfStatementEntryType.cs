@@ -1,4 +1,4 @@
-﻿namespace MemoizeSharp
+﻿namespace Srsl.Ast
 {
 
     public enum IfStatementEntryType

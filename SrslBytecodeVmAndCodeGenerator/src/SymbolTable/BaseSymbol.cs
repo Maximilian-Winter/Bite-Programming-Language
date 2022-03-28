@@ -1,6 +1,6 @@
-﻿using MemoizeSharp;
+﻿using Srsl.Ast;
 
-namespace Srsl_Parser.SymbolTable
+namespace Srsl.SymbolTable
 {
 
     public abstract class BaseSymbol : Symbol

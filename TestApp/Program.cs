@@ -1,9 +1,11 @@
-﻿using Srsl_Parser;
-using Srsl_Parser.Runtime;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Srsl.Parser;
+using Srsl.Runtime;
+using Srsl.Runtime.Bytecode;
+using Srsl.Runtime.CodeGenerator;
 
 namespace TestApp
 {

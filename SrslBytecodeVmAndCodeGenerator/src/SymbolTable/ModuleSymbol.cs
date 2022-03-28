@@ -1,8 +1,8 @@
-﻿using MemoizeSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Srsl.Ast;
 
-namespace Srsl_Parser.SymbolTable
+namespace Srsl.SymbolTable
 {
 
     public class ModuleSymbol : SymbolWithScope

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SrslBytecodeVmAndCodeGenerator", "SrslBytecodeVmAndCodeGenerator\SrslBytecodeVmAndCodeGenerator.csproj", "{2B941484-FB5E-4B3F-AF7D-BF61238D6F16}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Srsl", "SrslBytecodeVmAndCodeGenerator\Srsl.csproj", "{2B941484-FB5E-4B3F-AF7D-BF61238D6F16}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{9577FEF2-3D0B-4CC3-9FF6-0FD56F564534}"
 EndProject

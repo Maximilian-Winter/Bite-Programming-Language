@@ -59,9 +59,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SrslBytecodeVmAndCodeGenerator\SrslBytecodeVmAndCodeGenerator.csproj">
+    <ProjectReference Include="..\SrslBytecodeVmAndCodeGenerator\Srsl.csproj">
       <Project>{2B941484-FB5E-4B3F-AF7D-BF61238D6F16}</Project>
-      <Name>SrslBytecodeVmAndCodeGenerator</Name>
+      <Name>Srsl</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
