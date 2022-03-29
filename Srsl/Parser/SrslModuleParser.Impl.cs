@@ -13,18 +13,28 @@ namespace Srsl.Parser
         {
             if (Speculating)
             {
-                multiplicative();
+                var context = multiplicative();
+
+                if (context.Failed) return context;
 
                 while (LA(1) == SrslLexer.MinusOperator || LA(1) == SrslLexer.PlusOperator)
                 {
                     consume();
-                    multiplicative();
+                    context = multiplicative();
+
+                    if (context.Failed) return context;
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = multiplicative();
+
+                var context = multiplicative();
+
+                if (context.Failed) return context;
+
+                firstOperationNode.LeftOperand = context.Result;
+
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.MinusOperator || LA(1) == SrslLexer.PlusOperator)
@@ -40,7 +50,11 @@ namespace Srsl.Parser
 
                     consume();
 
-                    ExpressionNode expressionNode = multiplicative();
+                    context = multiplicative();
+
+                    if (context.Failed) return context;
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.MinusOperator || LA(1) == SrslLexer.PlusOperator)
                     {
@@ -57,13 +71,13 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ArgumentsNode> _arguments()
@@ -79,7 +93,8 @@ namespace Srsl.Parser
                             consume();
                         }
 
-                        expression();
+                        var context = expression();
+                        if (context.Failed) return Context<ArgumentsNode>.AsFailed();
 
                         if (LA(1) == SrslLexer.CommaSeperator)
                         {
@@ -114,7 +129,11 @@ namespace Srsl.Parser
                             argumentsNode.IsReference.Add(false);
                         }
 
-                        ExpressionNode expressionNode = expression();
+                        var context = expression();
+
+                        if (context.Failed) return Context<ArgumentsNode>.AsFailed();
+
+                        ExpressionNode expressionNode = context.Result;
 
                         argumentsNode.Expressions.Add(expressionNode);
 
@@ -126,7 +145,7 @@ namespace Srsl.Parser
                         counter++;
                     }
 
-                    return argumentsNode;
+                    return new Context<ArgumentsNode>(argumentsNode);
                 }
             }
 
@@ -138,15 +157,21 @@ namespace Srsl.Parser
             if (speculate_assignment_assignment())
             {
                 // Console.WriteLine( "predict assignment assignment" );
+                var context = assignment_assignment();
+                if (context.Failed) return Context<AssignmentNode>.AsFailed();
 
-                return assignment_assignment();
+                return context;
             }
 
             if (speculate_ternary())
             {
                 // Console.WriteLine( "predict logic or assignment" );
                 AssignmentNode assignmentNode = new AssignmentNode();
-                HeteroAstNode node = ternary();
+                var context = ternary();
+
+                if (context.Failed) return Context<AssignmentNode>.AsFailed();
+
+                HeteroAstNode node = context.Result;
 
                 if (node is AssignmentNode assignment)
                 {
@@ -192,17 +217,19 @@ namespace Srsl.Parser
                     assignmentNode.PrimaryNode = primaryNode;
                 }
 
-                return assignmentNode;
+                return new Context<AssignmentNode>(assignmentNode);
             }
 
-            throw new NoViableAltException("");
+            return Context<AssignmentNode>.AsFailed(new NoViableAltException(""));
+            //throw new NoViableAltException("");
         }
 
         public virtual IContext<AssignmentNode> _assignment_assignment()
         {
             if (Speculating)
             {
-                call();
+                var context = call();
+                if (context.Failed) return Context<AssignmentNode>.AsFailed();
 
                 if (LA(1) == SrslLexer.AssignOperator ||
                      LA(1) == SrslLexer.MultiplyAssignOperator ||
@@ -218,17 +245,25 @@ namespace Srsl.Parser
                      LA(1) == SrslLexer.BitwiseRightShiftAssignOperator)
                 {
                     consume();
-                    assignment();
+
+                    var contextAssignment = assignment();
+                    if (contextAssignment.Failed) return Context<AssignmentNode>.AsFailed();
+
                 }
                 else
                 {
-                    throw new NoViableAltException(LT(1).text);
+                    return Context<AssignmentNode>.AsFailed(new NoViableAltException(LT(1).text));
                 }
             }
             else
             {
                 AssignmentNode assignmentNode = new AssignmentNode();
-                assignmentNode.Call = call();
+
+                var context = call();
+
+                if (context.Failed) return Context<AssignmentNode>.AsFailed();
+
+                assignmentNode.Call = context.Result;
                 assignmentNode.Type = AssignmentTypes.Assignment;
 
                 switch (LA(1))
@@ -290,22 +325,29 @@ namespace Srsl.Parser
                         break;
 
                     default:
-                        throw new NoViableAltException(LT(1).text);
+                        return Context<AssignmentNode>.AsFailed(new NoViableAltException(LT(1).text));
+                        //throw new NoViableAltException(LT(1).text);
                 }
 
                 consume();
 
-                assignmentNode.Assignment = assignment();
+                var contextAssignement = assignment();
 
-                return assignmentNode;
+                if (contextAssignement.Failed) return Context<AssignmentNode>.AsFailed();
+
+                assignmentNode.Assignment = contextAssignement.Result;
+
+                return new Context<AssignmentNode>(assignmentNode);
             }
 
-            return null;
+            return new Context<AssignmentNode>(null);
         }
 
         public virtual IContext<BlockStatementNode> _block()
         {
-            match(SrslLexer.OpeningCurlyBracket);
+            IContext<BlockStatementNode> matchContext = null;
+
+            if (!match(SrslLexer.OpeningCurlyBracket, out matchContext)) return matchContext;
 
             if (Speculating == false)
             {
@@ -314,64 +356,62 @@ namespace Srsl.Parser
 
                 while (LA(1) != SrslLexer.ClosingCurlyBracket)
                 {
-                    HeteroAstNode decl = declaration();
+                    var context = declaration();
 
-                    if (decl is ClassDeclarationNode classDeclarationNode)
-                    {
-                        blockStatementNode.Declarations.Classes.Add(classDeclarationNode);
-                    }
+                    if (context.Failed) return Context<BlockStatementNode>.AsFailed();
 
-                    else if (decl is FunctionDeclarationNode functionDeclarationNode)
-                    {
-                        blockStatementNode.Declarations.Functions.Add(functionDeclarationNode);
-                    }
+                    HeteroAstNode decl = context.Result;
 
-                    else if (decl is BlockStatementNode block)
+                    switch (decl)
                     {
-                        blockStatementNode.Declarations.Statements.Add(block);
-                    }
-
-                    else if (decl is StructDeclarationNode structDeclaration)
-                    {
-                        blockStatementNode.Declarations.Structs.Add(structDeclaration);
-                    }
-
-                    else if (decl is VariableDeclarationNode variable)
-                    {
-                        blockStatementNode.Declarations.Variables.Add(variable);
-                    }
-
-                    else if (decl is ClassInstanceDeclarationNode classInstance)
-                    {
-                        blockStatementNode.Declarations.ClassInstances.Add(classInstance);
-                    }
-
-                    else if (decl is StatementNode statement)
-                    {
-                        blockStatementNode.Declarations.Statements.Add(statement);
+                        case ClassDeclarationNode classDeclarationNode:
+                            blockStatementNode.Declarations.Classes.Add(classDeclarationNode);
+                            break;
+                        case FunctionDeclarationNode functionDeclarationNode:
+                            blockStatementNode.Declarations.Functions.Add(functionDeclarationNode);
+                            break;
+                        case BlockStatementNode block:
+                            blockStatementNode.Declarations.Statements.Add(block);
+                            break;
+                        case StructDeclarationNode structDeclaration:
+                            blockStatementNode.Declarations.Structs.Add(structDeclaration);
+                            break;
+                        case VariableDeclarationNode variable:
+                            blockStatementNode.Declarations.Variables.Add(variable);
+                            break;
+                        case ClassInstanceDeclarationNode classInstance:
+                            blockStatementNode.Declarations.ClassInstances.Add(classInstance);
+                            break;
+                        case StatementNode statement:
+                            blockStatementNode.Declarations.Statements.Add(statement);
+                            break;
                     }
                 }
 
-                match(SrslLexer.ClosingCurlyBracket);
+                if (!match(SrslLexer.ClosingCurlyBracket, out matchContext)) return matchContext;
 
-                return blockStatementNode;
+                return new Context<BlockStatementNode>(blockStatementNode);
             }
 
             while (LA(1) != SrslLexer.ClosingCurlyBracket)
             {
-                declaration();
+                var context = declaration();
+                if (context.Failed) return Context<BlockStatementNode>.AsFailed();
             }
 
-            match(SrslLexer.ClosingCurlyBracket);
+            if (!match(SrslLexer.ClosingCurlyBracket, out matchContext)) return matchContext;
 
-            return null;
+            return new Context<BlockStatementNode>(null);
         }
 
         public virtual IContext<CallNode> _call()
         {
+            IContext<CallNode> matchContext = null;
+
             if (Speculating)
             {
-                primary();
+                var context = primary();
+                if (context.Failed) return Context<CallNode>.AsFailed();
 
                 while (LA(1) == SrslLexer.DotOperator ||
                         LA(1) == SrslLexer.OpeningRoundBracket ||
@@ -381,14 +421,14 @@ namespace Srsl.Parser
                     {
                         while (LA(1) == SrslLexer.DotOperator)
                         {
-                            match(SrslLexer.DotOperator);
-                            match(SrslLexer.Identifier);
+                            if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
+                            if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                         }
                     }
 
                     else if (LA(1) == SrslLexer.OpeningRoundBracket)
                     {
-                        match(SrslLexer.OpeningRoundBracket);
+                        if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                         while (LA(1) != SrslLexer.ClosingRoundBracket)
                         {
@@ -397,22 +437,24 @@ namespace Srsl.Parser
                                 consume();
                             }
 
-                            expression();
+                            var contextExpression = expression();
+                            if (contextExpression.Failed) return Context<CallNode>.AsFailed();
+
 
                             if (LA(1) == SrslLexer.CommaSeperator)
                             {
-                                match(SrslLexer.CommaSeperator);
+                                if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
                             }
                         }
 
-                        match(SrslLexer.ClosingRoundBracket);
+                        if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
                     }
 
                     else if (LA(1) == SrslLexer.SquarebracketLeft)
                     {
                         while (LA(1) == SrslLexer.SquarebracketLeft)
                         {
-                            match(SrslLexer.SquarebracketLeft);
+                            if (!match(SrslLexer.SquarebracketLeft, out matchContext)) return matchContext;
 
                             if (LA(1) == SrslLexer.StringLiteral ||
                                  LA(1) == SrslLexer.IntegerLiteral ||
@@ -421,20 +463,25 @@ namespace Srsl.Parser
                                 consume();
                             }
 
-                            match(SrslLexer.SquarebracketRight);
+                            if (!match(SrslLexer.SquarebracketRight, out matchContext)) return matchContext;
                         }
                     }
                 }
 
                 if (LA(1) == SrslLexer.PlusPlusOperator || LA(1) == SrslLexer.MinusMinusOperator)
                 {
-                    throw new MismatchedTokenException("Unary Operation! Not Call.");
+                    return Context<CallNode>.AsFailed(new MismatchedTokenException("Unary Operation! Not Call."));
                 }
             }
             else
             {
                 CallNode callNode = new CallNode();
-                callNode.Primary = primary();
+
+                var context = primary();
+
+                if (context.Failed) return Context<CallNode>.AsFailed();
+
+                callNode.Primary = context.Result;
                 callNode.CallType = CallTypes.Primary;
                 CallEntry currentCallEntry = null;
 
@@ -453,8 +500,13 @@ namespace Srsl.Parser
 
                         while (LA(1) == SrslLexer.DotOperator)
                         {
-                            match(SrslLexer.DotOperator);
-                            PrimaryNode primaryNode = primary();
+                            if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
+
+                            context = primary();
+
+                            if (context.Failed) return Context<CallNode>.AsFailed();
+
+                            PrimaryNode primaryNode = context.Result;
                             CallEntry callEntry = new CallEntry();
                             callEntry.Primary = primaryNode;
                             callNode.CallEntries.Add(callEntry);
@@ -465,7 +517,7 @@ namespace Srsl.Parser
                     if (LA(1) == SrslLexer.OpeningRoundBracket)
                     {
                         callNode.CallType = CallTypes.PrimaryCall;
-                        match(SrslLexer.OpeningRoundBracket);
+                        if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                         if (currentCallEntry != null)
                         {
@@ -496,7 +548,11 @@ namespace Srsl.Parser
                                     currentCallEntry.Arguments.IsReference.Add(false);
                                 }
 
-                                currentCallEntry.Arguments.Expressions.Add(expression());
+                                var contextExpression = expression();
+
+                                if (contextExpression.Failed) return Context<CallNode>.AsFailed();
+
+                                currentCallEntry.Arguments.Expressions.Add(contextExpression.Result);
                             }
                             else
                             {
@@ -510,16 +566,20 @@ namespace Srsl.Parser
                                     callNode.Arguments.IsReference.Add(false);
                                 }
 
-                                callNode.Arguments.Expressions.Add(expression());
+                                var contextExpression = expression();
+
+                                if (contextExpression.Failed) return Context<CallNode>.AsFailed();
+
+                                callNode.Arguments.Expressions.Add(contextExpression.Result);
                             }
 
                             if (LA(1) == SrslLexer.CommaSeperator)
                             {
-                                match(SrslLexer.CommaSeperator);
+                                if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
                             }
                         }
 
-                        match(SrslLexer.ClosingRoundBracket);
+                        if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
                     }
 
                     if (LA(1) == SrslLexer.SquarebracketLeft)
@@ -539,7 +599,7 @@ namespace Srsl.Parser
                         {
                             CallElementEntry callElementEntry = new CallElementEntry();
 
-                            match(SrslLexer.SquarebracketLeft);
+                            if (!match(SrslLexer.SquarebracketLeft, out matchContext)) return matchContext;
 
                             if (LA(1) == SrslLexer.StringLiteral)
                             {
@@ -558,12 +618,15 @@ namespace Srsl.Parser
                             }
                             else if (LA(1) == SrslLexer.Identifier)
                             {
-                                callElementEntry.Call = call();
-                                ;
+                                var contextCall = call();
+
+                                if (contextCall.Failed) return Context<CallNode>.AsFailed();
+
+                                callElementEntry.Call = contextCall.Result;
                                 callElementEntry.CallElementType = CallElementTypes.Call;
                             }
 
-                            match(SrslLexer.SquarebracketRight);
+                            if (!match(SrslLexer.SquarebracketRight, out matchContext)) return matchContext;
 
                             if (currentCallEntry != null)
                             {
@@ -577,14 +640,16 @@ namespace Srsl.Parser
                     }
                 }
 
-                return callNode;
+                return new Context<CallNode>(callNode);
             }
 
-            return null;
+            return new Context<CallNode>(null);
         }
 
         public virtual IContext<ClassDeclarationNode> _classDeclaration()
         {
+            IContext<ClassDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -597,22 +662,24 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareClass);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.DeclareClass, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.ColonOperator && LA(2) == SrslLexer.Identifier)
                 {
-                    match(SrslLexer.ColonOperator);
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) == SrslLexer.CommaSeperator && LA(2) == SrslLexer.Identifier)
                     {
-                        match(SrslLexer.CommaSeperator);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
-                block();
+                var context = block();
+                if (context.Failed) return Context<ClassDeclarationNode>.AsFailed();
+
             }
             else
             {
@@ -632,23 +699,23 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareClass);
+                if (!match(SrslLexer.DeclareClass, out matchContext)) return matchContext;
                 classIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 List<string> baseClasses = new List<string>();
 
                 if (LA(1) == SrslLexer.ColonOperator && LA(2) == SrslLexer.Identifier)
                 {
-                    match(SrslLexer.ColonOperator);
+                    if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
                     baseClasses.Add(LT(1).text);
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) == SrslLexer.CommaSeperator && LA(2) == SrslLexer.Identifier)
                     {
-                        match(SrslLexer.CommaSeperator);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
                         baseClasses.Add(LT(1).text);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
@@ -674,9 +741,14 @@ namespace Srsl.Parser
                 }
 
                 classDeclarationNode.Modifiers = new ModifiersNode(accessMod, staticAbstractMod);
-                classDeclarationNode.BlockStatement = block();
 
-                return classDeclarationNode;
+                var context = block();
+
+                if (context.Failed) return Context<ClassDeclarationNode>.AsFailed();
+
+                classDeclarationNode.BlockStatement = context.Result;
+
+                return new Context<ClassDeclarationNode>(classDeclarationNode);
             }
 
             return null;
@@ -684,6 +756,8 @@ namespace Srsl.Parser
 
         public virtual IContext<ClassDeclarationNode> _classDeclarationForward()
         {
+            IContext<ClassDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -696,22 +770,22 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareClass);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.DeclareClass, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.ColonOperator && LA(2) == SrslLexer.Identifier)
                 {
-                    match(SrslLexer.ColonOperator);
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) == SrslLexer.CommaSeperator && LA(2) == SrslLexer.Identifier)
                     {
-                        match(SrslLexer.CommaSeperator);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
-                match(SrslLexer.SemicolonSeperator);
+                if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
             }
             else
             {
@@ -731,23 +805,23 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareClass);
+                if (!match(SrslLexer.DeclareClass, out matchContext)) return matchContext;
                 classIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 List<string> baseClasses = new List<string>();
 
                 if (LA(1) == SrslLexer.ColonOperator && LA(2) == SrslLexer.Identifier)
                 {
-                    match(SrslLexer.ColonOperator);
+                    if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
                     baseClasses.Add(LT(1).text);
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) == SrslLexer.CommaSeperator && LA(2) == SrslLexer.Identifier)
                     {
-                        match(SrslLexer.CommaSeperator);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
                         baseClasses.Add(LT(1).text);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
@@ -773,9 +847,10 @@ namespace Srsl.Parser
                 }
 
                 classDeclarationNode.Modifiers = new ModifiersNode(accessMod, staticAbstractMod);
-                match(SrslLexer.SemicolonSeperator);
+                if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
 
-                return classDeclarationNode;
+
+                return new Context<ClassDeclarationNode>(classDeclarationNode);
             }
 
             return null;
@@ -783,6 +858,8 @@ namespace Srsl.Parser
 
         public virtual IContext<ClassInstanceDeclarationNode> _classInstanceDeclaration()
         {
+            IContext<ClassInstanceDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -797,32 +874,33 @@ namespace Srsl.Parser
 
                 if (LA(1) == SrslLexer.DeclareVariable)
                 {
-                    match(SrslLexer.DeclareVariable);
+                    if (!match(SrslLexer.DeclareVariable, out matchContext)) return matchContext;
                 }
 
-                match(SrslLexer.Identifier);
-                match(SrslLexer.AssignOperator);
-                match(SrslLexer.DeclareClassInstance);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
+                if (!match(SrslLexer.AssignOperator, out matchContext)) return matchContext;
+                if (!match(SrslLexer.DeclareClassInstance, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 while (LA(1) == SrslLexer.DotOperator)
                 {
-                    match(SrslLexer.DotOperator);
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                 }
 
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (LA(1) != SrslLexer.ClosingRoundBracket)
                 {
-                    arguments();
+                    var context = arguments();
+                    if (context.Failed) return Context<ClassInstanceDeclarationNode>.AsFailed();
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
 
             }
@@ -850,19 +928,19 @@ namespace Srsl.Parser
                 if (LA(1) == SrslLexer.DeclareVariable)
                 {
                     isRedeclaration = false;
-                    match(SrslLexer.DeclareVariable);
+                    if (!match(SrslLexer.DeclareVariable, out matchContext)) return matchContext;
                 }
 
                 ClassInstanceDeclarationNode classInstanceDeclarationNode = new ClassInstanceDeclarationNode();
                 classInstanceDeclarationNode.IsVariableRedeclaration = isRedeclaration;
 
                 identifier = LT(1).text;
-                match(SrslLexer.Identifier);
-                match(SrslLexer.AssignOperator);
-                match(SrslLexer.DeclareClassInstance);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
+                if (!match(SrslLexer.AssignOperator, out matchContext)) return matchContext;
+                if (!match(SrslLexer.DeclareClassInstance, out matchContext)) return matchContext;
 
                 classIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.DotOperator)
                 {
@@ -872,13 +950,13 @@ namespace Srsl.Parser
                 while (LA(1) == SrslLexer.DotOperator)
                 {
                     classInstanceDeclarationNode.ClassPath.Add(new Identifier(classIdentifier));
-                    match(SrslLexer.DotOperator);
+                    if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
                     classIdentifier = LT(1).text;
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                 }
 
                 classInstanceDeclarationNode.ClassName = new Identifier(classIdentifier);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (!string.IsNullOrEmpty(identifier))
                 {
@@ -893,19 +971,23 @@ namespace Srsl.Parser
 
                 if (LA(1) != SrslLexer.ClosingRoundBracket)
                 {
-                    classInstanceDeclarationNode.Arguments = arguments();
+                    var context = arguments();
+
+                    if (context.Failed) return Context<ClassInstanceDeclarationNode>.AsFailed();
+
+                    classInstanceDeclarationNode.Arguments = context.Result;
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
                 if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
 
-                return classInstanceDeclarationNode;
+                return new Context<ClassInstanceDeclarationNode>(classInstanceDeclarationNode);
             }
 
-            return null;
+            return new Context<ClassInstanceDeclarationNode>(null);
         }
 
         public IContext<HeteroAstNode> _declaration()
@@ -973,25 +1055,36 @@ namespace Srsl.Parser
                 return statement();
             }
 
-            throw new NoViableAltException("expecting declaration found " + LT(1));
+            return Context<AssignmentNode>.AsFailed(new NoViableAltException("expecting declaration found " + LT(1)));
+
+            // throw new NoViableAltException("expecting declaration found " + LT(1));
         }
 
         public virtual IContext<ExpressionNode> _equality()
         {
             if (Speculating)
             {
-                relational();
+                var context = relational();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
 
                 while (LA(1) == SrslLexer.UnequalOperator || LA(1) == SrslLexer.EqualOperator)
                 {
                     consume();
-                    relational();
+                    context = relational();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = relational();
+
+                var context = relational();
+
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                firstOperationNode.LeftOperand = context.Result;
+
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.UnequalOperator || LA(1) == SrslLexer.EqualOperator)
@@ -1006,7 +1099,12 @@ namespace Srsl.Parser
                     }
 
                     consume();
-                    ExpressionNode expressionNode = relational();
+
+                    context = relational();
+
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.UnequalOperator || LA(1) == SrslLexer.EqualOperator)
                     {
@@ -1023,153 +1121,204 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ExpressionNode> _expression()
         {
             if (Speculating)
             {
-                assignment();
+                var context = assignment();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
             }
             else
             {
                 ExpressionNode expressionNode = new ExpressionNode();
-                expressionNode.Assignment = assignment();
 
-                return expressionNode;
+                var context = assignment();
+
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                expressionNode.Assignment = context.Result;
+
+                return new Context<ExpressionNode>(expressionNode);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ExpressionStatementNode> _expressionStatement()
         {
+            IContext<ExpressionStatementNode> matchContext = null;
+
             if (Speculating)
             {
-                expression();
+                var context = expression();
+
+                if (context.Failed) return Context<ExpressionStatementNode>.AsFailed();
+
                 if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
             }
             else
             {
                 ExpressionStatementNode expressionStatementNode = new ExpressionStatementNode();
-                expressionStatementNode.Expression = expression();
+
+                var context = expression();
+
+                if (context.Failed) return Context<ExpressionStatementNode>.AsFailed();
+
+                expressionStatementNode.Expression = context.Result;
+
                 if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
 
-                return expressionStatementNode;
+                return new Context<ExpressionStatementNode>(expressionStatementNode);
             }
 
-            return null;
+            return new Context<ExpressionStatementNode>(null);
         }
 
         public virtual IContext<ForStatementNode> _forStatement()
         {
+            IContext<ForStatementNode> matchContext = null;
+
             if (Speculating)
             {
-                match(SrslLexer.DeclareForLoop);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.DeclareForLoop, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.DeclareVariable)
                 {
-                    variableDeclaration();
+                    var context = variableDeclaration();
+
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
                 }
                 else
                 {
                     if (LA(1) != SrslLexer.SemicolonSeperator)
                     {
-                        expressionStatement();
+                        var context = expressionStatement();
+
+                        if (context.Failed) return Context<ForStatementNode>.AsFailed();
                     }
                     else
                     {
-                        match(SrslLexer.SemicolonSeperator);
+                        if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                     }
                 }
 
                 if (LA(1) != SrslLexer.SemicolonSeperator)
                 {
-                    expression();
-                    match(SrslLexer.SemicolonSeperator);
+                    var context = expression();
+
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
                 else
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
 
                 if (LA(1) != SrslLexer.ClosingRoundBracket)
                 {
-                    expression();
+                    var context = expression();
+
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
-                block();
+                var contextBlock = block();
+
+                if (contextBlock.Failed) return Context<ForStatementNode>.AsFailed();
+
             }
             else
             {
                 ForStatementNode forStatementNode = new ForStatementNode();
 
-                match(SrslLexer.DeclareForLoop);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.DeclareForLoop, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (speculate_declaration_variable())
                 {
                     // Console.WriteLine( "predict variable declaration" );
+                    var context = variableDeclaration();
 
-                    forStatementNode.VariableDeclaration = variableDeclaration();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+
+                    forStatementNode.VariableDeclaration = context.Result;
                 }
                 else if (speculate_expression_statement())
                 {
                     // Console.WriteLine( "predict alternative for expression statement" );
+                    var context = expressionStatement();
 
-                    forStatementNode.ExpressionStatement = expressionStatement();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+
+                    forStatementNode.ExpressionStatement = context.Result;
                 }
                 else
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
 
                 if (speculate_expression())
                 {
                     // Console.WriteLine( "predict alternative for expression" );
+                    var context = expression();
 
-                    forStatementNode.Expression1 = expression();
-                    match(SrslLexer.SemicolonSeperator);
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+
+                    forStatementNode.Expression1 = context.Result;
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
                 else
                 {
-                    match(SrslLexer.SemicolonSeperator);
+                    if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
 
                 if (speculate_expression())
                 {
                     // Console.WriteLine( "predict alternative for expression" );
+                    var context = expression();
 
-                    forStatementNode.Expression2 = expression();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+
+                    forStatementNode.Expression2 = context.Result;
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
-                forStatementNode.Block = block();
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
-                return forStatementNode;
+                var contextBlock = block();
+
+                if (contextBlock.Failed) return Context<ForStatementNode>.AsFailed();
+
+                forStatementNode.Block = contextBlock.Result;
+
+                return new Context<ForStatementNode>(forStatementNode);
             }
 
-            return null;
+            return new Context<ForStatementNode>(null);
         }
 
         public virtual IContext<FunctionDeclarationNode> _functionDeclaration()
         {
+            IContext<FunctionDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -1182,23 +1331,27 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareFunction);
-                match(SrslLexer.Identifier);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.DeclareFunction, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.Identifier)
                 {
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) != SrslLexer.ClosingRoundBracket)
                     {
-                        match(SrslLexer.CommaSeperator);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
-                block();
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                var contextBlock = block();
+
+                if (contextBlock.Failed) return Context<FunctionDeclarationNode>.AsFailed();
+
             }
             else
             {
@@ -1219,27 +1372,27 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareFunction);
+                if (!match(SrslLexer.DeclareFunction, out matchContext)) return matchContext;
                 functionIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.Identifier)
                 {
                     parametersNode.Identifiers = new List<Identifier>();
                     parametersNode.Identifiers.Add(new Identifier(LT(1).text));
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) != SrslLexer.ClosingRoundBracket)
                     {
-                        match(SrslLexer.CommaSeperator);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
                         parametersNode.Identifiers.Add(new Identifier(LT(1).text));
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
 
@@ -1253,17 +1406,24 @@ namespace Srsl.Parser
                 }
 
                 functionDeclarationNode.Modifiers = new ModifiersNode(accessMod, staticAbstractMod);
-                functionDeclarationNode.FunctionBlock = block();
+
+                var contextBlock = block();
+
+                if (contextBlock.Failed) return Context<FunctionDeclarationNode>.AsFailed();
+
+                functionDeclarationNode.FunctionBlock = contextBlock.Result;
                 functionDeclarationNode.Parameters = parametersNode;
 
-                return functionDeclarationNode;
+                return new Context<FunctionDeclarationNode>(functionDeclarationNode);
             }
 
-            return null;
+            return new Context<FunctionDeclarationNode>(null);
         }
 
         public virtual IContext<FunctionDeclarationNode> _functionDeclarationForward()
         {
+            IContext<FunctionDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -1276,25 +1436,25 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareFunction);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.DeclareFunction, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.Identifier)
                 {
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) != SrslLexer.ClosingRoundBracket)
                     {
-                        match(SrslLexer.CommaSeperator);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
-                match(SrslLexer.SemicolonSeperator);
+                if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
             }
             else
             {
@@ -1316,26 +1476,26 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareFunction);
+                if (!match(SrslLexer.DeclareFunction, out matchContext)) return matchContext;
                 functionIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.Identifier)
                 {
                     parametersNode.Identifiers.Add(new Identifier(LT(1).text));
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                     while (LA(1) != SrslLexer.ClosingRoundBracket)
                     {
-                        match(SrslLexer.CommaSeperator);
+                        if (!match(SrslLexer.CommaSeperator, out matchContext)) return matchContext;
                         parametersNode.Identifiers.Add(new Identifier(LT(1).text));
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                     }
                 }
 
-                match(SrslLexer.ClosingRoundBracket);
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
 
@@ -1349,102 +1509,155 @@ namespace Srsl.Parser
                 }
 
                 functionDeclarationNode.Modifiers = new ModifiersNode(accessMod, staticAbstractMod);
-                match(SrslLexer.SemicolonSeperator);
+                if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
 
-                return functionDeclarationNode;
+                return new Context<FunctionDeclarationNode>(functionDeclarationNode);
             }
 
-            return null;
+            return new Context<FunctionDeclarationNode>(null);
         }
 
         public virtual IContext<IfStatementNode> _ifStatement()
         {
+            IContext<IfStatementNode> matchContext = null;
+
             if (Speculating)
             {
-                match(SrslLexer.ControlFlowIf);
-                match(SrslLexer.OpeningRoundBracket);
-                expression();
-                match(SrslLexer.ClosingRoundBracket);
-                block();
+                if (!match(SrslLexer.ControlFlowIf, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
+
+                var context = expression();
+                if (context.Failed) return Context<IfStatementNode>.AsFailed();
+
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                var contextBlock = block();
+                if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
+
                 while (LA(1) == SrslLexer.ControlFlowElse)
                 {
-                    match(SrslLexer.ControlFlowElse);
+                    if (!match(SrslLexer.ControlFlowElse, out matchContext)) return matchContext;
 
                     if (LA(1) == SrslLexer.ControlFlowIf)
                     {
-                        match(SrslLexer.ControlFlowIf);
-                        match(SrslLexer.OpeningRoundBracket);
-                        expression();
-                        match(SrslLexer.ClosingRoundBracket);
-                        block();
+                        if (!match(SrslLexer.ControlFlowIf, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
+
+                        context = expression();
+                        if (context.Failed) return Context<IfStatementNode>.AsFailed();
+
+                        if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                        contextBlock = block();
+                        if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
                     }
                     else
                     {
-                        block();
+                        contextBlock = block();
+                        if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
                     }
                 }
             }
             else
             {
-                match(SrslLexer.ControlFlowIf);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.ControlFlowIf, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
                 IfStatementNode ifStatement = new IfStatementNode();
-                ifStatement.Expression = expression();
-                match(SrslLexer.ClosingRoundBracket);
-                ifStatement.ThenBlock = block();
+
+                var context = expression();
+
+                if (context.Failed) return Context<IfStatementNode>.AsFailed();
+
+                ifStatement.Expression = context.Result;
+
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                var contextBlock = block();
+
+                if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
+
+                ifStatement.ThenBlock = contextBlock.Result;
+
                 ifStatement.IfStatementEntries = new List<IfStatementEntry>();
                 while (LA(1) == SrslLexer.ControlFlowElse)
                 {
                     IfStatementEntry ifStatementEntry = new IfStatementEntry();
-                    match(SrslLexer.ControlFlowElse);
+                    if (!match(SrslLexer.ControlFlowElse, out matchContext)) return matchContext;
 
                     if (LA(1) == SrslLexer.ControlFlowIf)
                     {
                         ifStatementEntry.IfStatementType = IfStatementEntryType.ElseIf;
-                        match(SrslLexer.ControlFlowIf);
-                        match(SrslLexer.OpeningRoundBracket);
-                        ifStatementEntry.ExpressionElseIf = expression();
-                        match(SrslLexer.ClosingRoundBracket);
-                        ifStatementEntry.ElseBlock = block();
+                        if (!match(SrslLexer.ControlFlowIf, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
+
+                        var context2 = expression();
+
+                        if (context2.Failed) return Context<IfStatementNode>.AsFailed();
+                        ifStatementEntry.ExpressionElseIf = context2.Result;
+
+                        if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                        var contextBlock2 = block();
+
+                        if (contextBlock2.Failed) return Context<IfStatementNode>.AsFailed();
+                        ifStatementEntry.ElseBlock = contextBlock2.Result;
                     }
                     else
                     {
                         ifStatementEntry.IfStatementType = IfStatementEntryType.Else;
-                        ifStatementEntry.ElseBlock = block();
+
+                        var contextBlock2 = block();
+
+                        if (contextBlock2.Failed) return Context<IfStatementNode>.AsFailed();
+
+                        ifStatementEntry.ElseBlock = contextBlock2.Result;
                     }
 
                     ifStatement.IfStatementEntries.Add(ifStatementEntry);
                 }
 
-                return ifStatement;
+                return new Context<IfStatementNode>(ifStatement);
             }
 
-            return null;
+            return new Context<IfStatementNode>(null);
         }
 
         public virtual IContext<ExpressionNode> _logicAnd()
         {
             if (Speculating)
             {
-                bitwiseOr();
+                var context = bitwiseOr();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
 
                 while (LA(1) == SrslLexer.LogicalAndOperator)
                 {
                     consume();
-                    bitwiseOr();
+                    context = bitwiseOr();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = bitwiseOr();
+
+
+                var context = bitwiseOr();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                firstOperationNode.LeftOperand = context.Result;
+
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.LogicalAndOperator)
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.And;
                     consume();
-                    ExpressionNode expressionNode = bitwiseOr();
+
+                    context = bitwiseOr();
+
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.LogicalAndOperator)
                     {
@@ -1461,38 +1674,50 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ExpressionNode> _logicOr()
         {
             if (Speculating)
             {
-                logicAnd();
+                var context = logicAnd();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
 
                 while (LA(1) == SrslLexer.LogicalOrOperator)
                 {
                     consume();
-                    logicAnd();
+                    context = logicAnd();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = logicAnd();
+
+                var context = logicAnd();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                firstOperationNode.LeftOperand = context.Result;
+
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.LogicalOrOperator)
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Or;
                     consume();
-                    ExpressionNode expressionNode = logicAnd();
+
+                    context = logicAnd();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.LogicalOrOperator)
                     {
@@ -1509,33 +1734,39 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ExpressionNode> _multiplicative()
         {
             if (Speculating)
             {
-                unary();
+                var context = unary();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
 
                 while (LA(1) == SrslLexer.MultiplyOperator ||
                         LA(1) == SrslLexer.DivideOperator ||
                         LA(1) == SrslLexer.ModuloOperator)
                 {
                     consume();
-                    unary();
+                    context = unary();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = unary();
+
+                var context = unary();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.MultiplyOperator ||
@@ -1557,7 +1788,10 @@ namespace Srsl.Parser
 
                     consume();
 
-                    ExpressionNode expressionNode = unary();
+                    context = unary();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.MultiplyOperator ||
                          LA(1) == SrslLexer.DivideOperator ||
@@ -1576,17 +1810,19 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<PrimaryNode> _primary()
         {
+            IContext<PrimaryNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.BooleanLiteral ||
@@ -1601,11 +1837,14 @@ namespace Srsl.Parser
                 }
                 else if (LA(1) == SrslLexer.OpeningRoundBracket)
                 {
-                    match(SrslLexer.OpeningRoundBracket);
+                    if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
-                    declaration();
+
+                    var context = declaration();
+                    if (context.Failed) return Context<PrimaryNode>.AsFailed();
+
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
-                    match(SrslLexer.ClosingRoundBracket);
+                    if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
                 }
             }
             else
@@ -1654,29 +1893,35 @@ namespace Srsl.Parser
                 }
                 else if (LA(1) == SrslLexer.OpeningRoundBracket)
                 {
-                    match(SrslLexer.OpeningRoundBracket);
+                    if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
-                    primaryNode.Expression = declaration();
+
+                    var context = declaration();
+                    if (context.Failed) return Context<PrimaryNode>.AsFailed();
+
+                    primaryNode.Expression = context.Result;
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
                     primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Expression;
-                    match(SrslLexer.ClosingRoundBracket);
+                    if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
                 }
                 else
                 {
-                    throw new NoViableAltException(LT(1).text);
+                    return Context<PrimaryNode>.AsFailed(new NoViableAltException(LT(1).text));
+                    //throw new NoViableAltException(LT(1).text);
                 }
 
-                return primaryNode;
+                return new Context<PrimaryNode>(primaryNode);
             }
 
-            return null;
+            return new Context<PrimaryNode>(null);
         }
 
         public virtual IContext<ExpressionNode> _relational()
         {
             if (Speculating)
             {
-                shift();
+                var context = shift();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
 
                 while (LA(1) == SrslLexer.GreaterOperator ||
                         LA(1) == SrslLexer.GreaterEqualOperator ||
@@ -1684,13 +1929,18 @@ namespace Srsl.Parser
                         LA(1) == SrslLexer.SmallerEqualOperator)
                 {
                     consume();
-                    shift();
+                    context = shift();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = shift();
+
+                var context = shift();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                firstOperationNode.LeftOperand = context.Result;
+
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.GreaterOperator ||
@@ -1717,7 +1967,9 @@ namespace Srsl.Parser
 
                     consume();
 
-                    ExpressionNode expressionNode = shift();
+                    context = shift();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.GreaterOperator ||
                          LA(1) == SrslLexer.GreaterEqualOperator ||
@@ -1737,32 +1989,37 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ReturnStatementNode> _returnStatement()
         {
+            IContext<ReturnStatementNode> matchContext = null;
+
             if (Speculating)
             {
-                match(SrslLexer.FunctionReturn);
-                expressionStatement();
+                if (!match(SrslLexer.FunctionReturn, out matchContext)) return matchContext;
+                var context = expressionStatement();
+                if (context.Failed) return Context<ReturnStatementNode>.AsFailed();
             }
             else
             {
-                match(SrslLexer.FunctionReturn);
+                if (!match(SrslLexer.FunctionReturn, out matchContext)) return matchContext;
                 ReturnStatementNode returnStatementNode = new ReturnStatementNode();
-                returnStatementNode.ExpressionStatement = expressionStatement();
+                var context = expressionStatement();
+                if (context.Failed) return Context<ReturnStatementNode>.AsFailed();
+                returnStatementNode.ExpressionStatement = context.Result;
 
-                return returnStatementNode;
+                return new Context<ReturnStatementNode>(returnStatementNode);
             }
 
-            return null;
+            return new Context<ReturnStatementNode>(null);
         }
 
         public IContext<HeteroAstNode> _statement()
@@ -1816,39 +2073,58 @@ namespace Srsl.Parser
                 return block();
             }
 
-            throw new NoViableAltException("expecting declaration found " + LT(1));
+            return Context<HeteroAstNode>.AsFailed(new NoViableAltException("expecting declaration found " + LT(1)));
+            //throw new NoViableAltException("expecting declaration found " + LT(1));
         }
 
         public IContext<UsingStatementNode> _usingStatement()
         {
+            IContext<UsingStatementNode> matchContext = null;
+
             if (!Speculating)
             {
-                match(SrslLexer.UsingDirective);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.UsingDirective, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 UsingStatementNode usingStatementNode = new UsingStatementNode();
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
-                usingStatementNode.UsingNode = declaration();
-                MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
-                match(SrslLexer.ClosingRoundBracket);
-                usingStatementNode.UsingBlock = block();
 
-                return usingStatementNode;
+                var context = declaration();
+                if (context.Failed) return Context<UsingStatementNode>.AsFailed();
+
+                usingStatementNode.UsingNode = context.Result;
+
+                MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                var contextBlock = block();
+                if (contextBlock.Failed) return Context<UsingStatementNode>.AsFailed();
+
+                usingStatementNode.UsingBlock = contextBlock.Result;
+
+                return new Context<UsingStatementNode>(usingStatementNode);
             }
 
-            match(SrslLexer.UsingDirective);
-            match(SrslLexer.OpeningRoundBracket);
+            if (!match(SrslLexer.UsingDirective, out matchContext)) return matchContext;
+            if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
             MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
-            declaration();
+
+            var context2 = declaration();
+            if (context2.Failed) return Context<UsingStatementNode>.AsFailed();
+
             MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
-            match(SrslLexer.ClosingRoundBracket);
-            block();
+            if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+            var contextBlock2 = block();
+            if (contextBlock2.Failed) return Context<UsingStatementNode>.AsFailed();
 
             return null;
         }
 
         public virtual IContext<StructDeclarationNode> _structDeclaration()
         {
+            IContext<StructDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -1856,10 +2132,11 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareStruct);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.DeclareStruct, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
-                block();
+                var context = block();
+                if (context.Failed) return Context<StructDeclarationNode>.AsFailed();
             }
             else
             {
@@ -1873,9 +2150,9 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareStruct);
+                if (!match(SrslLexer.DeclareStruct, out matchContext)) return matchContext;
                 classIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 StructDeclarationNode structDeclarationNode = new StructDeclarationNode();
 
@@ -1889,9 +2166,13 @@ namespace Srsl.Parser
                 }
 
                 structDeclarationNode.Modifiers = new ModifiersNode(accessMod, staticAbstractMod);
-                structDeclarationNode.Block = block();
 
-                return structDeclarationNode;
+                var context = block();
+                if (context.Failed) return Context<StructDeclarationNode>.AsFailed();
+
+                structDeclarationNode.Block = context.Result;
+
+                return new Context<StructDeclarationNode>(structDeclarationNode);
             }
 
             return null;
@@ -1920,13 +2201,14 @@ namespace Srsl.Parser
                 return unaryPostfix();
             }
 
-
-
-            throw new NoViableAltException("");
+            return Context<ExpressionNode>.AsFailed(new NoViableAltException(""));
+            //throw new NoViableAltException("");
         }
 
         public virtual IContext<ExpressionNode> _unaryPostfix()
         {
+            IContext<ExpressionNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.Identifier)
@@ -1941,13 +2223,18 @@ namespace Srsl.Parser
                 }
                 else
                 {
-                    throw new NoViableAltException("");
+                    //throw new NoViableAltException("");
+                    return Context<ExpressionNode>.AsFailed(new NoViableAltException(""));
                 }
             }
             else
             {
                 UnaryPostfixOperation unaryPostfix = new UnaryPostfixOperation();
-                unaryPostfix.Primary = call();
+
+                var context = call();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                unaryPostfix.Primary = context.Result;
 
 
                 if (LA(1) == SrslLexer.MinusMinusOperator ||
@@ -1955,26 +2242,28 @@ namespace Srsl.Parser
                 {
                     if (LA(1) == SrslLexer.MinusMinusOperator)
                     {
-                        match(SrslLexer.MinusMinusOperator);
+                        if (!match(SrslLexer.MinusMinusOperator, out matchContext)) return matchContext;
                         unaryPostfix.Operator = UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus;
                     }
                     else if (LA(1) == SrslLexer.PlusPlusOperator)
                     {
-                        match(SrslLexer.PlusPlusOperator);
+                        if (!match(SrslLexer.PlusPlusOperator, out matchContext)) return matchContext;
                         unaryPostfix.Operator = UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus;
                     }
 
 
                 }
 
-                return unaryPostfix;
+                return new Context<ExpressionNode>(unaryPostfix);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<ExpressionNode> _unaryPrefix()
         {
+            IContext<ExpressionNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.MinusMinusOperator ||
@@ -1985,11 +2274,14 @@ namespace Srsl.Parser
                      LA(1) == SrslLexer.PlusOperator)
                 {
                     consume();
-                    unary();
+
+                    var context = unary();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
                 else
                 {
-                    throw new NoViableAltException("");
+                    return Context<AssignmentNode>.AsFailed(new NoViableAltException(""));
+                    //throw new NoViableAltException("");
                 }
             }
             else
@@ -2005,46 +2297,52 @@ namespace Srsl.Parser
                 {
                     if (LA(1) == SrslLexer.MinusMinusOperator)
                     {
-                        match(SrslLexer.MinusMinusOperator);
+                        if (!match(SrslLexer.MinusMinusOperator, out matchContext)) return matchContext;
                         unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus;
                     }
                     else if (LA(1) == SrslLexer.PlusPlusOperator)
                     {
-                        match(SrslLexer.PlusPlusOperator);
+                        if (!match(SrslLexer.PlusPlusOperator, out matchContext)) return matchContext;
                         unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus;
                     }
                     else if (LA(1) == SrslLexer.LogicalNegationOperator)
                     {
-                        match(SrslLexer.LogicalNegationOperator);
+                        if (!match(SrslLexer.LogicalNegationOperator, out matchContext)) return matchContext;
                         unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot;
                     }
                     else if (LA(1) == SrslLexer.ComplimentOperator)
                     {
-                        match(SrslLexer.ComplimentOperator);
+                        if (!match(SrslLexer.ComplimentOperator, out matchContext)) return matchContext;
                         unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment;
                     }
                     else if (LA(1) == SrslLexer.PlusOperator)
                     {
-                        match(SrslLexer.PlusOperator);
+                        if (!match(SrslLexer.PlusOperator, out matchContext)) return matchContext;
                         unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Plus;
                     }
                     else
                     {
-                        match(SrslLexer.MinusOperator);
+                        if (!match(SrslLexer.MinusOperator, out matchContext)) return matchContext;
                         unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Negate;
                     }
 
-                    unaryPrefix.Primary = unary();
+                    var context = unary();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+
+                    unaryPrefix.Primary = context.Result;
                 }
 
-                return unaryPrefix;
+                return new Context<ExpressionNode>(unaryPrefix);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         public virtual IContext<VariableDeclarationNode> _variableDeclaration()
         {
+            IContext<VariableDeclarationNode> matchContext = null;
+
             if (Speculating)
             {
                 if (LA(1) == SrslLexer.DeclarePrivate || LA(1) == SrslLexer.DeclarePublic)
@@ -2057,8 +2355,8 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareVariable);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.DeclareVariable, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 if (LA(1) == SrslLexer.AssignOperator)
                 {
@@ -2069,13 +2367,14 @@ namespace Srsl.Parser
                         throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
                     }
 
-                    expressionStatement();
+                    var context = expressionStatement();
+                    if (context.Failed) return Context<VariableDeclarationNode>.AsFailed();
                 }
                 else
                 {
                     if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                     {
-                        match(SrslLexer.SemicolonSeperator);
+                        if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                     }
                 }
             }
@@ -2097,9 +2396,9 @@ namespace Srsl.Parser
                     consume();
                 }
 
-                match(SrslLexer.DeclareVariable);
+                if (!match(SrslLexer.DeclareVariable, out matchContext)) return matchContext;
                 identifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                 ExpressionStatementNode init = null;
 
                 if (LA(1) == SrslLexer.AssignOperator)
@@ -2111,13 +2410,16 @@ namespace Srsl.Parser
                         throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
                     }
 
-                    init = expressionStatement();
+                    var context = expressionStatement();
+                    if (context.Failed) return Context<VariableDeclarationNode>.AsFailed();
+
+                    init = context.Result;
                 }
                 else
                 {
                     if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                     {
-                        match(SrslLexer.SemicolonSeperator);
+                        if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                     }
                 }
 
@@ -2140,63 +2442,97 @@ namespace Srsl.Parser
                     variableDeclarationNode.Initializer.Expression = init;
                 }
 
-                return variableDeclarationNode;
+                return new Context<VariableDeclarationNode>(variableDeclarationNode);
             }
 
-            return null;
+            return new Context<VariableDeclarationNode>(null);
         }
 
         public virtual IContext<WhileStatementNode> _whileStatement()
         {
+            IContext<WhileStatementNode> matchContext = null;
+
             if (Speculating)
             {
-                match(SrslLexer.DeclareWhileLoop);
-                match(SrslLexer.OpeningRoundBracket);
-                expression();
-                match(SrslLexer.ClosingRoundBracket);
-                block();
+                if (!match(SrslLexer.DeclareWhileLoop, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
+
+                var context = expression();
+                if (context.Failed) return Context<WhileStatementNode>.AsFailed();
+
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                var contextBlock = block();
+                if (contextBlock.Failed) return Context<WhileStatementNode>.AsFailed();
             }
             else
             {
-                match(SrslLexer.DeclareWhileLoop);
-                match(SrslLexer.OpeningRoundBracket);
+                if (!match(SrslLexer.DeclareWhileLoop, out matchContext)) return matchContext;
+                if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
                 WhileStatementNode whileStatementNode = new WhileStatementNode();
-                whileStatementNode.Expression = expression();
-                match(SrslLexer.ClosingRoundBracket);
-                whileStatementNode.WhileBlock = block();
 
-                return whileStatementNode;
+
+                var context = expression();
+                if (context.Failed) return Context<WhileStatementNode>.AsFailed();
+                whileStatementNode.Expression = context.Result;
+
+                if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
+
+                var contextBlock = block();
+                if (contextBlock.Failed) return Context<WhileStatementNode>.AsFailed();
+                whileStatementNode.WhileBlock = contextBlock.Result;
+
+                return new Context<WhileStatementNode>(whileStatementNode);
             }
 
-            return null;
+            return new Context<WhileStatementNode>(null);
         }
-        
+
         public IContext<ExpressionNode> _ternary()
         {
+            IContext<ExpressionNode> matchContext = null;
+
             if (Speculating)
             {
-                logicOr();
+                var context = logicOr();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
 
                 while (LA(1) == SrslLexer.QuestionMarkOperator)
                 {
                     consume();
-                    logicOr();
-                    match(SrslLexer.ColonOperator);
-                    logicOr();
+
+                    context = logicOr();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
+
+                    context = logicOr();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 TernaryOperationNode firstOperationNode = new TernaryOperationNode();
-                firstOperationNode.LeftOperand = logicOr();
+
+                var context = logicOr();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                firstOperationNode.LeftOperand = context.Result;
+
                 TernaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.QuestionMarkOperator)
                 {
                     consume();
-                    currentOperationNode.MidOperand = logicOr();
-                    match(SrslLexer.ColonOperator);
-                    ExpressionNode right = logicOr();
+
+                    context = logicOr();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    currentOperationNode.MidOperand = context.Result;
+                    if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
+
+                    context = logicOr();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    ExpressionNode right = context.Result;
 
                     if (LA(1) == SrslLexer.QuestionMarkOperator)
                     {
@@ -2213,38 +2549,45 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null || firstOperationNode.MidOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         private IContext<ExpressionNode> _bitwiseOr()
         {
             if (Speculating)
             {
-                bitwiseXor();
+                var context = bitwiseXor();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
 
                 while (LA(1) == SrslLexer.BitwiseOrOperator)
                 {
                     consume();
-                    bitwiseXor();
+                    context = bitwiseXor();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = bitwiseXor();
+                var context = bitwiseXor();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.BitwiseOrOperator)
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseOr;
                     consume();
-                    ExpressionNode expressionNode = bitwiseXor();
+                    context = bitwiseXor();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.BitwiseOrOperator)
                     {
@@ -2261,38 +2604,47 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         private IContext<ExpressionNode> _bitwiseXor()
         {
             if (Speculating)
             {
-                bitwiseAnd();
+                var context = bitwiseAnd();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
 
                 while (LA(1) == SrslLexer.BitwiseXorOperator)
                 {
                     consume();
-                    bitwiseAnd();
+                    context = bitwiseAnd();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = bitwiseAnd();
+                var context = bitwiseAnd();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.BitwiseXorOperator)
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseXor;
                     consume();
-                    ExpressionNode expressionNode = bitwiseAnd();
+
+                    context = bitwiseAnd();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.BitwiseXorOperator)
                     {
@@ -2309,38 +2661,44 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         private IContext<ExpressionNode> _bitwiseAnd()
         {
             if (Speculating)
             {
-                equality();
+                var context = equality();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
 
                 while (LA(1) == SrslLexer.BitwiseAndOperator)
                 {
                     consume();
-                    equality();
+                    context = equality();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = equality();
+                var context = equality();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.BitwiseAndOperator)
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseAnd;
                     consume();
-                    ExpressionNode expressionNode = equality();
+                    context = equality();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.BitwiseAndOperator)
                     {
@@ -2357,31 +2715,36 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         private IContext<ExpressionNode> _shift()
         {
             if (Speculating)
             {
-                additive();
+                var context = additive();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
 
                 while (LA(1) == SrslLexer.ShiftLeftOperator || LA(1) == SrslLexer.ShiftRightOperator)
                 {
                     consume();
-                    additive();
+                    context = additive();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-                firstOperationNode.LeftOperand = additive();
+                var context = additive();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
                 while (LA(1) == SrslLexer.ShiftLeftOperator || LA(1) == SrslLexer.ShiftRightOperator)
@@ -2397,7 +2760,10 @@ namespace Srsl.Parser
 
                     consume();
 
-                    ExpressionNode expressionNode = additive();
+                    context = additive();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+
+                    ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.ShiftLeftOperator || LA(1) == SrslLexer.ShiftRightOperator)
                     {
@@ -2414,22 +2780,24 @@ namespace Srsl.Parser
 
                 if (firstOperationNode.RightOperand != null)
                 {
-                    return firstOperationNode;
+                    return new Context<ExpressionNode>(firstOperationNode);
                 }
 
-                return firstOperationNode.LeftOperand;
+                return new Context<ExpressionNode>(firstOperationNode.LeftOperand);
             }
 
-            return null;
+            return new Context<ExpressionNode>(null);
         }
 
         private IContext<ModuleNode> _module()
         {
+            IContext<ModuleNode> matchContext = null;
+
             if (!Speculating)
             {
-                match(SrslLexer.DeclareModule);
+                if (!match(SrslLexer.DeclareModule, out matchContext)) return matchContext;
                 string moduleIdentifier = LT(1).text;
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                 List<string> parentModules = new List<string>();
                 List<ModuleIdentifier> importedModules = new List<ModuleIdentifier>();
                 List<ModuleIdentifier> usedModules = new List<ModuleIdentifier>();
@@ -2439,12 +2807,12 @@ namespace Srsl.Parser
                 while (LA(1) == SrslLexer.DotOperator)
                 {
                     parentModules.Add(moduleIdentifier);
-                    match(SrslLexer.DotOperator);
+                    if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
                     moduleIdentifier = LT(1).text;
-                    match(SrslLexer.Identifier);
+                    if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                 }
 
-                match(SrslLexer.SemicolonSeperator);
+                if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 moduleNode.ModuleIdent = new ModuleIdentifier(moduleIdentifier, parentModules);
 
                 if (LA(1) == SrslLexer.ImportDirective || LA(1) == SrslLexer.UsingDirective)
@@ -2453,38 +2821,38 @@ namespace Srsl.Parser
                     {
                         if (LA(1) == SrslLexer.ImportDirective)
                         {
-                            match(SrslLexer.ImportDirective);
+                            if (!match(SrslLexer.ImportDirective, out matchContext)) return matchContext;
                             string nextIdentifier = LT(1).text;
-                            match(SrslLexer.Identifier);
+                            if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                             List<string> pModules = new List<string>();
 
                             while (LA(1) == SrslLexer.DotOperator)
                             {
                                 pModules.Add(nextIdentifier);
-                                match(SrslLexer.DotOperator);
+                                if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
                                 nextIdentifier = LT(1).text;
-                                match(SrslLexer.Identifier);
+                                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                             }
 
-                            match(SrslLexer.SemicolonSeperator);
+                            if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                             importedModules.Add(new ModuleIdentifier(nextIdentifier, pModules));
                         }
                         else
                         {
-                            match(SrslLexer.UsingDirective);
+                            if (!match(SrslLexer.UsingDirective, out matchContext)) return matchContext;
                             string nextIdentifier = LT(1).text;
-                            match(SrslLexer.Identifier);
+                            if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                             List<string> pModules = new List<string>();
 
                             while (LA(1) == SrslLexer.DotOperator)
                             {
                                 pModules.Add(nextIdentifier);
-                                match(SrslLexer.DotOperator);
+                                if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
                                 nextIdentifier = LT(1).text;
-                                match(SrslLexer.Identifier);
+                                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                             }
 
-                            match(SrslLexer.SemicolonSeperator);
+                            if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                             usedModules.Add(new ModuleIdentifier(nextIdentifier, pModules));
                         }
                     }
@@ -2497,57 +2865,51 @@ namespace Srsl.Parser
 
                 while (LA(1) != Lexer.EOF_TYPE)
                 {
-                    HeteroAstNode decl = declaration();
+                    var context = declaration();
 
-                    if (decl is ClassDeclarationNode classDeclarationNode)
-                    {
-                        moduleNode.Statements.Add(classDeclarationNode);
-                    }
+                    if (context.Failed) return Context<ModuleNode>.AsFailed();
 
-                    else if (decl is FunctionDeclarationNode functionDeclarationNode)
-                    {
-                        moduleNode.Statements.Add(functionDeclarationNode);
-                    }
+                    HeteroAstNode decl = context.Result;
 
-                    else if (decl is BlockStatementNode block)
+                    switch (decl)
                     {
-                        moduleNode.Statements.Add(block);
-                    }
-
-                    else if (decl is StructDeclarationNode structDeclaration)
-                    {
-                        moduleNode.Statements.Add(structDeclaration);
-                    }
-
-                    else if (decl is VariableDeclarationNode variable)
-                    {
-                        moduleNode.Statements.Add(variable);
-                    }
-
-                    else if (decl is ClassInstanceDeclarationNode classInstance)
-                    {
-                        moduleNode.Statements.Add(classInstance);
-                    }
-
-                    else if (decl is StatementNode statement)
-                    {
-                        moduleNode.Statements.Add(statement);
+                        case ClassDeclarationNode classDeclarationNode:
+                            moduleNode.Statements.Add(classDeclarationNode);
+                            break;
+                        case FunctionDeclarationNode functionDeclarationNode:
+                            moduleNode.Statements.Add(functionDeclarationNode);
+                            break;
+                        case BlockStatementNode block:
+                            moduleNode.Statements.Add(block);
+                            break;
+                        case StructDeclarationNode structDeclaration:
+                            moduleNode.Statements.Add(structDeclaration);
+                            break;
+                        case VariableDeclarationNode variable:
+                            moduleNode.Statements.Add(variable);
+                            break;
+                        case ClassInstanceDeclarationNode classInstance:
+                            moduleNode.Statements.Add(classInstance);
+                            break;
+                        case StatementNode statement:
+                            moduleNode.Statements.Add(statement);
+                            break;
                     }
                 }
 
-                return moduleNode;
+                return new Context<ModuleNode>(moduleNode);
             }
 
-            match(SrslLexer.DeclareModule);
-            match(SrslLexer.Identifier);
+            if (!match(SrslLexer.DeclareModule, out matchContext)) return matchContext;
+            if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
             while (LA(1) == SrslLexer.DotOperator)
             {
-                match(SrslLexer.DotOperator);
-                match(SrslLexer.Identifier);
+                if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
+                if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
             }
 
-            match(SrslLexer.SemicolonSeperator);
+            if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
 
             if (LA(1) == SrslLexer.ImportDirective || LA(1) == SrslLexer.UsingDirective)
             {
@@ -2555,41 +2917,43 @@ namespace Srsl.Parser
                 {
                     if (LA(1) == SrslLexer.ImportDirective)
                     {
-                        match(SrslLexer.ImportDirective);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.ImportDirective, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                         while (LA(1) == SrslLexer.DotOperator)
                         {
-                            match(SrslLexer.DotOperator);
-                            match(SrslLexer.Identifier);
+                            if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
+                            if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                         }
 
-                        match(SrslLexer.SemicolonSeperator);
+                        if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                     }
                     else
                     {
-                        match(SrslLexer.UsingDirective);
-                        match(SrslLexer.Identifier);
+                        if (!match(SrslLexer.UsingDirective, out matchContext)) return matchContext;
+                        if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                         while (LA(1) == SrslLexer.DotOperator)
                         {
-                            match(SrslLexer.DotOperator);
-                            match(SrslLexer.Identifier);
+                            if (!match(SrslLexer.DotOperator, out matchContext)) return matchContext;
+                            if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
                         }
 
-                        match(SrslLexer.SemicolonSeperator);
+                        if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                     }
                 }
             }
 
             while (LA(1) != Lexer.EOF_TYPE)
             {
-                declaration();
+                var context = declaration();
+
+                if (context.Failed) return Context<ModuleNode>.AsFailed();
             }
 
-            return null;
+            return new Context<ModuleNode>(null);
         }
-        
+
 
         #endregion
     }

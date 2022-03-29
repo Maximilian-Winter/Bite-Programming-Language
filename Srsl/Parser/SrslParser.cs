@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Srsl.Ast;
 
 namespace Srsl.Parser
@@ -52,17 +53,16 @@ namespace Srsl.Parser
         {
             SrslLexer lexer = new SrslLexer(srslModule);
             SrslModuleParser moduleParser = new SrslModuleParser(lexer);
-            ModuleNode module = moduleParser.module().Result;
-            return module;
+            var context = moduleParser.module();
+            return context.Result;
         }
 
         public List<StatementNode> ParseStatements(string srslStatments)
         {
             SrslLexer lexer = new SrslLexer(srslStatments);
             SrslModuleParser statmentParser = new SrslModuleParser(lexer);
-            List<StatementNode> statementNodes = statmentParser.statements();
-
-            return statementNodes;
+            var contexts = statmentParser.statements();
+            return contexts.Select(c => c.Result).ToList();
         }
     }
 

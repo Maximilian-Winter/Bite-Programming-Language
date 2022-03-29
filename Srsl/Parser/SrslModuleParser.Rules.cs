@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Srsl.Ast;
 
 namespace Srsl.Parser
@@ -8,1199 +9,236 @@ namespace Srsl.Parser
     public partial class SrslModuleParser
     {
         #region Public
-        public IContext<UsingStatementNode> usingStatement()
-        {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<UsingStatementNode>("usingStatement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _usingStatement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "usingStatement", startTokenIndex, failed);
-                }
-            }
-        }
 
         public virtual IContext<ExpressionNode> additive()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("additive");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _additive();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "additive", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("additive", _additive);
         }
 
         public virtual IContext<ArgumentsNode> arguments()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-            
-            var speculateResult = SpeculateRule<ArgumentsNode>("arguments");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _arguments();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "arguments", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("arguments", _arguments);
         }
 
         public virtual IContext<AssignmentNode> assignment()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<AssignmentNode>("assignment");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _assignment();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "assignment", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("assignment", _assignment);
         }
 
         public virtual IContext<AssignmentNode> assignment_assignment()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<AssignmentNode>("assignment_assignment");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _assignment_assignment();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "assignment_assignment", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("assignment_assignment", _assignment_assignment);
         }
 
         public virtual IContext<BlockStatementNode> block()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<BlockStatementNode>("block");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _block();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "block", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("block", _block);
         }
 
         public virtual IContext<CallNode> call()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-
-            var speculateResult = SpeculateRule<CallNode>("call");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _call();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "call", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("call", _call);
         }
 
         public virtual IContext<ClassDeclarationNode> classDeclaration()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ClassDeclarationNode>("classDeclaration");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _classDeclaration();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "classDeclaration", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("classDeclaration", _classDeclaration);
         }
 
         public virtual IContext<ClassDeclarationNode> classDeclarationForward()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ClassDeclarationNode>("classDeclarationForward");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _classDeclarationForward();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "classDeclarationForward", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("classDeclarationForward", _classDeclarationForward);
         }
 
         public virtual IContext<ClassInstanceDeclarationNode> classInstanceDeclaration()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ClassInstanceDeclarationNode>("classInstanceDeclaration");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _classInstanceDeclaration();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "classInstanceDeclaration", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("classInstanceDeclaration", _classInstanceDeclaration);
         }
 
         public virtual IContext<HeteroAstNode> declaration()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<HeteroAstNode>("declaration");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _declaration();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "declaration", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("declaration", _declaration);
         }
 
         public virtual IContext<ExpressionNode> equality()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("equality");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _equality();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "equality", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("equality", _equality);
         }
 
         public virtual IContext<ExpressionNode> expression()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("expression");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _expression();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "expression", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("expression", _expression);
         }
 
         public virtual IContext<ExpressionStatementNode> expressionStatement()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionStatementNode>("expressionStatement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _expressionStatement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "expressionStatement", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("expressionStatement", _expressionStatement);
         }
 
         public virtual IContext<ForStatementNode> forStatement()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-
-            var speculateResult = SpeculateRule<ForStatementNode>("forStatement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _forStatement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "forStatement", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("forStatement", _forStatement);
         }
 
         public virtual IContext<FunctionDeclarationNode> functionDeclaration()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<FunctionDeclarationNode>("functionDeclaration");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _functionDeclaration();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "functionDeclaration", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("functionDeclaration", _functionDeclaration);
         }
 
         public virtual IContext<FunctionDeclarationNode> functionDeclarationForward()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<FunctionDeclarationNode>("functionDeclarationForward");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _functionDeclarationForward();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "functionDeclarationForward", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("functionDeclarationForward", _functionDeclarationForward);
         }
 
         public virtual IContext<IfStatementNode> ifStatement()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<IfStatementNode>("ifStatement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _ifStatement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "ifStatement", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("ifStatement", _ifStatement);
         }
 
         public virtual IContext<ExpressionNode> logicAnd()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("logicAnd");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _logicAnd();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "logicAnd", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("logicAnd", _logicAnd);
         }
 
         public virtual IContext<ExpressionNode> ternary()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("ternary");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _ternary();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "ternary", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("ternary", _ternary);
         }
 
         public virtual IContext<ExpressionNode> bitwiseOr()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("bitwiseOr");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _bitwiseOr();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "bitwiseOr", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("bitwiseOr", _bitwiseOr);
         }
 
         public virtual IContext<ExpressionNode> bitwiseXor()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("bitwiseXor");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _bitwiseXor();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "bitwiseXor", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("bitwiseXor", _bitwiseXor);
         }
 
         public virtual IContext<ExpressionNode> bitwiseAnd()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("bitwiseAnd");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _bitwiseAnd();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "bitwiseAnd", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("bitwiseAnd", _bitwiseAnd);
         }
 
         public virtual IContext<ExpressionNode> shift()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("shift");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _shift();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "shift", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("shift", _shift);
         }
 
         public virtual IContext<ExpressionNode> logicOr()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("logicOr");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _logicOr();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "logicOr", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("logicOr", _logicOr);
         }
 
         public virtual IContext<ExpressionNode> multiplicative()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("multiplicative");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _multiplicative();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "multiplicative", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("multiplicative", _multiplicative);
         }
 
         public virtual IContext<PrimaryNode> primary()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-            
-            var speculateResult = SpeculateRule<PrimaryNode>("primary");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _primary();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "primary", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("primary", _primary);
         }
 
-        public virtual List<StatementNode> statements()
+        public virtual List<IContext<StatementNode>> statements()
         {
             List<StatementNode> statements = new List<StatementNode>();
+
             while (LA(1) != Lexer.EOF_TYPE)
             {
-                HeteroAstNode decl = declaration();
+                var context = declaration();
 
-                if (decl is ClassDeclarationNode classDeclarationNode)
+                if (context.Failed)
                 {
-                    statements.Add(classDeclarationNode);
+                    return new List<IContext<StatementNode>>()
+                     {
+                         Context<StatementNode>.AsFailed()
+                     };
                 }
 
-                else if (decl is FunctionDeclarationNode functionDeclarationNode)
-                {
-                    statements.Add(functionDeclarationNode);
-                }
+                HeteroAstNode decl = context.Result;
 
-                else if (decl is BlockStatementNode block)
+                switch (decl)
                 {
-                    statements.Add(block);
-                }
-
-                else if (decl is StructDeclarationNode structDeclaration)
-                {
-                    statements.Add(structDeclaration);
-                }
-
-                else if (decl is VariableDeclarationNode variable)
-                {
-                    statements.Add(variable);
-                }
-
-                else if (decl is ClassInstanceDeclarationNode classInstance)
-                {
-                    statements.Add(classInstance);
-                }
-
-                else if (decl is StatementNode statement)
-                {
-                    statements.Add(statement);
+                    case ClassDeclarationNode classDeclarationNode:
+                        statements.Add(classDeclarationNode);
+                        break;
+                    case FunctionDeclarationNode functionDeclarationNode:
+                        statements.Add(functionDeclarationNode);
+                        break;
+                    case BlockStatementNode block:
+                        statements.Add(block);
+                        break;
+                    case StructDeclarationNode structDeclaration:
+                        statements.Add(structDeclaration);
+                        break;
+                    case VariableDeclarationNode variable:
+                        statements.Add(variable);
+                        break;
+                    case ClassInstanceDeclarationNode classInstance:
+                        statements.Add(classInstance);
+                        break;
+                    case StatementNode statement:
+                        statements.Add(statement);
+                        break;
                 }
             }
-            return statements;
+            return statements.Select(s => new Context<StatementNode>(s)).ToList<IContext<StatementNode>>();
         }
 
         public virtual IContext<ModuleNode> module()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ModuleNode>("module");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-
-            try
-            {
-                return _module();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "module", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("module", _module);
         }
 
         public virtual IContext<ExpressionNode> relational()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("comparision");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _relational();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "comparision", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("comparision", _relational);
         }
 
         public virtual IContext<ReturnStatementNode> returnStatement()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-
-            var speculateResult = SpeculateRule<ReturnStatementNode>("returnStatement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _returnStatement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "returnStatement", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("returnStatement", _returnStatement);
         }
 
         public virtual IContext<HeteroAstNode> statement()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-            
-            var speculateResult = SpeculateRule<HeteroAstNode>("statement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _statement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "statement", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("statement", _statement);
         }
 
         public virtual IContext<StructDeclarationNode> structDeclaration()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<StructDeclarationNode>("structDeclaration");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _structDeclaration();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "structDeclaration", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("structDeclaration", _structDeclaration);
         }
 
         public virtual IContext<ExpressionNode> unary()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("unary");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _unary();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "unary", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("unary", _unary);
         }
 
         public virtual IContext<ExpressionNode> unaryPostfix()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<ExpressionNode>("unaryPostfix");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _unaryPostfix();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "unaryPostfix", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("unaryPostfix", _unaryPostfix);
         }
 
         public virtual IContext<ExpressionNode> unaryPrefix()
         {
-            bool failed = false;
-            int startTokenIndex = index();
+            return ProcessRule("unaryPrefix", _unaryPrefix);
+        }
 
-            var speculateResult = SpeculateRule<ExpressionNode>("unaryPrefix");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _unaryPrefix();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "unaryPrefix", startTokenIndex, failed);
-                }
-            }
+        public IContext<UsingStatementNode> usingStatement()
+        {
+            return ProcessRule("usingStatement", _usingStatement);
         }
 
         public virtual IContext<VariableDeclarationNode> variableDeclaration()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<VariableDeclarationNode>("variableDeclaration");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _variableDeclaration();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "variableDeclaration", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("variableDeclaration", _variableDeclaration);
         }
 
         public virtual IContext<WhileStatementNode> whileStatement()
         {
-            bool failed = false;
-            int startTokenIndex = index();
-
-            var speculateResult = SpeculateRule<WhileStatementNode>("whileStatement");
-
-            if (speculateResult.ShouldReturn)
-            {
-                return speculateResult.Context;
-            }
-            
-            try
-            {
-                return _whileStatement();
-            }
-            catch (RecognitionException re)
-            {
-                failed = true;
-
-                throw re;
-            }
-            finally
-            {
-                if (Speculating)
-                {
-                    memoize(MemoizingDictionary, "whileStatement", startTokenIndex, failed);
-                }
-            }
+            return ProcessRule("whileStatement", _whileStatement);
         }
 
         #endregion

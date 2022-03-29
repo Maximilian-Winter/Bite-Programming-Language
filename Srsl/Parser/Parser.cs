@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Srsl.Ast;
 
@@ -30,6 +31,7 @@ namespace Srsl.Parser
     {
         public TNode Result { get; }
         public bool Failed { get; private set; }
+        public Exception Exception { get; private set; }
 
         private Context()
         {
@@ -43,6 +45,11 @@ namespace Srsl.Parser
         public static Context<TNode> AsFailed()
         {
             return new Context<TNode>() { Failed = true };
+        }
+
+        public static Context<TNode> AsFailed(Exception ex)
+        {
+            return new Context<TNode>() { Failed = true, Exception = ex };
         }
     }
 
@@ -154,16 +161,18 @@ namespace Srsl.Parser
             return p;
         }
 
-        public virtual void match(int x)
+        public virtual bool match<TNode>(int x, out IContext<TNode> node) where TNode : HeteroAstNode
         {
             if (LA(1) == x)
             {
                 consume();
+                node = null;
+                return true;
             }
-            else
-            {
-                throw new MismatchedTokenException("expecting " + SrslLexer.tokenNames[x > 0 ? x - 1 : x] + " found " + LT(1));
-            }
+
+            var ex = new MismatchedTokenException("expecting " + SrslLexer.tokenNames[x > 0 ? x - 1 : x] + " found " + LT(1));
+            node = Context<TNode>.AsFailed(ex);
+            return false;
         }
 
         public virtual void memoize(

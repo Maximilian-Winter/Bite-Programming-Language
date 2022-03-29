@@ -3,7 +3,7 @@ using Srsl.SymbolTable;
 namespace Srsl.Ast
 {
 
-    public abstract class HeteroAstNode
+    public abstract class HeteroAstNode 
     {
         public Scope AstScopeNode;
         public DebugInfo DebugInfoAstNode = new DebugInfo();

@@ -18,7 +18,11 @@ namespace TestAppNet6
 
             var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
 
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             var program = parser.ParseModules("MainModule", files.Select(File.ReadAllText));
+            stopwatch.Stop();
+            Console.WriteLine($"Parsing completed in {stopwatch.ElapsedMilliseconds}ms");
 
             CodeGenerator generator = new CodeGenerator();
 
