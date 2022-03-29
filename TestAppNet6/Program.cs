@@ -6,7 +6,7 @@ using System.Linq;
 using Srsl.Parser;
 using Srsl.Runtime;
 using Srsl.Runtime.Bytecode;
-using Srsl.Runtime.CodeGenerator;
+using Srsl.Runtime.CodeGen;
 
 namespace TestAppNet6
 {
@@ -26,7 +26,7 @@ namespace TestAppNet6
 
             CodeGenerator generator = new CodeGenerator();
 
-            generator.CompileProgram(program);
+            var context = generator.CompileProgram(program);
 
             SrslVm srslVm = new SrslVm();
 
@@ -36,7 +36,7 @@ namespace TestAppNet6
             {
                 Stopwatch stopwatch2 = new Stopwatch();
                 stopwatch2.Start();
-                srslVm.Interpret(generator.CompiledMainChunk, generator.CompiledChunks, generator.SymbolTableBuilder);
+                srslVm.Interpret(context);
                 stopwatch2.Stop();
                 Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
                 elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;

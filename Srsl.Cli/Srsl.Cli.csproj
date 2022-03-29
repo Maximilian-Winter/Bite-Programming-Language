@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetName>srsl</TargetName>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net462</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Srsl\Srsl.csproj" />
+	</ItemGroup>
+
+</Project>

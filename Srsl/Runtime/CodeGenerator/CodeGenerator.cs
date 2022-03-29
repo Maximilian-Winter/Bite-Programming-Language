@@ -4,21 +4,10 @@ using Srsl.Ast;
 using Srsl.Runtime.Bytecode;
 using Srsl.SymbolTable;
 
-namespace Srsl.Runtime.CodeGenerator
+namespace Srsl.Runtime.CodeGen
 {
-
     public class CodeGenerator : HeteroAstVisitor<object>, IAstVisitor
     {
-        public Dictionary<string, Chunk> CompilingChunks;
-        public Dictionary<string, BinaryChunk> CompiledChunks;
-        public SymbolTableBuilder.SymbolTableBuilder SymbolTableBuilder;
-
-        public Chunk MainChunk;
-
-        public BinaryChunk CompiledMainChunk;
-
-        private Chunk m_CompilingChunk;
-
         private int m_CurrentEnterBlockCount = 0;
         private string m_CurrentModuleName = "";
         private string m_CurrentClassName = "";
@@ -31,10 +20,9 @@ namespace Srsl.Runtime.CodeGenerator
         private SrslVmOpCodes m_ConstructingOpCode;
         private List<int> m_ConstructingOpCodeData;
         private int m_ConstructingLine;
-        public Chunk CurrentChunk()
-        {
-            return m_CompilingChunk;
-        }
+
+        private CompilationContext m_CompilationContext;
+
         private void BeginConstuctingByteCodeInstruction(SrslVmOpCodes byteCode, int line = 0)
         {
             m_ConstructingOpCode = byteCode;
@@ -46,40 +34,41 @@ namespace Srsl.Runtime.CodeGenerator
         {
             m_ConstructingOpCodeData.Add(opCodeData);
         }
+
         private void EndConstuctingByteCodeInstruction()
         {
             ByteCode byCode = new ByteCode(m_ConstructingOpCode);
             byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
-            CurrentChunk().WriteToChunk(byCode, m_ConstructingLine);
+            m_CompilationContext.CurrentChunk.WriteToChunk(byCode, m_ConstructingLine);
             m_ConstructingOpCodeData = null;
             m_ConstructingOpCode = SrslVmOpCodes.OpNone;
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, int line = 0)
         {
-            return CurrentChunk().WriteToChunk(byteCode, line);
+            return m_CompilationContext.CurrentChunk.WriteToChunk(byteCode, line);
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int line)
         {
             ByteCode byCode = new ByteCode(byteCode, opCodeData);
-            return CurrentChunk().WriteToChunk(byCode, line);
+            return m_CompilationContext.CurrentChunk.WriteToChunk(byCode, line);
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int opCodeData2, int line)
         {
             ByteCode byCode = new ByteCode(byteCode, opCodeData, opCodeData2);
-            return CurrentChunk().WriteToChunk(byCode, line);
+            return m_CompilationContext.CurrentChunk.WriteToChunk(byCode, line);
         }
 
         private int EmitByteCode(ByteCode byteCode, int line = 0)
         {
-            return CurrentChunk().WriteToChunk(byteCode, line);
+            return m_CompilationContext.CurrentChunk.WriteToChunk(byteCode, line);
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
         {
-            return CurrentChunk().WriteToChunk(byteCode, constantValue, line);
+            return m_CompilationContext.CurrentChunk.WriteToChunk(byteCode, constantValue, line);
         }
 
         private int EmitReturn(int line = 0)
@@ -92,45 +81,36 @@ namespace Srsl.Runtime.CodeGenerator
             return EmitByteCode(SrslVmOpCodes.OpConstant, value, line);
         }
 
-
         private object Compile(HeteroAstNode astNode)
         {
             return astNode.Accept(this);
         }
+
         #region Public
 
         public CodeGenerator()
         {
-            SymbolTableBuilder = new SymbolTableBuilder.SymbolTableBuilder();
-            CompilingChunks = new Dictionary<string, Chunk>();
-            MainChunk = new Chunk();
-            m_CompilingChunk = MainChunk;
+            //m_CompilationContext = new CompilationContext();
         }
 
 
-        public object CompileProgram(ProgramNode programNode)
+        public CompilationContext CompileProgram(ProgramNode programNode)
         {
-            SymbolTableBuilder = new SymbolTableBuilder.SymbolTableBuilder();
-            SymbolTableBuilder.BuildProgramSymbolTable(programNode);
+            m_CompilationContext = new CompilationContext(programNode);
 
-            CompilingChunks = new Dictionary<string, Chunk>();
-            MainChunk = new Chunk();
-            m_CompilingChunk = MainChunk;
             programNode.Accept(this);
-            CompiledChunks = new Dictionary<string, BinaryChunk>();
-            foreach (KeyValuePair<string, Chunk> compilingChunk in CompilingChunks)
-            {
-                CompiledChunks.Add(compilingChunk.Key, new BinaryChunk(compilingChunk.Value.SerializeToBytes(), compilingChunk.Value.Constants, compilingChunk.Value.Lines));
-            }
+            
+            m_CompilationContext.Build();
 
-            CompiledMainChunk = new BinaryChunk(MainChunk.SerializeToBytes(), MainChunk.Constants, MainChunk.Lines);
-            return null;
+            return m_CompilationContext;
         }
 
 
         public override object Visit(ProgramNode node)
         {
-            Chunk saveChunk1 = m_CompilingChunk;
+            //Chunk saveChunk1 = m_CompilationContext.m_CompilingChunk;
+            m_CompilationContext.PushChunk();
+
             /*int d = 0;
             ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
             EmitByteCode( SrslVmOpCodes.OpDefineModule,  new ConstantValue("System"));
@@ -173,7 +153,9 @@ namespace Srsl.Runtime.CodeGenerator
             int d2 = 0;
             ClassSymbol c = m.resolve("Object", out int moduleId2, ref d2) as ClassSymbol;
 
-            m_CompilingChunk = new Chunk();
+            //m_CompilingChunk = new Chunk();
+
+            m_CompilationContext.NewChunk();
 
             ByteCode byteCode = new ByteCode(SrslVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber);
             EmitByteCode(byteCode);
@@ -181,9 +163,12 @@ namespace Srsl.Runtime.CodeGenerator
             EmitByteCode(byteCode);
             EmitByteCode(byteCode);
 
-            CompilingChunks.Add("System.CSharpInterface", m_CompilingChunk);
+            //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilationContext.CurrentChunk);
+            m_CompilationContext.SaveCurrentChunk("System.CSharpInterface");
+            //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilingChunk);
 
-            m_CompilingChunk = saveChunk1;
+            //m_CompilationContext.RestoreChunk(saveChunk1);
+            m_CompilationContext.PopChunk();
 
 
             foreach (KeyValuePair<string, ModuleNode> module in node.ModuleNodes)
@@ -211,23 +196,28 @@ namespace Srsl.Runtime.CodeGenerator
         public override object Visit(ModuleNode node)
         {
             m_CurrentModuleName = node.ModuleIdent.ToString();
-            Chunk saveChunk = m_CompilingChunk;
+            //Chunk saveChunk = m_CompilingChunk;
+            m_CompilationContext.PushChunk();
+
             int d = 0;
-            ModuleSymbol mod = SymbolTableBuilder.CurrentScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
-            if (CompilingChunks.ContainsKey(m_CurrentModuleName))
+            ModuleSymbol mod = m_CompilationContext.SymbolTableBuilder.CurrentScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
+            if (m_CompilationContext.HasChunk(m_CurrentModuleName))
             {
-                m_CompilingChunk = CompilingChunks[m_CurrentModuleName];
+                //m_CompilingChunk = CompilingChunks[m_CurrentModuleName];
+                m_CompilationContext.RestoreChunk(m_CurrentModuleName);
             }
             else
             {
-                CurrentChunk().
+                m_CompilationContext.CurrentChunk.
                     WriteToChunk(
                         SrslVmOpCodes.OpDefineModule,
                         new ConstantValue(m_CurrentModuleName),
                         mod.NumberOfSymbols,
                         0);
-                m_CompilingChunk = new Chunk();
-                CompilingChunks.Add(m_CurrentModuleName, m_CompilingChunk);
+                //m_CompilingChunk = new Chunk();
+                m_CompilationContext.NewChunk();
+                //CompilingChunks.Add(m_CurrentModuleName, m_CompilingChunk);
+                m_CompilationContext.SaveCurrentChunk(m_CurrentModuleName);
             }
 
             /*foreach ( ModuleIdentifier importedModule in node.ImportedModules )
@@ -237,32 +227,31 @@ namespace Srsl.Runtime.CodeGenerator
 
             foreach (StatementNode statement in node.Statements)
             {
-                if (statement is ClassDeclarationNode classDeclarationNode)
+                switch (statement)
                 {
-                    Compile(classDeclarationNode);
-                }
-                else if (statement is StructDeclarationNode structDeclaration)
-                {
-                    Compile(structDeclaration);
-                }
-                else if (statement is FunctionDeclarationNode functionDeclarationNode)
-                {
-                    Compile(functionDeclarationNode);
-                }
-                else if (statement is VariableDeclarationNode variable)
-                {
-                    Compile(variable);
-                }
-                else if (statement is ClassInstanceDeclarationNode classInstance)
-                {
-                    Compile(classInstance);
-                }
-                else if (statement is StatementNode stat)
-                {
-                    Compile(stat);
+                    case ClassDeclarationNode classDeclarationNode:
+                        Compile(classDeclarationNode);
+                        break;
+                    case StructDeclarationNode structDeclaration:
+                        Compile(structDeclaration);
+                        break;
+                    case FunctionDeclarationNode functionDeclarationNode:
+                        Compile(functionDeclarationNode);
+                        break;
+                    case VariableDeclarationNode variable:
+                        Compile(variable);
+                        break;
+                    case ClassInstanceDeclarationNode classInstance:
+                        Compile(classInstance);
+                        break;
+                    case StatementNode stat:
+                        Compile(stat);
+                        break;
                 }
             }
-            m_CompilingChunk = saveChunk;
+
+            m_CompilationContext.PopChunk(); //m_CompilingChunk = saveChunk;
+
             return null;
         }
 
@@ -291,6 +280,7 @@ namespace Srsl.Runtime.CodeGenerator
             EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
 
             m_CurrentEnterBlockCount++;
+
             if (node.Classes != null)
             {
                 foreach (ClassDeclarationNode declaration in node.Classes)
@@ -338,8 +328,10 @@ namespace Srsl.Runtime.CodeGenerator
                     Compile(declaration);
                 }
             }
+
             EmitByteCode(SrslVmOpCodes.OpExitBlock);
             m_CurrentEnterBlockCount--;
+            
             return null;
         }
 
@@ -348,17 +340,22 @@ namespace Srsl.Runtime.CodeGenerator
             int d = 0;
             ClassSymbol symbol = (ClassSymbol)node.AstScopeNode.resolve(node.ClassId.Id, out int moduleId, ref d);
             m_CurrentClassName = symbol.QualifiedName;
-            Chunk saveChunk = m_CompilingChunk;
-            if (CompilingChunks.ContainsKey(m_CurrentClassName))
+            //Chunk saveChunk = m_CompilingChunk;
+
+            m_CompilationContext.PushChunk();
+
+            if (m_CompilationContext.HasChunk(m_CurrentClassName))
             {
-                m_CompilingChunk = CompilingChunks[m_CurrentClassName];
+                //m_CompilingChunk = CompilingChunks[m_CurrentClassName];
+                m_CompilationContext.RestoreChunk(m_CurrentClassName);
             }
             else
             {
                 EmitByteCode(SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
-                m_CompilingChunk = new Chunk();
-                CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
+                m_CompilationContext.NewChunk(); //m_CompilingChunk = new Chunk();
+                                                 // CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
+                m_CompilationContext.SaveCurrentChunk(m_CurrentClassName);
             }
 
             foreach (FieldSymbol field in symbol.Fields)
@@ -392,25 +389,28 @@ namespace Srsl.Runtime.CodeGenerator
                     //EmitByteCode( method.InsertionOrderNumber );
                 }
             }
-            m_CompilingChunk = saveChunk;
+            m_CompilationContext.PopChunk(); //m_CompilingChunk = saveChunk;
             return null;
         }
 
         public override object Visit(FunctionDeclarationNode node)
         {
-            Chunk saveChunk = m_CompilingChunk;
+            m_CompilationContext.PushChunk(); //Chunk saveChunk = m_CompilingChunk;
             int d = 0;
             FunctionSymbol symbol = node.AstScopeNode.resolve(node.FunctionId.Id, out int moduleId, ref d) as FunctionSymbol;
-            if (CompilingChunks.ContainsKey(symbol.QualifiedName))
+            if (m_CompilationContext.HasChunk(symbol.QualifiedName))
             {
-                m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
+                //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
+                m_CompilationContext.RestoreChunk(symbol.QualifiedName);
             }
             else
             {
                 EmitByteCode(SrslVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
-                m_CompilingChunk = new Chunk();
-                CompilingChunks.Add(symbol.QualifiedName, m_CompilingChunk);
+                //m_CompilingChunk = new Chunk();
+                m_CompilationContext.NewChunk();
+                //CompilingChunks.Add(symbol.QualifiedName, m_CompilingChunk);
+                m_CompilationContext.SaveCurrentChunk(symbol.QualifiedName);
             }
             /*if ( node.Parameters != null )
             {
@@ -425,7 +425,7 @@ namespace Srsl.Runtime.CodeGenerator
                 Compile(node.FunctionBlock);
             }
 
-            m_CompilingChunk = saveChunk;
+            m_CompilationContext.PopChunk(); //m_CompilingChunk = saveChunk;
             return null;
         }
 
@@ -803,7 +803,7 @@ namespace Srsl.Runtime.CodeGenerator
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-                    
+
 
                     break;
 
@@ -916,7 +916,8 @@ namespace Srsl.Runtime.CodeGenerator
             Compile(node.Expression);
             int thenJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
             Compile(node.ThenBlock);
-            CurrentChunk().Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, CurrentChunk().SerializeToBytes().Length);
+            // CurrentChunk().Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, CurrentChunk().SerializeToBytes().Length);
+            m_CompilationContext.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_CompilationContext.CurrentChunk.SerializeToBytes().Length);
 
             return null;
         }
@@ -950,11 +951,11 @@ namespace Srsl.Runtime.CodeGenerator
 
         public override object Visit(WhileStatementNode node)
         {
-            int jumpCodeWhileBegin = CurrentChunk().SerializeToBytes().Length;
+            int jumpCodeWhileBegin = m_CompilationContext.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
             Compile(node.WhileBlock);
-            CurrentChunk().Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, CurrentChunk().SerializeToBytes().Length);
+            m_CompilationContext.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_CompilationContext.CurrentChunk.SerializeToBytes().Length);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             return null;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Srsl.Ast;
 using Srsl.SymbolTable;
 
-namespace Srsl.Runtime.SymbolTableBuilder
+namespace Srsl.Runtime.SymbolTable
 {
 
     public class SymbolTableBuilder : HeteroAstVisitor<object>, IAstVisitor
