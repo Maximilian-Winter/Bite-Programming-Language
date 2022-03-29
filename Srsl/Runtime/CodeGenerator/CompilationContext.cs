@@ -18,6 +18,17 @@ namespace Srsl.Runtime.CodeGen
         public BinaryChunk CompiledMainChunk { get; private set; }
         public Chunk CurrentChunk => m_CompilingChunk;
 
+        public CompilationContext(ModuleNode module)
+        {
+            SymbolTableBuilder = new SymbolTableBuilder();
+            SymbolTableBuilder.BuildModuleSymbolTable(module);
+            //SymbolTableBuilder.BuildStatementsSymbolTable(statements);
+            m_CompilingChunks = new Dictionary<string, Chunk>();
+            MainChunk = new Chunk();
+            m_CompilingChunk = MainChunk;
+            CompiledChunks = new Dictionary<string, BinaryChunk>();
+        }
+
         public CompilationContext(ProgramNode programNode)
         {
             SymbolTableBuilder = new SymbolTableBuilder();

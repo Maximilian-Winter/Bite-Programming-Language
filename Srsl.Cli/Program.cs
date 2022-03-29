@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using Srsl.Parser;
 using Srsl.Runtime;
-using Srsl.Runtime.CodeGenerator;
 using System.IO;
 using System.Linq;
+using Srsl.Runtime.CodeGen;
 
 namespace Srsl.Cli
 {

@@ -39,6 +39,16 @@ namespace Srsl.Runtime.SymbolTable
             Resolve(programNode);
         }
 
+        public void BuildModuleSymbolTable(ModuleNode moduleNode)
+        {
+            if (CurrentScope == null)
+            {
+                InitScopes();
+            }
+
+            Resolve(moduleNode);
+        }
+
         public void BuildStatementsSymbolTable(List<StatementNode> statementNodes)
         {
             if (CurrentScope == null)

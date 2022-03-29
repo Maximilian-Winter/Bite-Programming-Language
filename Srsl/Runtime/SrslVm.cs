@@ -106,8 +106,11 @@ namespace Srsl.Runtime
             callSpace.Define(
                 DynamicVariableExtension.ToDynamicVariable(new ForeignLibraryInterfaceVm()), "System.CSharpInterfaceCall");
 
-            callSpace.Define(
-                DynamicVariableExtension.ToDynamicVariable(new SrslChunkWrapper(m_CompiledChunks["System.CSharpInterface"])), "System.CSharpInterface");
+            if (m_CompiledChunks.TryGetValue("System.CSharpInterface", out var chunk))
+            {
+                callSpace.Define(
+                    DynamicVariableExtension.ToDynamicVariable(new SrslChunkWrapper(chunk)), "System.CSharpInterface");
+            }
         }
 
         public SrslVmInterpretResult Interpret(CompilationContext context)
@@ -417,12 +420,14 @@ namespace Srsl.Runtime
                                 {
                                     if (m_StackPointer > 0)
                                     {
-                                        m_TopMostStackItem = m_VmStack[m_StackPointer - 1];
+                                        // TODO: Allow returning value of local var definition?
+                                        //m_TopMostStackItem = m_VmStack[m_StackPointer - 1];
                                         m_StackPointer--;
                                     }
                                     else
                                     {
-                                        m_TopMostStackItem = m_VmStack[m_StackPointer];
+                                        // TODO: Allow returning value of local var definition?
+                                        //m_TopMostStackItem = m_VmStack[m_StackPointer];
                                     }
 
 
@@ -1093,6 +1098,8 @@ namespace Srsl.Runtime
             }
 
         }
+
+        public DynamicSrslVariable RetVal => m_TopMostStackItem;
 
         public void ShutdownVm()
         {

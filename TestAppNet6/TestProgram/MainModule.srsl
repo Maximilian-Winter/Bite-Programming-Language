@@ -43,3 +43,5 @@ while(count3 < 1000)
 }
 
 Console.WriteLine(temp);
+
+temp;

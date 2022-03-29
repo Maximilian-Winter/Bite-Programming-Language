@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAppNet6", "TestAppNet6\TestAppNet6.csproj", "{6C3CF2FF-1BBC-4B5C-B9B2-FD1EA14DB043}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Srsl.Cli", "Srsl.Cli\Srsl.Cli.csproj", "{51F0A8D3-EAE2-477E-A7B9-5E52146AA53A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Srsl.Cli", "Srsl.Cli\Srsl.Cli.csproj", "{51F0A8D3-EAE2-477E-A7B9-5E52146AA53A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{51F0A8D3-EAE2-477E-A7B9-5E52146AA53A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51F0A8D3-EAE2-477E-A7B9-5E52146AA53A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51F0A8D3-EAE2-477E-A7B9-5E52146AA53A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

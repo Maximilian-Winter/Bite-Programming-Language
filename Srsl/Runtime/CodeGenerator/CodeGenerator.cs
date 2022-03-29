@@ -105,6 +105,61 @@ namespace Srsl.Runtime.CodeGen
             return m_CompilationContext;
         }
 
+        public CompilationContext CompileStatements(List<StatementNode> statements)
+        {
+            var module = new ModuleNode()
+            {
+                ModuleIdent = new ModuleIdentifier("MainModule"),
+                //ImportedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
+                //UsedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
+                Statements = statements
+            };
+
+            m_CompilationContext = new CompilationContext(module);
+
+            module.Accept(this);
+
+            //foreach (var statement in statements)
+            //{
+            //    statement.Accept(this);
+            //}
+
+            m_CompilationContext.Build();
+
+            return m_CompilationContext;
+        }
+
+        public CompilationContext CompileExpression(ExpressionNode expression)
+        {
+            var module = new ModuleNode()
+            {
+                ModuleIdent = new ModuleIdentifier("MainModule"),
+                //ImportedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
+                //UsedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
+                Statements = new List<StatementNode>()
+                {
+                    new ExpressionStatementNode()
+                    {
+                        Expression = expression
+                    }
+                }
+            };
+
+            m_CompilationContext = new CompilationContext(module);
+
+            module.Accept(this);
+
+            //foreach (var statement in statements)
+            //{
+            //    statement.Accept(this);
+            //}
+
+            m_CompilationContext.Build();
+
+            return m_CompilationContext;
+        }
+
+
 
         public override object Visit(ProgramNode node)
         {

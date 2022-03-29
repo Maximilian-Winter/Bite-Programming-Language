@@ -12,8 +12,47 @@ namespace TestAppNet6
 {
     public class Program
     {
+        public static void TestExpression()
+        {
+            SrslParser parser = new SrslParser();
+
+            var expression = parser.ParseExpression("1 + 1");
+
+            CodeGenerator generator = new CodeGenerator();
+
+            var context = generator.CompileExpression(expression);
+
+            SrslVm srslVm = new SrslVm();
+
+            var result = srslVm.Interpret(context);
+
+            Console.WriteLine(srslVm.RetVal.NumberData);
+        }
+
+        public static void TestStatements()
+        {
+            SrslParser parser = new SrslParser();
+
+            var statements = parser.ParseStatements("1 + 1;");
+
+            CodeGenerator generator = new CodeGenerator();
+
+            var context = generator.CompileStatements(statements);
+
+            SrslVm srslVm = new SrslVm();
+
+            var result = srslVm.Interpret(context);
+
+            Console.WriteLine(srslVm.RetVal.NumberData);
+        }
+
         public static void Main(string[] args)
         {
+
+            TestExpression();
+
+            TestStatements();
+
             SrslParser parser = new SrslParser();
 
             var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
@@ -37,6 +76,9 @@ namespace TestAppNet6
                 Stopwatch stopwatch2 = new Stopwatch();
                 stopwatch2.Start();
                 srslVm.Interpret(context);
+
+                Console.WriteLine(srslVm.RetVal.ToString());
+
                 stopwatch2.Stop();
                 Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
                 elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Srsl.Parser;
+using Srsl.Runtime.Bytecode;
 using Srsl.Runtime.CodeGen;
 
 namespace Srsl.Runtime
@@ -24,19 +25,9 @@ namespace Srsl.Runtime
 
             SrslVm srslVm = new SrslVm();
 
-            int k = 5;
-            long elapsedMillisecondsAccu = 0;
-            for (int i = 0; i < k; i++)
-            {
-                Stopwatch stopwatch2 = new Stopwatch();
-                stopwatch2.Start();
-                srslVm.Interpret(context);
-                stopwatch2.Stop();
-                Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
-                elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;
+            srslVm.Interpret(context);
 
 
-            }
         }
     }
 }
