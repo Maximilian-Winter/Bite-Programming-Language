@@ -52,7 +52,7 @@ namespace Srsl.Parser
         {
             SrslLexer lexer = new SrslLexer(srslModule);
             SrslModuleParser moduleParser = new SrslModuleParser(lexer);
-            ModuleNode module = moduleParser.module();
+            ModuleNode module = moduleParser.module().Result;
             return module;
         }
 

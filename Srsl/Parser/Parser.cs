@@ -1,7 +1,50 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Srsl.Ast;
 
 namespace Srsl.Parser
 {
+    public struct AlreadyParsedRuleResult
+    {
+        public bool Result { get; private set; }
+        public bool Failed { get; private set; }
+
+        public static AlreadyParsedRuleResult FromResult(bool result)
+        {
+            return new AlreadyParsedRuleResult() { Result = result };
+        }
+
+        public static AlreadyParsedRuleResult AsFailed()
+        {
+            return new AlreadyParsedRuleResult() { Failed = true };
+        }
+    }
+
+    public interface IContext<out TNode> where TNode : HeteroAstNode
+    {
+        TNode Result { get; }
+        bool Failed { get; }
+    }
+
+    public class Context<TNode> : IContext<TNode> where TNode : HeteroAstNode
+    {
+        public TNode Result { get; }
+        public bool Failed { get; private set; }
+
+        private Context()
+        {
+        }
+
+        public Context(TNode result)
+        {
+            Result = result;
+        }
+
+        public static Context<TNode> AsFailed()
+        {
+            return new Context<TNode>() { Failed = true };
+        }
+    }
 
     public abstract class Parser
     {
@@ -25,7 +68,7 @@ namespace Srsl.Parser
 
         public abstract void clearMemo();
 
-        public virtual bool alreadyParsedRule(
+        public AlreadyParsedRuleResult alreadyParsedRule(
             IDictionary<int, IDictionary<string, int>> memoization,
             string ruleName)
         {
@@ -33,23 +76,21 @@ namespace Srsl.Parser
 
             if (!memoization.ContainsKey(indexV))
             {
-                return false;
+                return AlreadyParsedRuleResult.FromResult(false);
             }
 
             IDictionary<string, int> memoI = memoization[indexV];
 
             if (!memoI.ContainsKey(ruleName))
             {
-                return false;
+                return AlreadyParsedRuleResult.FromResult(false);
             }
 
             int memo = memoI[ruleName];
 
             if (memo == FAILED)
             {
-                //Console.WriteLine( "Previously Failed: " + ruleName );
-
-                throw new PreviousParseFailedException();
+                return AlreadyParsedRuleResult.AsFailed();
             }
 
             /*Console.WriteLine(
@@ -64,7 +105,7 @@ namespace Srsl.Parser
 
             seek(memo);
 
-            return true;
+            return AlreadyParsedRuleResult.FromResult(true);
         }
 
         public virtual void consume()
