@@ -1,0 +1,17 @@
+module CSharpSystem;
+import System;
+using System;
+
+var CSharpInterfaceObject = new CSharpInterface();
+
+// Type.GetType requires an Assembly Qualified Name if it is not in mscorlib
+CSharpInterfaceObject.Type = "System.Console, System.Console";
+
+var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+
+// Type.GetType requires an Assembly Qualified Name if it is not in mscorlib
+CSharpInterfaceObject.Type = "System.IO.File, System.IO.FileSystem";
+
+var File = CSharpInterfaceCall(CSharpInterfaceObject);
+
+
