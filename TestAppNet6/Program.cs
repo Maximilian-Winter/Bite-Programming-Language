@@ -12,6 +12,75 @@ namespace TestAppNet6
 {
     public class Program
     {
+        public static void Main(string[] args)
+        {
+            TestCodeModules();
+
+            //TestExpression();
+
+            //TestStatements();
+
+            //PerfTests();
+
+            Console.ReadLine();
+        }
+
+        public static void TestCodeModules()
+        {
+            var modules = new List<Module>()
+            {
+                new Module()
+                {
+                    Name ="CSharpSystem",
+                    Imports = new [] { "System" },
+                    Code =@"
+var CSharpInterfaceObject = new CSharpInterface();
+CSharpInterfaceObject.Type = ""System.Console, System.Console"";
+var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+"
+                },
+                new Module()
+                {
+                    Name = "MainModule",
+                    MainModule = true,
+                    Imports = new [] { "CSharpSystem" },
+                    Code = @"
+var a = ""Hello"";
+var b = ""World!"";
+var greeting = a + "" "" + b;
+Console.WriteLine(greeting);"
+                },
+
+            };
+
+            var compiler = new Compiler(true);
+
+            var program = compiler.Compile(modules);
+
+            program.Run();
+
+        }
+
+        public static void TestExternalObjects()
+        {
+            SrslParser parser = new SrslParser();
+
+            var expression = parser.ParseExpression("a + b");
+
+            CodeGenerator generator = new CodeGenerator();
+
+            var context = generator.CompileExpression(expression);
+
+            SrslVm srslVm = new SrslVm();
+
+            srslVm.RegisterGlobalObject("a", "Hello");
+            srslVm.RegisterGlobalObject("b", "World");
+
+            var result = srslVm.Interpret(context);
+
+            Console.WriteLine(srslVm.RetVal.StringData);
+        }
+
         public static void TestExpression()
         {
             SrslParser parser = new SrslParser();
@@ -46,12 +115,9 @@ namespace TestAppNet6
             Console.WriteLine(srslVm.RetVal.NumberData);
         }
 
-        public static void Main(string[] args)
+
+        public static void PerfTests()
         {
-
-            TestExpression();
-
-            TestStatements();
 
             SrslParser parser = new SrslParser();
 
@@ -100,9 +166,7 @@ namespace TestAppNet6
             }
 
             ChunkDebugHelper.InstructionCounter.Clear();
-
-            Console.ReadLine();
-
         }
+
     }
 }

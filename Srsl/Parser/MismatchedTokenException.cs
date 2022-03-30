@@ -5,7 +5,7 @@
     {
         #region Public
 
-        public MismatchedTokenException(string msg) : base(msg)
+        public MismatchedTokenException(string msg, Token token) : base(msg, token)
         {
         }
 

@@ -82,7 +82,14 @@ namespace Srsl.Runtime
             }
         }
 
-        public SrslVmInterpretResult Interpret(CompilationContext context)
+        private Dictionary<string, object> m_ExternalObjects = new Dictionary<string, object>();
+
+        public void RegisterGlobalObject(string varName, object data)
+        {
+            m_ExternalObjects.Add(varName, data);
+        }
+
+        public SrslVmInterpretResult Interpret(SrslProgram context)
         {
             m_VmStack = new DynamicSrslVariable[512];
             m_StackPointer = 0;
@@ -886,7 +893,27 @@ namespace Srsl.Runtime
                                 DynamicSrslVariable valueRhs = m_TopMostStackItem;
                                 m_StackPointer--; DynamicSrslVariable valueLhs = m_VmStack[m_StackPointer];
 
-                                if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
+                                if (valueLhs.DynamicType == DynamicVariableType.String || valueRhs.DynamicType == DynamicVariableType.String)
+                                {
+                                    // TODO: String concat rules
+                                    if (valueLhs.DynamicType < DynamicVariableType.True)
+                                    {
+                                        m_TopMostStackItem = (DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData + valueRhs.StringData));
+                                    }
+                                    else if (valueRhs.DynamicType < DynamicVariableType.True)
+                                    {
+                                        m_TopMostStackItem = (DynamicVariableExtension.ToDynamicVariable(valueLhs.StringData + valueRhs.NumberData));
+                                    }
+                                    else if (valueLhs.DynamicType == DynamicVariableType.String || valueRhs.DynamicType == DynamicVariableType.String)
+                                    {
+                                        m_TopMostStackItem = (DynamicVariableExtension.ToDynamicVariable(valueLhs.StringData + valueRhs.StringData));
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("Can only concatenate Strings with Integers and Floating Point Numbers!");
+                                    }
+                                }
+                                else if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
                                     m_TopMostStackItem = (DynamicVariableExtension.ToDynamicVariable(valueLhs.NumberData + valueRhs.NumberData));
                                 }

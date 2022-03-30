@@ -1,58 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Srsl.Ast;
 
 namespace Srsl.Parser
 {
-    public struct AlreadyParsedRuleResult
-    {
-        public bool Result { get; private set; }
-        public bool Failed { get; private set; }
-
-        public static AlreadyParsedRuleResult FromResult(bool result)
-        {
-            return new AlreadyParsedRuleResult() { Result = result };
-        }
-
-        public static AlreadyParsedRuleResult AsFailed()
-        {
-            return new AlreadyParsedRuleResult() { Failed = true };
-        }
-    }
-
-    public interface IContext<out TNode> where TNode : HeteroAstNode
-    {
-        TNode Result { get; }
-        bool Failed { get; }
-    }
-
-    public class Context<TNode> : IContext<TNode> where TNode : HeteroAstNode
-    {
-        public TNode Result { get; }
-        public bool Failed { get; private set; }
-        public Exception Exception { get; private set; }
-
-        private Context()
-        {
-        }
-
-        public Context(TNode result)
-        {
-            Result = result;
-        }
-
-        public static Context<TNode> AsFailed()
-        {
-            return new Context<TNode>() { Failed = true };
-        }
-
-        public static Context<TNode> AsFailed(Exception ex)
-        {
-            return new Context<TNode>() { Failed = true, Exception = ex };
-        }
-    }
-
     public abstract class Parser
     {
         public const int FAILED = -1;
@@ -170,7 +121,7 @@ namespace Srsl.Parser
                 return true;
             }
 
-            var ex = new MismatchedTokenException("expecting " + SrslLexer.tokenNames[x > 0 ? x - 1 : x] + " found " + LT(1));
+            var ex = new MismatchedTokenException("expecting " + SrslLexer.tokenNames[x > 0 ? x - 1 : x] + " found ", LT(1));
             node = Context<TNode>.AsFailed(ex);
             return false;
         }

@@ -5,6 +5,8 @@ using Srsl.Ast;
 
 namespace Srsl.Parser
 {
+
+
     public partial class SrslModuleParser 
     {
         #region Private
@@ -19,7 +21,7 @@ namespace Srsl.Parser
 
                 if (alreadyParsed.Failed)
                 {
-                    return Context<TNode>.AsFailed();
+                    return Context<TNode>.AsFailed(new AlreadyParsedFailedException());
                 }
 
                 if (alreadyParsed.Result)
