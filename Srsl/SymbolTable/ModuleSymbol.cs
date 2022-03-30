@@ -4,23 +4,16 @@ using Srsl.Ast;
 
 namespace Srsl.SymbolTable
 {
-
     public class ModuleSymbol : SymbolWithScope
     {
         private string m_ModuleName;
-        private List<ModuleIdentifier> m_ImportedModules;
-        private List<ModuleIdentifier> m_UsedModules;
-        public string ScopeName => m_ModuleName + "ModuleSymbol";
+        private IEnumerable<ModuleIdentifier> m_ImportedModules;
+        private IEnumerable<ModuleIdentifier> m_UsedModules;
         private List<string> m_SearchedModules = new List<string>();
-        public List<ModuleIdentifier> ImportedModules
-        {
-            get => m_ImportedModules;
-        }
 
-        public List<ModuleIdentifier> UsedModules
-        {
-            get => m_UsedModules;
-        }
+        public string ScopeName => m_ModuleName + "ModuleSymbol";
+        public IEnumerable<ModuleIdentifier> ImportedModules => m_ImportedModules;
+        public IEnumerable<ModuleIdentifier> UsedModules => m_UsedModules;
 
         public override Symbol resolve(string name, out int moduleid, ref int depth)
         {
@@ -47,7 +40,7 @@ namespace Srsl.SymbolTable
 
                             if (module == null)
                             {
-                                throw new Exception("Module: " + importedModule + ". Not found in Scope: " + parent.Name);
+                                throw new Exception("Module: " + importedModule + " not found in Scope: " + parent.Name);
                             }
                             m_SearchedModules.Add(importedModule.ToString());
                             symbol = module.resolve(name, out moduleid, ref d);
@@ -72,7 +65,7 @@ namespace Srsl.SymbolTable
 
         #region Public
 
-        public ModuleSymbol(string moduleIdentifier, List<ModuleIdentifier> importedModules, List<ModuleIdentifier> usedModules) : base(moduleIdentifier)
+        public ModuleSymbol(string moduleIdentifier, IEnumerable<ModuleIdentifier> importedModules, IEnumerable<ModuleIdentifier> usedModules) : base(moduleIdentifier)
         {
             m_ModuleName = moduleIdentifier;
             m_ImportedModules = importedModules;

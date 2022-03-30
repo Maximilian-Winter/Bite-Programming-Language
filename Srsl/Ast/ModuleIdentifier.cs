@@ -14,6 +14,12 @@ namespace Srsl.Ast
         {
         }
 
+        public ModuleIdentifier(string id)
+        {
+            ModuleId = new Identifier(id);
+            ParentModules = new List<Identifier>();
+        }
+
         public ModuleIdentifier(string id, List<string> parentModules)
         {
             ModuleId = new Identifier(id);

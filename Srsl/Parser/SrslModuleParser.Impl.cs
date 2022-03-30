@@ -94,7 +94,7 @@ namespace Srsl.Parser
                         }
 
                         var context = expression();
-                        if (context.Failed) return Context<ArgumentsNode>.AsFailed();
+                        if (context.Failed) return Context<ArgumentsNode>.AsFailed(context.Exception);
 
                         if (LA(1) == SrslLexer.CommaSeperator)
                         {
@@ -131,7 +131,7 @@ namespace Srsl.Parser
 
                         var context = expression();
 
-                        if (context.Failed) return Context<ArgumentsNode>.AsFailed();
+                        if (context.Failed) return Context<ArgumentsNode>.AsFailed(context.Exception);
 
                         ExpressionNode expressionNode = context.Result;
 
@@ -158,7 +158,7 @@ namespace Srsl.Parser
             {
                 // Console.WriteLine( "predict assignment assignment" );
                 var context = assignment_assignment();
-                if (context.Failed) return Context<AssignmentNode>.AsFailed();
+                if (context.Failed) return Context<AssignmentNode>.AsFailed(context.Exception);
 
                 return context;
             }
@@ -169,7 +169,7 @@ namespace Srsl.Parser
                 AssignmentNode assignmentNode = new AssignmentNode();
                 var context = ternary();
 
-                if (context.Failed) return Context<AssignmentNode>.AsFailed();
+                if (context.Failed) return Context<AssignmentNode>.AsFailed(context.Exception);
 
                 HeteroAstNode node = context.Result;
 
@@ -220,7 +220,7 @@ namespace Srsl.Parser
                 return new Context<AssignmentNode>(assignmentNode);
             }
 
-            return Context<AssignmentNode>.AsFailed(new NoViableAltException(""));
+            return Context<AssignmentNode>.AsFailed(new NoViableAltException("expected: assignment found: ", LT(1)));
             //throw new NoViableAltException("");
         }
 
@@ -229,7 +229,7 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = call();
-                if (context.Failed) return Context<AssignmentNode>.AsFailed();
+                if (context.Failed) return Context<AssignmentNode>.AsFailed(context.Exception);
 
                 if (LA(1) == SrslLexer.AssignOperator ||
                      LA(1) == SrslLexer.MultiplyAssignOperator ||
@@ -247,12 +247,12 @@ namespace Srsl.Parser
                     consume();
 
                     var contextAssignment = assignment();
-                    if (contextAssignment.Failed) return Context<AssignmentNode>.AsFailed();
+                    if (contextAssignment.Failed) return Context<AssignmentNode>.AsFailed(context.Exception);
 
                 }
                 else
                 {
-                    return Context<AssignmentNode>.AsFailed(new NoViableAltException(LT(1).text));
+                    return Context<AssignmentNode>.AsFailed(new NoViableAltException("Expected assignment found: ", LT(1)));
                 }
             }
             else
@@ -261,7 +261,7 @@ namespace Srsl.Parser
 
                 var context = call();
 
-                if (context.Failed) return Context<AssignmentNode>.AsFailed();
+                if (context.Failed) return Context<AssignmentNode>.AsFailed(context.Exception);
 
                 assignmentNode.Call = context.Result;
                 assignmentNode.Type = AssignmentTypes.Assignment;
@@ -325,15 +325,14 @@ namespace Srsl.Parser
                         break;
 
                     default:
-                        return Context<AssignmentNode>.AsFailed(new NoViableAltException(LT(1).text));
-                        //throw new NoViableAltException(LT(1).text);
+                        return Context<AssignmentNode>.AsFailed(new NoViableAltException("expected: assignment found: ", LT(1)));
                 }
 
                 consume();
 
                 var contextAssignement = assignment();
 
-                if (contextAssignement.Failed) return Context<AssignmentNode>.AsFailed();
+                if (contextAssignement.Failed) return Context<AssignmentNode>.AsFailed(context.Exception);
 
                 assignmentNode.Assignment = contextAssignement.Result;
 
@@ -358,7 +357,7 @@ namespace Srsl.Parser
                 {
                     var context = declaration();
 
-                    if (context.Failed) return Context<BlockStatementNode>.AsFailed();
+                    if (context.Failed) return Context<BlockStatementNode>.AsFailed(context.Exception);
 
                     HeteroAstNode decl = context.Result;
 
@@ -396,7 +395,7 @@ namespace Srsl.Parser
             while (LA(1) != SrslLexer.ClosingCurlyBracket)
             {
                 var context = declaration();
-                if (context.Failed) return Context<BlockStatementNode>.AsFailed();
+                if (context.Failed) return Context<BlockStatementNode>.AsFailed(context.Exception);
             }
 
             if (!match(SrslLexer.ClosingCurlyBracket, out matchContext)) return matchContext;
@@ -411,7 +410,7 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = primary();
-                if (context.Failed) return Context<CallNode>.AsFailed();
+                if (context.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.DotOperator ||
                         LA(1) == SrslLexer.OpeningRoundBracket ||
@@ -438,7 +437,7 @@ namespace Srsl.Parser
                             }
 
                             var contextExpression = expression();
-                            if (contextExpression.Failed) return Context<CallNode>.AsFailed();
+                            if (contextExpression.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
 
                             if (LA(1) == SrslLexer.CommaSeperator)
@@ -470,7 +469,7 @@ namespace Srsl.Parser
 
                 if (LA(1) == SrslLexer.PlusPlusOperator || LA(1) == SrslLexer.MinusMinusOperator)
                 {
-                    return Context<CallNode>.AsFailed(new MismatchedTokenException("Unary Operation! Not Call."));
+                    return Context<CallNode>.AsFailed(new MismatchedTokenException("Unary Operation! Not Call", LT(1)));
                 }
             }
             else
@@ -479,7 +478,7 @@ namespace Srsl.Parser
 
                 var context = primary();
 
-                if (context.Failed) return Context<CallNode>.AsFailed();
+                if (context.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
                 callNode.Primary = context.Result;
                 callNode.CallType = CallTypes.Primary;
@@ -504,7 +503,7 @@ namespace Srsl.Parser
 
                             context = primary();
 
-                            if (context.Failed) return Context<CallNode>.AsFailed();
+                            if (context.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
                             PrimaryNode primaryNode = context.Result;
                             CallEntry callEntry = new CallEntry();
@@ -550,7 +549,7 @@ namespace Srsl.Parser
 
                                 var contextExpression = expression();
 
-                                if (contextExpression.Failed) return Context<CallNode>.AsFailed();
+                                if (contextExpression.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
                                 currentCallEntry.Arguments.Expressions.Add(contextExpression.Result);
                             }
@@ -568,7 +567,7 @@ namespace Srsl.Parser
 
                                 var contextExpression = expression();
 
-                                if (contextExpression.Failed) return Context<CallNode>.AsFailed();
+                                if (contextExpression.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
                                 callNode.Arguments.Expressions.Add(contextExpression.Result);
                             }
@@ -620,7 +619,7 @@ namespace Srsl.Parser
                             {
                                 var contextCall = call();
 
-                                if (contextCall.Failed) return Context<CallNode>.AsFailed();
+                                if (contextCall.Failed) return Context<CallNode>.AsFailed(context.Exception);
 
                                 callElementEntry.Call = contextCall.Result;
                                 callElementEntry.CallElementType = CallElementTypes.Call;
@@ -678,7 +677,7 @@ namespace Srsl.Parser
                 }
 
                 var context = block();
-                if (context.Failed) return Context<ClassDeclarationNode>.AsFailed();
+                if (context.Failed) return Context<ClassDeclarationNode>.AsFailed(context.Exception);
 
             }
             else
@@ -744,7 +743,7 @@ namespace Srsl.Parser
 
                 var context = block();
 
-                if (context.Failed) return Context<ClassDeclarationNode>.AsFailed();
+                if (context.Failed) return Context<ClassDeclarationNode>.AsFailed(context.Exception);
 
                 classDeclarationNode.BlockStatement = context.Result;
 
@@ -893,7 +892,7 @@ namespace Srsl.Parser
                 if (LA(1) != SrslLexer.ClosingRoundBracket)
                 {
                     var context = arguments();
-                    if (context.Failed) return Context<ClassInstanceDeclarationNode>.AsFailed();
+                    if (context.Failed) return Context<ClassInstanceDeclarationNode>.AsFailed(context.Exception);
                 }
 
                 if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
@@ -973,7 +972,7 @@ namespace Srsl.Parser
                 {
                     var context = arguments();
 
-                    if (context.Failed) return Context<ClassInstanceDeclarationNode>.AsFailed();
+                    if (context.Failed) return Context<ClassInstanceDeclarationNode>.AsFailed(context.Exception);
 
                     classInstanceDeclarationNode.Arguments = context.Result;
                 }
@@ -1055,7 +1054,7 @@ namespace Srsl.Parser
                 return statement();
             }
 
-            return Context<AssignmentNode>.AsFailed(new NoViableAltException("expecting declaration found " + LT(1)));
+            return Context<AssignmentNode>.AsFailed(new NoViableAltException("expecting declaration found ", LT(1)));
 
             // throw new NoViableAltException("expecting declaration found " + LT(1));
         }
@@ -1065,14 +1064,14 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = relational();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
 
                 while (LA(1) == SrslLexer.UnequalOperator || LA(1) == SrslLexer.EqualOperator)
                 {
                     consume();
                     context = relational();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
@@ -1081,7 +1080,7 @@ namespace Srsl.Parser
 
                 var context = relational();
 
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 firstOperationNode.LeftOperand = context.Result;
 
@@ -1102,7 +1101,7 @@ namespace Srsl.Parser
 
                     context = relational();
 
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -1135,7 +1134,7 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = assignment();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
             }
             else
@@ -1144,7 +1143,7 @@ namespace Srsl.Parser
 
                 var context = assignment();
 
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 expressionNode.Assignment = context.Result;
 
@@ -1162,7 +1161,7 @@ namespace Srsl.Parser
             {
                 var context = expression();
 
-                if (context.Failed) return Context<ExpressionStatementNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionStatementNode>.AsFailed(context.Exception);
 
                 if (MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration)
                 {
@@ -1175,7 +1174,7 @@ namespace Srsl.Parser
 
                 var context = expression();
 
-                if (context.Failed) return Context<ExpressionStatementNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionStatementNode>.AsFailed(context.Exception);
 
                 expressionStatementNode.Expression = context.Result;
 
@@ -1203,7 +1202,7 @@ namespace Srsl.Parser
                 {
                     var context = variableDeclaration();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
                 }
                 else
                 {
@@ -1211,7 +1210,7 @@ namespace Srsl.Parser
                     {
                         var context = expressionStatement();
 
-                        if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                        if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
                     }
                     else
                     {
@@ -1223,7 +1222,7 @@ namespace Srsl.Parser
                 {
                     var context = expression();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
 
                     if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
                 }
@@ -1236,14 +1235,14 @@ namespace Srsl.Parser
                 {
                     var context = expression();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
                 }
 
                 if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 var contextBlock = block();
 
-                if (contextBlock.Failed) return Context<ForStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<ForStatementNode>.AsFailed(contextBlock.Exception);
 
             }
             else
@@ -1258,7 +1257,7 @@ namespace Srsl.Parser
                     // Console.WriteLine( "predict variable declaration" );
                     var context = variableDeclaration();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
 
                     forStatementNode.VariableDeclaration = context.Result;
                 }
@@ -1267,7 +1266,7 @@ namespace Srsl.Parser
                     // Console.WriteLine( "predict alternative for expression statement" );
                     var context = expressionStatement();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
 
                     forStatementNode.ExpressionStatement = context.Result;
                 }
@@ -1281,7 +1280,7 @@ namespace Srsl.Parser
                     // Console.WriteLine( "predict alternative for expression" );
                     var context = expression();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
 
                     forStatementNode.Expression1 = context.Result;
                     if (!match(SrslLexer.SemicolonSeperator, out matchContext)) return matchContext;
@@ -1296,7 +1295,7 @@ namespace Srsl.Parser
                     // Console.WriteLine( "predict alternative for expression" );
                     var context = expression();
 
-                    if (context.Failed) return Context<ForStatementNode>.AsFailed();
+                    if (context.Failed) return Context<ForStatementNode>.AsFailed(context.Exception);
 
                     forStatementNode.Expression2 = context.Result;
                 }
@@ -1305,7 +1304,7 @@ namespace Srsl.Parser
 
                 var contextBlock = block();
 
-                if (contextBlock.Failed) return Context<ForStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<ForStatementNode>.AsFailed(contextBlock.Exception);
 
                 forStatementNode.Block = contextBlock.Result;
 
@@ -1350,7 +1349,7 @@ namespace Srsl.Parser
 
                 var contextBlock = block();
 
-                if (contextBlock.Failed) return Context<FunctionDeclarationNode>.AsFailed();
+                if (contextBlock.Failed) return Context<FunctionDeclarationNode>.AsFailed(contextBlock.Exception);
 
             }
             else
@@ -1409,7 +1408,7 @@ namespace Srsl.Parser
 
                 var contextBlock = block();
 
-                if (contextBlock.Failed) return Context<FunctionDeclarationNode>.AsFailed();
+                if (contextBlock.Failed) return Context<FunctionDeclarationNode>.AsFailed(contextBlock.Exception);
 
                 functionDeclarationNode.FunctionBlock = contextBlock.Result;
                 functionDeclarationNode.Parameters = parametersNode;
@@ -1527,12 +1526,12 @@ namespace Srsl.Parser
                 if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 var context = expression();
-                if (context.Failed) return Context<IfStatementNode>.AsFailed();
+                if (context.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
 
                 if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 var contextBlock = block();
-                if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.ControlFlowElse)
                 {
@@ -1544,17 +1543,17 @@ namespace Srsl.Parser
                         if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                         context = expression();
-                        if (context.Failed) return Context<IfStatementNode>.AsFailed();
+                        if (context.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
 
                         if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                         contextBlock = block();
-                        if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
+                        if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
                     }
                     else
                     {
                         contextBlock = block();
-                        if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
+                        if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
                     }
                 }
             }
@@ -1566,7 +1565,7 @@ namespace Srsl.Parser
 
                 var context = expression();
 
-                if (context.Failed) return Context<IfStatementNode>.AsFailed();
+                if (context.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
 
                 ifStatement.Expression = context.Result;
 
@@ -1574,7 +1573,7 @@ namespace Srsl.Parser
 
                 var contextBlock = block();
 
-                if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
 
                 ifStatement.ThenBlock = contextBlock.Result;
 
@@ -1592,14 +1591,14 @@ namespace Srsl.Parser
 
                         var context2 = expression();
 
-                        if (context2.Failed) return Context<IfStatementNode>.AsFailed();
+                        if (context2.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
                         ifStatementEntry.ExpressionElseIf = context2.Result;
 
                         if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                         var contextBlock2 = block();
 
-                        if (contextBlock2.Failed) return Context<IfStatementNode>.AsFailed();
+                        if (contextBlock2.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
                         ifStatementEntry.ElseBlock = contextBlock2.Result;
                     }
                     else
@@ -1608,7 +1607,7 @@ namespace Srsl.Parser
 
                         var contextBlock2 = block();
 
-                        if (contextBlock2.Failed) return Context<IfStatementNode>.AsFailed();
+                        if (contextBlock2.Failed) return Context<IfStatementNode>.AsFailed(context.Exception);
 
                         ifStatementEntry.ElseBlock = contextBlock2.Result;
                     }
@@ -1627,13 +1626,13 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = bitwiseOr();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.LogicalAndOperator)
                 {
                     consume();
                     context = bitwiseOr();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
@@ -1642,7 +1641,7 @@ namespace Srsl.Parser
 
 
                 var context = bitwiseOr();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 firstOperationNode.LeftOperand = context.Result;
 
@@ -1655,7 +1654,7 @@ namespace Srsl.Parser
 
                     context = bitwiseOr();
 
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -1688,14 +1687,14 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = logicAnd();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
 
                 while (LA(1) == SrslLexer.LogicalOrOperator)
                 {
                     consume();
                     context = logicAnd();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
@@ -1703,7 +1702,7 @@ namespace Srsl.Parser
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
                 var context = logicAnd();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 firstOperationNode.LeftOperand = context.Result;
 
@@ -1715,7 +1714,7 @@ namespace Srsl.Parser
                     consume();
 
                     context = logicAnd();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -1748,7 +1747,7 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = unary();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.MultiplyOperator ||
                         LA(1) == SrslLexer.DivideOperator ||
@@ -1756,7 +1755,7 @@ namespace Srsl.Parser
                 {
                     consume();
                     context = unary();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
@@ -1764,7 +1763,7 @@ namespace Srsl.Parser
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
                 var context = unary();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
@@ -1789,7 +1788,7 @@ namespace Srsl.Parser
                     consume();
 
                     context = unary();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -1841,7 +1840,7 @@ namespace Srsl.Parser
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
 
                     var context = declaration();
-                    if (context.Failed) return Context<PrimaryNode>.AsFailed();
+                    if (context.Failed) return Context<PrimaryNode>.AsFailed(context.Exception);
 
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
                     if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
@@ -1897,7 +1896,7 @@ namespace Srsl.Parser
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
 
                     var context = declaration();
-                    if (context.Failed) return Context<PrimaryNode>.AsFailed();
+                    if (context.Failed) return Context<PrimaryNode>.AsFailed(context.Exception);
 
                     primaryNode.Expression = context.Result;
                     MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
@@ -1906,7 +1905,7 @@ namespace Srsl.Parser
                 }
                 else
                 {
-                    return Context<PrimaryNode>.AsFailed(new NoViableAltException(LT(1).text));
+                    return Context<PrimaryNode>.AsFailed(new NoViableAltException("expecting primary found ", LT(1)));
                     //throw new NoViableAltException(LT(1).text);
                 }
 
@@ -1921,7 +1920,7 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = shift();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.GreaterOperator ||
                         LA(1) == SrslLexer.GreaterEqualOperator ||
@@ -1930,7 +1929,7 @@ namespace Srsl.Parser
                 {
                     consume();
                     context = shift();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
@@ -1938,7 +1937,7 @@ namespace Srsl.Parser
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
                 var context = shift();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 firstOperationNode.LeftOperand = context.Result;
 
                 BinaryOperationNode currentOperationNode = firstOperationNode;
@@ -1968,7 +1967,7 @@ namespace Srsl.Parser
                     consume();
 
                     context = shift();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                     ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.GreaterOperator ||
@@ -2006,14 +2005,14 @@ namespace Srsl.Parser
             {
                 if (!match(SrslLexer.FunctionReturn, out matchContext)) return matchContext;
                 var context = expressionStatement();
-                if (context.Failed) return Context<ReturnStatementNode>.AsFailed();
+                if (context.Failed) return Context<ReturnStatementNode>.AsFailed(context.Exception);
             }
             else
             {
                 if (!match(SrslLexer.FunctionReturn, out matchContext)) return matchContext;
                 ReturnStatementNode returnStatementNode = new ReturnStatementNode();
                 var context = expressionStatement();
-                if (context.Failed) return Context<ReturnStatementNode>.AsFailed();
+                if (context.Failed) return Context<ReturnStatementNode>.AsFailed(context.Exception);
                 returnStatementNode.ExpressionStatement = context.Result;
 
                 return new Context<ReturnStatementNode>(returnStatementNode);
@@ -2073,7 +2072,7 @@ namespace Srsl.Parser
                 return block();
             }
 
-            return Context<HeteroAstNode>.AsFailed(new NoViableAltException("expecting declaration found " + LT(1)));
+            return Context<HeteroAstNode>.AsFailed(new NoViableAltException("expecting declaration found ", LT(1)));
             //throw new NoViableAltException("expecting declaration found " + LT(1));
         }
 
@@ -2090,7 +2089,7 @@ namespace Srsl.Parser
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
 
                 var context = declaration();
-                if (context.Failed) return Context<UsingStatementNode>.AsFailed();
+                if (context.Failed) return Context<UsingStatementNode>.AsFailed(context.Exception);
 
                 usingStatementNode.UsingNode = context.Result;
 
@@ -2098,7 +2097,7 @@ namespace Srsl.Parser
                 if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 var contextBlock = block();
-                if (contextBlock.Failed) return Context<UsingStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<UsingStatementNode>.AsFailed(context.Exception);
 
                 usingStatementNode.UsingBlock = contextBlock.Result;
 
@@ -2110,13 +2109,13 @@ namespace Srsl.Parser
             MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
 
             var context2 = declaration();
-            if (context2.Failed) return Context<UsingStatementNode>.AsFailed();
+            if (context2.Failed) return Context<UsingStatementNode>.AsFailed(context2.Exception);
 
             MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
             if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
             var contextBlock2 = block();
-            if (contextBlock2.Failed) return Context<UsingStatementNode>.AsFailed();
+            if (contextBlock2.Failed) return Context<UsingStatementNode>.AsFailed(contextBlock2.Exception);
 
             return null;
         }
@@ -2136,7 +2135,7 @@ namespace Srsl.Parser
                 if (!match(SrslLexer.Identifier, out matchContext)) return matchContext;
 
                 var context = block();
-                if (context.Failed) return Context<StructDeclarationNode>.AsFailed();
+                if (context.Failed) return Context<StructDeclarationNode>.AsFailed(context.Exception);
             }
             else
             {
@@ -2168,7 +2167,7 @@ namespace Srsl.Parser
                 structDeclarationNode.Modifiers = new ModifiersNode(accessMod, staticAbstractMod);
 
                 var context = block();
-                if (context.Failed) return Context<StructDeclarationNode>.AsFailed();
+                if (context.Failed) return Context<StructDeclarationNode>.AsFailed(context.Exception);
 
                 structDeclarationNode.Block = context.Result;
 
@@ -2201,7 +2200,7 @@ namespace Srsl.Parser
                 return unaryPostfix();
             }
 
-            return Context<ExpressionNode>.AsFailed(new NoViableAltException(""));
+            return Context<ExpressionNode>.AsFailed(new NoViableAltException("expecting unary found ", LT(1)));
             //throw new NoViableAltException("");
         }
 
@@ -2224,7 +2223,7 @@ namespace Srsl.Parser
                 else
                 {
                     //throw new NoViableAltException("");
-                    return Context<ExpressionNode>.AsFailed(new NoViableAltException(""));
+                    return Context<ExpressionNode>.AsFailed(new NoViableAltException("", LT(1)));
                 }
             }
             else
@@ -2232,7 +2231,7 @@ namespace Srsl.Parser
                 UnaryPostfixOperation unaryPostfix = new UnaryPostfixOperation();
 
                 var context = call();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 unaryPostfix.Primary = context.Result;
 
@@ -2276,11 +2275,11 @@ namespace Srsl.Parser
                     consume();
 
                     var context = unary();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
                 else
                 {
-                    return Context<AssignmentNode>.AsFailed(new NoViableAltException(""));
+                    return Context<ExpressionNode>.AsFailed(new NoViableAltException("", LT(1)));
                     //throw new NoViableAltException("");
                 }
             }
@@ -2327,7 +2326,7 @@ namespace Srsl.Parser
                     }
 
                     var context = unary();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
 
                     unaryPrefix.Primary = context.Result;
@@ -2364,11 +2363,12 @@ namespace Srsl.Parser
 
                     if (LA(1) == SrslLexer.DeclareClassInstance)
                     {
-                        throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
+                        //throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
+                        return Context<VariableDeclarationNode>.AsFailed(new MismatchedTokenException("Expected variableDeclaration found", LT(1)));
                     }
 
                     var context = expressionStatement();
-                    if (context.Failed) return Context<VariableDeclarationNode>.AsFailed();
+                    if (context.Failed) return Context<VariableDeclarationNode>.AsFailed(context.Exception);
                 }
                 else
                 {
@@ -2407,11 +2407,12 @@ namespace Srsl.Parser
 
                     if (LA(1) == SrslLexer.DeclareClassInstance)
                     {
-                        throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
+                        //throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
+                        return Context<VariableDeclarationNode>.AsFailed(new MismatchedTokenException("Expected variableDeclaration found", LT(1)));
                     }
 
                     var context = expressionStatement();
-                    if (context.Failed) return Context<VariableDeclarationNode>.AsFailed();
+                    if (context.Failed) return Context<VariableDeclarationNode>.AsFailed(context.Exception);
 
                     init = context.Result;
                 }
@@ -2458,12 +2459,12 @@ namespace Srsl.Parser
                 if (!match(SrslLexer.OpeningRoundBracket, out matchContext)) return matchContext;
 
                 var context = expression();
-                if (context.Failed) return Context<WhileStatementNode>.AsFailed();
+                if (context.Failed) return Context<WhileStatementNode>.AsFailed(context.Exception);
 
                 if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 var contextBlock = block();
-                if (contextBlock.Failed) return Context<WhileStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<WhileStatementNode>.AsFailed(context.Exception);
             }
             else
             {
@@ -2473,13 +2474,13 @@ namespace Srsl.Parser
 
 
                 var context = expression();
-                if (context.Failed) return Context<WhileStatementNode>.AsFailed();
+                if (context.Failed) return Context<WhileStatementNode>.AsFailed(context.Exception);
                 whileStatementNode.Expression = context.Result;
 
                 if (!match(SrslLexer.ClosingRoundBracket, out matchContext)) return matchContext;
 
                 var contextBlock = block();
-                if (contextBlock.Failed) return Context<WhileStatementNode>.AsFailed();
+                if (contextBlock.Failed) return Context<WhileStatementNode>.AsFailed(context.Exception);
                 whileStatementNode.WhileBlock = contextBlock.Result;
 
                 return new Context<WhileStatementNode>(whileStatementNode);
@@ -2495,19 +2496,19 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = logicOr();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.QuestionMarkOperator)
                 {
                     consume();
 
                     context = logicOr();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
 
                     context = logicOr();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
@@ -2515,7 +2516,7 @@ namespace Srsl.Parser
                 TernaryOperationNode firstOperationNode = new TernaryOperationNode();
 
                 var context = logicOr();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 firstOperationNode.LeftOperand = context.Result;
 
                 TernaryOperationNode currentOperationNode = firstOperationNode;
@@ -2525,13 +2526,13 @@ namespace Srsl.Parser
                     consume();
 
                     context = logicOr();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     currentOperationNode.MidOperand = context.Result;
                     if (!match(SrslLexer.ColonOperator, out matchContext)) return matchContext;
 
                     context = logicOr();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                     ExpressionNode right = context.Result;
 
                     if (LA(1) == SrslLexer.QuestionMarkOperator)
@@ -2563,21 +2564,21 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = bitwiseXor();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
 
                 while (LA(1) == SrslLexer.BitwiseOrOperator)
                 {
                     consume();
                     context = bitwiseXor();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
                 var context = bitwiseXor();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
@@ -2586,7 +2587,7 @@ namespace Srsl.Parser
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseOr;
                     consume();
                     context = bitwiseXor();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                     ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.BitwiseOrOperator)
@@ -2618,21 +2619,21 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = bitwiseAnd();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
 
                 while (LA(1) == SrslLexer.BitwiseXorOperator)
                 {
                     consume();
                     context = bitwiseAnd();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
                 var context = bitwiseAnd();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
@@ -2642,7 +2643,7 @@ namespace Srsl.Parser
                     consume();
 
                     context = bitwiseAnd();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -2675,20 +2676,20 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = equality();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                 while (LA(1) == SrslLexer.BitwiseAndOperator)
                 {
                     consume();
                     context = equality();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
                 var context = equality();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
@@ -2697,7 +2698,7 @@ namespace Srsl.Parser
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseAnd;
                     consume();
                     context = equality();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                     ExpressionNode expressionNode = context.Result;
 
                     if (LA(1) == SrslLexer.BitwiseAndOperator)
@@ -2729,21 +2730,21 @@ namespace Srsl.Parser
             if (Speculating)
             {
                 var context = additive();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
 
                 while (LA(1) == SrslLexer.ShiftLeftOperator || LA(1) == SrslLexer.ShiftRightOperator)
                 {
                     consume();
                     context = additive();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 }
             }
             else
             {
                 BinaryOperationNode firstOperationNode = new BinaryOperationNode();
                 var context = additive();
-                if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
                 firstOperationNode.LeftOperand = context.Result;
                 BinaryOperationNode currentOperationNode = firstOperationNode;
 
@@ -2761,7 +2762,7 @@ namespace Srsl.Parser
                     consume();
 
                     context = additive();
-                    if (context.Failed) return Context<ExpressionNode>.AsFailed();
+                    if (context.Failed) return Context<ExpressionNode>.AsFailed(context.Exception);
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -2861,41 +2862,45 @@ namespace Srsl.Parser
                 moduleNode.ImportedModules = importedModules;
                 moduleNode.UsedModules = usedModules;
 
-                moduleNode.Statements = new List<StatementNode>();
+                var _statements = new List<StatementNode>();
 
                 while (LA(1) != Lexer.EOF_TYPE)
                 {
                     var context = declaration();
 
-                    if (context.Failed) return Context<ModuleNode>.AsFailed();
+                    if (context.Failed) return Context<ModuleNode>.AsFailed(context.Exception);
 
-                    HeteroAstNode decl = context.Result;
+                    _statements.Add((StatementNode)context.Result);
 
-                    switch (decl)
-                    {
-                        case ClassDeclarationNode classDeclarationNode:
-                            moduleNode.Statements.Add(classDeclarationNode);
-                            break;
-                        case FunctionDeclarationNode functionDeclarationNode:
-                            moduleNode.Statements.Add(functionDeclarationNode);
-                            break;
-                        case BlockStatementNode block:
-                            moduleNode.Statements.Add(block);
-                            break;
-                        case StructDeclarationNode structDeclaration:
-                            moduleNode.Statements.Add(structDeclaration);
-                            break;
-                        case VariableDeclarationNode variable:
-                            moduleNode.Statements.Add(variable);
-                            break;
-                        case ClassInstanceDeclarationNode classInstance:
-                            moduleNode.Statements.Add(classInstance);
-                            break;
-                        case StatementNode statement:
-                            moduleNode.Statements.Add(statement);
-                            break;
-                    }
+                    //HeteroAstNode decl = context.Result;
+
+                    //switch (decl)
+                    //{
+                    //    case ClassDeclarationNode classDeclarationNode:
+                    //        moduleNode.Statements.Add(classDeclarationNode);
+                    //        break;
+                    //    case FunctionDeclarationNode functionDeclarationNode:
+                    //        moduleNode.Statements.Add(functionDeclarationNode);
+                    //        break;
+                    //    case BlockStatementNode block:
+                    //        moduleNode.Statements.Add(block);
+                    //        break;
+                    //    case StructDeclarationNode structDeclaration:
+                    //        moduleNode.Statements.Add(structDeclaration);
+                    //        break;
+                    //    case VariableDeclarationNode variable:
+                    //        moduleNode.Statements.Add(variable);
+                    //        break;
+                    //    case ClassInstanceDeclarationNode classInstance:
+                    //        moduleNode.Statements.Add(classInstance);
+                    //        break;
+                    //    case StatementNode statement:
+                    //        moduleNode.Statements.Add(statement);
+                    //        break;
+                    //}
                 }
+
+                moduleNode.Statements = _statements;
 
                 return new Context<ModuleNode>(moduleNode);
             }
@@ -2948,7 +2953,7 @@ namespace Srsl.Parser
             {
                 var context = declaration();
 
-                if (context.Failed) return Context<ModuleNode>.AsFailed();
+                if (context.Failed) return Context<ModuleNode>.AsFailed(context.Exception);
             }
 
             return new Context<ModuleNode>(null);

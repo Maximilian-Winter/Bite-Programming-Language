@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Srsl.Ast;
 using Srsl.SymbolTable;
 
-namespace Srsl.Runtime.SymbolTableBuilder
+namespace Srsl.Runtime.SymbolTable
 {
 
     public class SymbolTableBuilder : HeteroAstVisitor<object>, IAstVisitor
@@ -37,6 +37,16 @@ namespace Srsl.Runtime.SymbolTableBuilder
         public void BuildProgramSymbolTable(ProgramNode programNode)
         {
             Resolve(programNode);
+        }
+
+        public void BuildModuleSymbolTable(ModuleNode moduleNode)
+        {
+            if (CurrentScope == null)
+            {
+                InitScopes();
+            }
+
+            Resolve(moduleNode);
         }
 
         public void BuildStatementsSymbolTable(List<StatementNode> statementNodes)

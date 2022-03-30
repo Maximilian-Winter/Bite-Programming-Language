@@ -152,7 +152,7 @@ namespace Srsl.Parser
                 {
                     return new List<IContext<StatementNode>>()
                      {
-                         Context<StatementNode>.AsFailed()
+                         Context<StatementNode>.AsFailed(context.Exception)
                      };
                 }
 

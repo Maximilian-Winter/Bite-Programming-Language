@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using Srsl.Ast;
 
@@ -8,6 +9,9 @@ namespace Srsl.Parser
 
     public class SrslParser
     {
+        public bool ThrowOnRecognitionException { get; set; }
+        public Exception Exception { get; private set; }
+        public bool Failed { get; private set; }
 
         /// <summary>
         /// Parses a set of modules and returns a <see cref="ProgramNode"/>
@@ -22,7 +26,6 @@ namespace Srsl.Parser
             foreach (Func<string> srslModule in modules)
             {
                 ModuleNode module = ParseModule(srslModule());
-
                 program.AddModule(module);
             }
 
@@ -42,7 +45,6 @@ namespace Srsl.Parser
             foreach (string srslModule in modules)
             {
                 ModuleNode module = ParseModule(srslModule);
-
                 program.AddModule(module);
             }
 
@@ -52,17 +54,43 @@ namespace Srsl.Parser
         public ModuleNode ParseModule(string srslModule)
         {
             SrslLexer lexer = new SrslLexer(srslModule);
-            SrslModuleParser moduleParser = new SrslModuleParser(lexer);
-            var context = moduleParser.module();
+            SrslModuleParser parser = new SrslModuleParser(lexer);
+            var context = parser.module();
+            Exception = context.Exception;
+            Failed = context.Failed;
+            if (context.Failed && ThrowOnRecognitionException)
+            {
+                throw context.Exception;
+            }
             return context.Result;
         }
 
-        public List<StatementNode> ParseStatements(string srslStatments)
+        public IReadOnlyCollection<StatementNode> ParseStatements(string statements)
         {
-            SrslLexer lexer = new SrslLexer(srslStatments);
-            SrslModuleParser statmentParser = new SrslModuleParser(lexer);
-            var contexts = statmentParser.statements();
+            SrslLexer lexer = new SrslLexer(statements);
+            SrslModuleParser parser = new SrslModuleParser(lexer);
+            var contexts = parser.statements();
+            Exception = contexts[0].Exception;
+            Failed = contexts[0].Failed;
+            if (contexts[0].Failed && ThrowOnRecognitionException)
+            {
+                throw contexts[0].Exception;
+            }
             return contexts.Select(c => c.Result).ToList();
+        }
+
+        public ExpressionNode ParseExpression(string expression)
+        {
+            SrslLexer lexer = new SrslLexer(expression);
+            SrslModuleParser parser = new SrslModuleParser(lexer);
+            var context = parser.expression();
+            Exception = context.Exception;
+            Failed = context.Failed;
+            if (context.Failed && ThrowOnRecognitionException)
+            {
+                throw context.Exception;
+            }
+            return context.Result;
         }
     }
 

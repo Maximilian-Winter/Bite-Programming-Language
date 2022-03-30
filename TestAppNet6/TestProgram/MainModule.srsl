@@ -28,7 +28,9 @@ function FindFibonacciNumber(n)
 }
 
 var temp = 0;
+
 var count3 = 0;
+
 while(count3 < 1000)
 {
     var count2 = 0;
@@ -39,4 +41,7 @@ while(count3 < 1000)
     }
     count3++;
 }
+
 Console.WriteLine(temp);
+
+temp;

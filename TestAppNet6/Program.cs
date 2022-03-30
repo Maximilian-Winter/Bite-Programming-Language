@@ -6,7 +6,7 @@ using System.Linq;
 using Srsl.Parser;
 using Srsl.Runtime;
 using Srsl.Runtime.Bytecode;
-using Srsl.Runtime.CodeGenerator;
+using Srsl.Runtime.CodeGen;
 
 namespace TestAppNet6
 {
@@ -14,6 +14,111 @@ namespace TestAppNet6
     {
         public static void Main(string[] args)
         {
+            TestCodeModules();
+
+            //TestExpression();
+
+            //TestStatements();
+
+            //PerfTests();
+
+            Console.ReadLine();
+        }
+
+        public static void TestCodeModules()
+        {
+            var modules = new List<Module>()
+            {
+                new Module()
+                {
+                    Name ="CSharpSystem",
+                    Imports = new [] { "System" },
+                    Code =@"
+var CSharpInterfaceObject = new CSharpInterface();
+CSharpInterfaceObject.Type = ""System.Console, System.Console"";
+var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+"
+                },
+                new Module()
+                {
+                    Name = "MainModule",
+                    MainModule = true,
+                    Imports = new [] { "CSharpSystem" },
+                    Code = @"
+var a = ""Hello"";
+var b = ""World!"";
+var greeting = a + "" "" + b;
+Console.WriteLine(greeting);"
+                },
+
+            };
+
+            var compiler = new Compiler(true);
+
+            var program = compiler.Compile(modules);
+
+            program.Run();
+
+        }
+
+        public static void TestExternalObjects()
+        {
+            SrslParser parser = new SrslParser();
+
+            var expression = parser.ParseExpression("a + b");
+
+            CodeGenerator generator = new CodeGenerator();
+
+            var context = generator.CompileExpression(expression);
+
+            SrslVm srslVm = new SrslVm();
+
+            srslVm.RegisterGlobalObject("a", "Hello");
+            srslVm.RegisterGlobalObject("b", "World");
+
+            var result = srslVm.Interpret(context);
+
+            Console.WriteLine(srslVm.RetVal.StringData);
+        }
+
+        public static void TestExpression()
+        {
+            SrslParser parser = new SrslParser();
+
+            var expression = parser.ParseExpression("1 + 1");
+
+            CodeGenerator generator = new CodeGenerator();
+
+            var context = generator.CompileExpression(expression);
+
+            SrslVm srslVm = new SrslVm();
+
+            var result = srslVm.Interpret(context);
+
+            Console.WriteLine(srslVm.RetVal.NumberData);
+        }
+
+        public static void TestStatements()
+        {
+            SrslParser parser = new SrslParser();
+
+            var statements = parser.ParseStatements("1 + 1;");
+
+            CodeGenerator generator = new CodeGenerator();
+
+            var context = generator.CompileStatements(statements);
+
+            SrslVm srslVm = new SrslVm();
+
+            var result = srslVm.Interpret(context);
+
+            Console.WriteLine(srslVm.RetVal.NumberData);
+        }
+
+
+        public static void PerfTests()
+        {
+
             SrslParser parser = new SrslParser();
 
             var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
@@ -26,7 +131,7 @@ namespace TestAppNet6
 
             CodeGenerator generator = new CodeGenerator();
 
-            generator.CompileProgram(program);
+            var context = generator.CompileProgram(program);
 
             SrslVm srslVm = new SrslVm();
 
@@ -36,7 +141,10 @@ namespace TestAppNet6
             {
                 Stopwatch stopwatch2 = new Stopwatch();
                 stopwatch2.Start();
-                srslVm.Interpret(generator.CompiledMainChunk, generator.CompiledChunks, generator.SymbolTableBuilder);
+                srslVm.Interpret(context);
+
+                Console.WriteLine(srslVm.RetVal.ToString());
+
                 stopwatch2.Stop();
                 Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
                 elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;
@@ -58,9 +166,7 @@ namespace TestAppNet6
             }
 
             ChunkDebugHelper.InstructionCounter.Clear();
-
-            Console.ReadLine();
-
         }
+
     }
 }
