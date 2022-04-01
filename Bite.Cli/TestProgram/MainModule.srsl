@@ -1,0 +1,128 @@
+module MainModule;
+
+import System;
+using System;
+
+import CSharpSystem;
+using CSharpSystem;
+
+function FindFibonacciNumber(n)
+{
+    var count= 2;
+    var a = 1;
+    var b = 1;
+    var c = 1;
+    if(n == 0)
+    {
+        return 0;
+    }
+    while(count<n)
+    {
+        c = a + b;
+        a = b;
+        b = c; 
+        count++;
+    }
+
+    return c;
+}
+
+var temp = 0;
+var count3 = 0;
+while(count3 < 1000)
+{
+    var count2 = 0;
+    while(count2 < 37)
+    {
+        temp = FindFibonacciNumber(count2);
+        count2++;
+    }
+    count3++;
+}
+Console.WriteLine(temp);
+/*
+
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           c[x][y][z] = "Number: " + f;
+           f++;
+        }
+    }
+}
+
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           Print(c[x][y][z]);
+        }
+    }
+}
+
+var a = 1 * 2 + 3 * 4;
+var b = 2 * 5 - 4 / 2 + 6;
+var c = 2 * 5 - (4 / 2 + 6);
+var d = 2 * 5 - 4 / (2 + 6);
+
+Console.WriteLine(a);
+Console.WriteLine(b);
+Console.WriteLine(c);
+Console.WriteLine(d);
+
+if(!true)
+{
+    Console.WriteLine("1");
+}
+else if(true)
+{
+    Console.WriteLine("2");
+}
+else if(!true || false)
+{
+    Console.WriteLine("3");
+}
+else
+{
+    Console.WriteLine("4");
+}
+
+if(!true)
+{
+    Console.WriteLine("1");
+}
+else if(false)
+{
+    Console.WriteLine("2");
+}
+else if(!true || true)
+{
+    Console.WriteLine("3");
+}
+else
+{
+    Console.WriteLine("4");
+}
+
+if(!true)
+{
+    Console.WriteLine("1");
+}
+else if(false)
+{
+    Console.WriteLine("2");
+}
+else if(!true || false)
+{
+    Console.WriteLine("3");
+}
+else
+{
+    Console.WriteLine("4");
+}
+*/

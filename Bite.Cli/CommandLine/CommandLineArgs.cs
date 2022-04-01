@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Srsl.Cli
+namespace Bite.Cli.CommandLine
 {
     /// <summary>
     /// A quick'n'dirty commandline parser with an API similar to https://github.com/commandlineparser/commandline

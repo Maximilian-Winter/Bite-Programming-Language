@@ -1,4 +1,6 @@
-﻿namespace Srsl.Cli
+﻿using Bite.Cli.CommandLine;
+
+namespace Bite.Cli
 {
     public class Options
     {

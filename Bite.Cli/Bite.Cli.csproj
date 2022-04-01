@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<TargetName>srslvm</TargetName>
-		<AssemblyName>Srsl.Cli</AssemblyName>
+		<AssemblyName>Bite.Cli</AssemblyName>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net462</TargetFramework>
-		<StartupObject>Srsl.Cli.Program</StartupObject>
+		<StartupObject>Bite.Cli.Program</StartupObject>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 

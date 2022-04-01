@@ -4,9 +4,10 @@ using Srsl.Parser;
 using Srsl.Runtime;
 using System.IO;
 using System.Linq;
+using Bite.Cli.CommandLine;
 using Srsl.Runtime.CodeGen;
 
-namespace Srsl.Cli
+namespace Bite.Cli
 {
     internal class Program
     {
@@ -22,13 +23,8 @@ namespace Srsl.Cli
 
                 var program = compiler.Compile(o.MainModule, files.Select(File.ReadAllText));
 
-            BiteParser parser = new BiteParser();
-            BiteVm biteVm = new BiteVm();
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            biteVm.Interpret(context);
-            stopwatch.Stop();
+                program.Run();
+            });
         }
     }
 }

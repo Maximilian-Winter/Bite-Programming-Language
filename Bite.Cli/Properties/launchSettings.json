@@ -1,8 +1,7 @@
 {
   "profiles": {
-    "Srsl.Cli": {
+    "Bite.Cli": {
       "commandName": "Project",
-      "--commandLineArgs": "", 
       "commandLineArgs": "-m MainModule -p .\\TestProgram"
     }
   }

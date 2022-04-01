@@ -1,6 +1,5 @@
 # Bite Programming Language
-Bite
-is a dynamic programming language.
+Bite is a dynamic programming language.
 
 I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
 
