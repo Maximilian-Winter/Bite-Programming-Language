@@ -1,6 +1,6 @@
 # Bite Programming Language
 Bite
-Is a dynamic programming language.
+is a dynamic programming language.
 The idea was it, to have a dynamically interpreted language in C#, to support modding functionallity and easy patching for the Unity Game Engine.
 
 Example Code for calculating the first 37 fibonacci numbers a 1000x times:
