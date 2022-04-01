@@ -38,6 +38,7 @@ namespace Bite.Runtime.Memory
             {
                 m_FastMemorySpacePointer--;
             }
+
         }
         /*
         private readonly Queue<T> _objects;

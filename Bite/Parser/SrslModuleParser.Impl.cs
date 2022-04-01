@@ -2350,18 +2350,22 @@ public partial class SrslModuleParser
         {
             if ( !match( SrslLexer.Break, out matchContext ) )
                 return matchContext;
-
-            return matchContext;
+            
+            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                return matchContext;
         }
         else
         {
             if ( !match( SrslLexer.Break, out matchContext ) )
                 return matchContext;
-
+    
+            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                return matchContext;
             BreakStatementNode returnStatementNode = new BreakStatementNode();
 
             return new Context < BreakStatementNode >( returnStatementNode );
         }
+        return new Context < BreakStatementNode >( null );
     }
 
     public IContext < HeteroAstNode > _statement()

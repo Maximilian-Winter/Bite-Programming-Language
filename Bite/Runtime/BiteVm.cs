@@ -38,7 +38,7 @@ public class BiteVm
 {
     private BinaryChunk m_CurrentChunk;
     private int m_CurrentInstructionPointer;
-    private DynamicSrslVariableStack m_VmStack;
+    private DynamicBiteVariableStack m_VmStack;
 
     private Dictionary < string, BinaryChunk > m_CompiledChunks;
 
@@ -54,6 +54,7 @@ public class BiteVm
     private int m_LastGetLocalVarModuleId = -1;
     private int m_LastGetLocalVarDepth = -1;
     private int m_LastGetLocalClassId = -1;
+    private int m_LoopEndJumpCode = -1;
     private string m_LastElement = "";
     private bool m_SetElement = false;
     private bool m_SetMember = false;
@@ -107,7 +108,7 @@ public class BiteVm
 
     public BiteVmInterpretResult Interpret( BiteProgram context )
     {
-        m_VmStack = new DynamicSrslVariableStack();
+        m_VmStack = new DynamicBiteVariableStack();
         m_UsingStatementStack = new UsingStatementStack();
         m_CallStack = new FastMemoryStack();
         m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
@@ -179,7 +180,12 @@ public class BiteVm
 
                         break;
                     }
+                    case SrslVmOpCodes.OpBreak:
+                    {
+                        m_CurrentInstructionPointer = m_LoopEndJumpCode;
 
+                        break;
+                    }
                     case SrslVmOpCodes.OpDefineModule:
                     {
                         string moduleName = ReadConstant().StringConstantValue;
@@ -766,7 +772,7 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
                         ;
-
+                        m_LoopEndJumpCode = jumpCodeBodyEnd+ 10;
                         if ( m_VmStack.Pop().DynamicType == DynamicVariableType.True )
                         {
                             m_CurrentChunk.Code[jumpCodeBodyEnd] = ( byte ) SrslVmOpCodes.OpJump;
@@ -1377,9 +1383,16 @@ public class BiteVm
                             m_VmStack.Count -= stackCounter;
                         }
 
-                        m_PoolFastMemoryFastMemory.Return( m_CallStack.Pop() );
+                        FastMemorySpace fastMemorySpace = m_CallStack.Pop();
+                        if ( fastMemorySpace.CallerChunk != null )
+                        {
+                            m_CurrentChunk = fastMemorySpace.CallerChunk;
+                            m_CurrentInstructionPointer = fastMemorySpace.CallerIntructionPointer;
+                        }
+                        m_PoolFastMemoryFastMemory.Return( fastMemorySpace );
                         m_CurrentMemorySpace = m_CallStack.Peek();
 
+                       
                         if ( m_KeepLastItemOnStackToReturn )
                         {
                             m_VmStack.Push( m_ReturnRegister );

@@ -67,6 +67,7 @@
         OpSetMember,
         OpImportModule,
         OpKeepLastItemOnStack,
+        OpBreak,
         OpReturn
     }
 

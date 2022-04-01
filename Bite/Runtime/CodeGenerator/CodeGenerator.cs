@@ -25,6 +25,8 @@ namespace Bite.Runtime.CodeGen
         private SrslVmOpCodes m_CallNodeTypeForAssignment = SrslVmOpCodes.OpNone;
 
         private int m_MaxStackDepth = 0;
+
+        private int PreviousLoopBlockCount = 0;
         private SrslVmOpCodes m_ConstructingOpCode;
         private List<int> m_ConstructingOpCodeData;
         private int m_ConstructingLine;
@@ -1038,9 +1040,10 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(ForStatementNode node)
         {
+           
             EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             m_CurrentEnterBlockCount++;
-            
+            PreviousLoopBlockCount = m_CurrentEnterBlockCount;
             if (node.VariableDeclaration != null)
             {
                 Compile(node.VariableDeclaration);
@@ -1073,8 +1076,12 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(WhileStatementNode node)
         {
+           
             EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             m_CurrentEnterBlockCount++;
+            
+            PreviousLoopBlockCount = m_CurrentEnterBlockCount;
+            
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
@@ -1102,8 +1109,12 @@ namespace Bite.Runtime.CodeGen
         
         public override object Visit(BreakStatementNode node)
         {
-            EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            for ( int i = 0; i < (m_CurrentEnterBlockCount - PreviousLoopBlockCount); i++ )
+            {
+                EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            }
 
+            EmitByteCode( SrslVmOpCodes.OpBreak );
             return null;
         }
 
@@ -1358,6 +1369,9 @@ namespace Bite.Runtime.CodeGen
                     return Visit(ifStatementNode);
 
                 case ReturnStatementNode returnStatement:
+                    return Visit(returnStatement);
+                
+                case BreakStatementNode returnStatement:
                     return Visit(returnStatement);
 
                 case BlockStatementNode blockStatementNode:
