@@ -3,6 +3,8 @@ Bite
 is a dynamic programming language.
 The idea was it, to have a dynamically interpreted language in C#, to support modding functionallity and easy patching for the Unity Game Engine.
 
+I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
+
 Example Code for calculating the first 37 fibonacci numbers a 1000x times:
 ```
 module MainModule;
