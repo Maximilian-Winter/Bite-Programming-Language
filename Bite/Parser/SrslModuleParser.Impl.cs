@@ -1255,6 +1255,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.UnequalOperator || LA( 1 ) == SrslLexer.EqualOperator )
                 {
@@ -1929,6 +1930,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.LogicalAndOperator )
                 {
@@ -1995,6 +1997,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.LogicalOrOperator )
                 {
@@ -2278,6 +2281,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.GreaterOperator ||
                      LA( 1 ) == SrslLexer.GreaterEqualOperator ||
@@ -3018,6 +3022,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.BitwiseOrOperator )
                 {
@@ -3082,6 +3087,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.BitwiseXorOperator )
                 {
@@ -3145,6 +3151,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.BitwiseAndOperator )
                 {
@@ -3217,6 +3224,7 @@ public partial class SrslModuleParser
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
                 ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == SrslLexer.ShiftLeftOperator || LA( 1 ) == SrslLexer.ShiftRightOperator )
                 {

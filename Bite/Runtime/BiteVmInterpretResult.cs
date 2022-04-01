@@ -1,7 +1,7 @@
 ﻿namespace Srsl.Runtime
 {
 
-    public enum SrslVmInterpretResult
+    public enum BiteVmInterpretResult
     {
         InterpretOk,
         InterpretCompileError,

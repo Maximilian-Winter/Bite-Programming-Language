@@ -6,45 +6,6 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
-
-var a = 1 * 2 + 3 * 4;
-var b = 2 * 5 - 4 / 2 + 6;
-var c = 2 * 5 - (4 / 2 + 6);
-var d = 2 * 5 - 4 / (2 + 6);
-
-Console.WriteLine(a);
-Console.WriteLine(b);
-Console.WriteLine(c);
-Console.WriteLine(d);
-/*
-
-for(var x = 0; x < 10; x++)
-{
-    for(var y = 0; y < 10; y++)
-    {
-        for(var z = 0; z < 10; z++)
-        {
-           c[x][y][z] = "Number: " + f;
-           f++;
-        }
-    }
-}
-
-for(var x = 0; x < 10; x++)
-{
-    for(var y = 0; y < 10; y++)
-    {
-        for(var z = 0; z < 10; z++)
-        {
-           Print(c[x][y][z]);
-        }
-    }
-}
-
-
-
-
-
 function FindFibonacciNumber(n)
 {
     var count= 2;
@@ -79,8 +40,40 @@ while(count3 < 1000)
     count3++;
 }
 Console.WriteLine(temp);
+/*
 
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           c[x][y][z] = "Number: " + f;
+           f++;
+        }
+    }
+}
 
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           Print(c[x][y][z]);
+        }
+    }
+}
+
+var a = 1 * 2 + 3 * 4;
+var b = 2 * 5 - 4 / 2 + 6;
+var c = 2 * 5 - (4 / 2 + 6);
+var d = 2 * 5 - 4 / (2 + 6);
+
+Console.WriteLine(a);
+Console.WriteLine(b);
+Console.WriteLine(c);
+Console.WriteLine(d);
 
 if(!true)
 {

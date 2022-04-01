@@ -7,7 +7,7 @@ namespace UnitTests
 {
     public class ExecResult
     {
-        public SrslVmInterpretResult InterpretResult { get; set; }
+        public BiteVmInterpretResult InterpretResult { get; set; }
         public DynamicBiteVariable LastValue { get; set; }
     }
 }

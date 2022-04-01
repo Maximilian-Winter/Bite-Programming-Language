@@ -1,4 +1,4 @@
-﻿//#define SRSL_VM_DEBUG_TRACE_EXECUTION
+﻿#define SRSL_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -37,25 +37,22 @@ namespace Srsl.Runtime
         private BinaryChunk m_CurrentChunk;
         private int m_CurrentInstructionPointer;
         private DynamicSrslVariableStack m_VmStack;
-       // private int m_StackPointer;
-        private Dictionary<string, BinaryChunk> m_CompiledChunks;
 
-        //private DynamicSrslVariable m_TopMostStackItem;
+        private Dictionary<string, BinaryChunk> m_CompiledChunks;
 
         private List<DynamicBiteVariable> m_FunctionArguments = new List<DynamicBiteVariable>();
         private ObjectPoolFastMemory m_PoolFastMemoryFastMemory;
         private FastGlobalMemorySpace m_GlobalMemorySpace;
         private Scope m_CurrentScope;
         private FastMemorySpace m_CurrentMemorySpace;
-        private FastMemorySpace m_LastMemorySpaceDebug;
         private FastMemoryStack m_CallStack = new FastMemoryStack();
         private Dictionary<string, FastMethodInfo> CachedMethods = new Dictionary<string, FastMethodInfo>();
         private int m_LastGetLocalVarId = -1;
         private int m_LastGetLocalVarModuleId = -1;
         private int m_LastGetLocalVarDepth = -1;
         private int m_LastGetLocalClassId = -1;
-        string m_LastElement = "";
-        private bool SetElement = false;
+        private string m_LastElement = "";
+        private bool m_SetElement = false;
         private bool m_SetMember = false;
         private bool m_KeepLastItemOnStackToReturn = false;
         private SrslVmOpCodes m_CurrentByteCodeInstruction = SrslVmOpCodes.OpNone;
@@ -90,7 +87,7 @@ namespace Srsl.Runtime
             m_ExternalObjects.Add(varName, data);
         }
 
-        public SrslVmInterpretResult Interpret(BiteProgram context)
+        public BiteVmInterpretResult Interpret(BiteProgram context)
         {
             m_VmStack = new DynamicSrslVariableStack();
             //m_StackPointer = 0;
@@ -120,7 +117,7 @@ namespace Srsl.Runtime
             return instruction;
         }
 
-        private SrslVmInterpretResult Run()
+        private BiteVmInterpretResult Run()
         {
 
             while (true)
@@ -130,12 +127,6 @@ namespace Srsl.Runtime
                 {
 #if SRSL_VM_DEBUG_TRACE_EXECUTION
 
-               /* if ( m_LastMemorySpaceDebug != m_CurrentMemorySpace )
-                {
-                    Console.WriteLine("New Memory Space: {0}", m_CurrentMemorySpace.Name);
-                    m_LastMemorySpaceDebug = m_CurrentMemorySpace;
-                }
-               */
                 Console.Write("Stack:   ");
                 for ( int i = 0; i < m_VmStack.Count; i++ )
                 {
@@ -539,7 +530,7 @@ namespace Srsl.Runtime
 
                                     m_SetMember = false;
                                 }
-                                else if(SetElement)
+                                else if(m_SetElement)
                                 {
                                     FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
                                     
@@ -552,7 +543,7 @@ namespace Srsl.Runtime
                                         fastMemorySpace.Define(m_VmStack.Pop(), m_LastElement, false);
                                     }
                                     
-                                    SetElement = false;
+                                    m_SetElement = false;
                                 }
                                 else
                                 {
@@ -580,7 +571,7 @@ namespace Srsl.Runtime
                                 }
                             }
 
-                            SetElement = true;
+                            m_SetElement = true;
                             //FastMemorySpace fastMemorySpace = m_VmStack.Pop().ObjectData as FastMemorySpace;
                             //m_VmStack.Push(fastMemorySpace.Get( element ));
                             break;
@@ -1054,7 +1045,7 @@ namespace Srsl.Runtime
                     }
                     else
                     {
-                        return SrslVmInterpretResult.InterpretOk;
+                        return BiteVmInterpretResult.InterpretOk;
                     }
                 }
             }
