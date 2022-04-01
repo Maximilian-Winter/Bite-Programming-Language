@@ -1,0 +1,4 @@
+module ModuleA;
+
+var Hello = "Hello";
+var World = "World";

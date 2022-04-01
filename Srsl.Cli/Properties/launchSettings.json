@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Srsl.Cli": {
+      "commandName": "Project",
+      "--commandLineArgs": "", 
+      "commandLineArgs": "-m MainModule -p .\\TestProgram"
+    }
+  }
+}
