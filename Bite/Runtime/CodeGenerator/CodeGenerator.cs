@@ -1094,19 +1094,9 @@ namespace Srsl.Runtime.CodeGen
 
         public override object Visit(BinaryOperationNode node)
         {
-            dynamic left = Compile(node.LeftOperand);
-            dynamic right = Compile(node.RightOperand);
-
-            while (left is BinaryOperationNode)
-            {
-                left = Compile(left as BinaryOperationNode);
-            }
-
-            while (right is BinaryOperationNode)
-            {
-                right = Compile(right as BinaryOperationNode);
-            }
-
+            Compile(node.LeftOperand);
+            Compile(node.RightOperand);
+            
             switch (node.Operator)
             {
                 case BinaryOperationNode.BinaryOperatorType.Plus:
