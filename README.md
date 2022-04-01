@@ -1,8 +1,7 @@
-# SrslBytecodeVmAndCodeGenerator
-Srsl
-stands for "Simple Runtime Scripting Language".
+# Bite Programming Language
+Bite
+Is a dynamic programming language.
 The idea was it, to have a dynamically interpreted language in C#, to support modding functionallity and easy patching for the Unity Game Engine.
-Right now only the basic functionality of the language is implemented!
 
 Example Code for calculating the first 37 fibonacci numbers a 1000x times:
 ```
