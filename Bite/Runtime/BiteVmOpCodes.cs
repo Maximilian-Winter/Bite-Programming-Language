@@ -53,6 +53,7 @@
         OpGetLocalInstance,
         OpJumpIfFalse,
         OpJump,
+        OpTernary,
         OpEnterBlock,
         OpExitBlock,
         OpForLoopHeader,

@@ -1193,6 +1193,10 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(TernaryOperationNode node)
         {
+            Compile( node.RightOperand );
+            Compile( node.MidOperand );
+            Compile( node.LeftOperand );
+            EmitByteCode( SrslVmOpCodes.OpTernary );
             return null;
         }
 

@@ -112,6 +112,7 @@ public class BiteVm
         m_UsingStatementStack = new UsingStatementStack();
         m_CallStack = new FastMemoryStack();
         m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
+
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( ( context.SymbolTableBuilder.CurrentScope as BaseScope ).NumberOfSymbols );
 
@@ -121,7 +122,7 @@ public class BiteVm
         m_CurrentScope = context.SymbolTableBuilder.CurrentScope;
 
         InitMemorySpaces();
-        
+
         return Run();
     }
 
@@ -180,12 +181,14 @@ public class BiteVm
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpBreak:
                     {
                         m_CurrentInstructionPointer = m_LoopEndJumpCode;
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpDefineModule:
                     {
                         string moduleName = ReadConstant().StringConstantValue;
@@ -772,7 +775,8 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
                         ;
-                        m_LoopEndJumpCode = jumpCodeBodyEnd+ 10;
+                        m_LoopEndJumpCode = jumpCodeBodyEnd + 10;
+
                         if ( m_VmStack.Pop().DynamicType == DynamicVariableType.True )
                         {
                             m_CurrentChunk.Code[jumpCodeBodyEnd] = ( byte ) SrslVmOpCodes.OpJump;
@@ -861,6 +865,7 @@ public class BiteVm
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpDivideAssign:
                     {
                         if ( m_SetMember )
@@ -871,11 +876,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable(variable.NumberData / m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData / m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -887,9 +898,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable(variable.NumberData / m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData / m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -898,24 +914,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable(variable.NumberData / m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        variable.NumberData / m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpMultiplyAssign:
                     {
                         if ( m_SetMember )
@@ -926,11 +947,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable(variable.NumberData * m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData * m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -942,9 +969,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable(variable.NumberData * m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData * m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -953,24 +985,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable(variable.NumberData * m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        variable.NumberData * m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpPlusAssign:
                     {
                         if ( m_SetMember )
@@ -981,11 +1018,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable(variable.NumberData + m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData + m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -997,9 +1040,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable(variable.NumberData + m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData + m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1008,24 +1056,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable(variable.NumberData + m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        variable.NumberData + m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpMinusAssign:
                     {
                         if ( m_SetMember )
@@ -1036,11 +1089,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable(variable.NumberData - m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData - m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1052,9 +1111,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable(variable.NumberData - m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData - m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1063,24 +1127,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable(variable.NumberData - m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        variable.NumberData - m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpModuloAssign:
                     {
                         if ( m_SetMember )
@@ -1091,11 +1160,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable(variable.NumberData % m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData % m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1107,9 +1182,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable(variable.NumberData % m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            variable.NumberData % m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1118,25 +1198,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable(variable.NumberData % m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        variable.NumberData % m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
-                    
+
                     case SrslVmOpCodes.OpBitwiseAndAssign:
                     {
                         if ( m_SetMember )
@@ -1147,11 +1231,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData & (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1163,9 +1253,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData & (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1174,24 +1269,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData & (int)m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        ( int ) variable.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpBitwiseOrAssign:
                     {
                         if ( m_SetMember )
@@ -1202,11 +1302,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData | (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1218,9 +1324,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData | (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1229,24 +1340,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData | (int)m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        ( int ) variable.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpBitwiseXorAssign:
                     {
                         if ( m_SetMember )
@@ -1257,11 +1373,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData ^ (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1273,9 +1395,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData ^ (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1284,25 +1411,30 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData ^ (int)m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        ( int ) variable.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
-                      case SrslVmOpCodes.OpBitwiseLeftShiftAssign:
+
+                    case SrslVmOpCodes.OpBitwiseLeftShiftAssign:
                     {
                         if ( m_SetMember )
                         {
@@ -1312,11 +1444,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData << (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1328,9 +1466,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData << (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1339,25 +1482,30 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData << (int)m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        ( int ) variable.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
-                         case SrslVmOpCodes.OpBitwiseRightShiftAssign:
+
+                    case SrslVmOpCodes.OpBitwiseRightShiftAssign:
                     {
                         if ( m_SetMember )
                         {
@@ -1367,11 +1515,17 @@ public class BiteVm
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId );
 
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( -1, 0, -1, m_LastGetLocalVarId,  DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData >> (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        -1,
+                                        0,
+                                        -1,
+                                        m_LastGetLocalVarId,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
                                 }
-                                
                             }
 
                             m_SetMember = false;
@@ -1383,9 +1537,14 @@ public class BiteVm
                             if ( fastMemorySpace.NamesToProperties.ContainsKey( m_LastElement ) )
                             {
                                 DynamicBiteVariable variable = fastMemorySpace.NamesToProperties[m_LastElement];
-                                if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+
+                                if ( variable.DynamicType < DynamicVariableType.True &&
+                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                 {
-                                    fastMemorySpace.Put( m_LastElement, DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData >> (int)m_VmStack.Pop().NumberData) );
+                                    fastMemorySpace.Put(
+                                        m_LastElement,
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            ( int ) variable.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
                                 }
                             }
 
@@ -1394,24 +1553,29 @@ public class BiteVm
                         else
                         {
                             m_VmStack.Pop();
+
                             DynamicBiteVariable variable = m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId);
-                            if ( variable.DynamicType < DynamicVariableType.True && m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                m_LastGetLocalVarId );
+
+                            if ( variable.DynamicType < DynamicVariableType.True &&
+                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                             {
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId,
-                                    DynamicVariableExtension.ToDynamicVariable((int)variable.NumberData >> (int)m_VmStack.Pop().NumberData) );
+                                    DynamicVariableExtension.ToDynamicVariable(
+                                        ( int ) variable.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
                             }
                         }
 
                         break;
                     }
+
                     case SrslVmOpCodes.OpSetElement:
                     {
                         int elementAccessCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
@@ -1476,12 +1640,30 @@ public class BiteVm
 
                     case SrslVmOpCodes.OpUsingStatmentHead:
                     {
-                        m_UsingStatementStack.Push( m_CurrentMemorySpace.Get( -1,0,-1, 0 ).ObjectData );
+                        m_UsingStatementStack.Push( m_CurrentMemorySpace.Get( -1, 0, -1, 0 ).ObjectData );
+
                         break;
                     }
+
                     case SrslVmOpCodes.OpUsingStatmentEnd:
                     {
                         m_UsingStatementStack.Pop();
+
+                        break;
+                    }
+
+                    case SrslVmOpCodes.OpTernary:
+                    {
+                        if ( m_VmStack.Pop().DynamicType == DynamicVariableType.True )
+                        {
+                            DynamicBiteVariable biteVariable = m_VmStack.Pop();
+                            m_VmStack.Pop();
+                            m_VmStack.Push( biteVariable );
+                        }
+                        else
+                        {
+                            m_VmStack.Pop();
+                        }
                         break;
                     }
                     case SrslVmOpCodes.OpAnd:
@@ -1934,15 +2116,16 @@ public class BiteVm
                         }
 
                         FastMemorySpace fastMemorySpace = m_CallStack.Pop();
+
                         if ( fastMemorySpace.CallerChunk != null )
                         {
                             m_CurrentChunk = fastMemorySpace.CallerChunk;
                             m_CurrentInstructionPointer = fastMemorySpace.CallerIntructionPointer;
                         }
+
                         m_PoolFastMemoryFastMemory.Return( fastMemorySpace );
                         m_CurrentMemorySpace = m_CallStack.Peek();
 
-                       
                         if ( m_KeepLastItemOnStackToReturn )
                         {
                             m_VmStack.Push( m_ReturnRegister );

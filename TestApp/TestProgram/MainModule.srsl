@@ -9,7 +9,7 @@ using CSharpSystem;
 var a = 5;
 var b = 10;
 
-b *= a;
+b = a > b ? 5 : 10;
 
 Print(b);
 Print(a);
