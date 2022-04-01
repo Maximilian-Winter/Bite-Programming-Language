@@ -1076,10 +1076,6 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(WhileStatementNode node)
         {
-           
-            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
-            m_CurrentEnterBlockCount++;
-            
             PreviousLoopBlockCount = m_CurrentEnterBlockCount;
             
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
@@ -1089,8 +1085,6 @@ namespace Bite.Runtime.CodeGen
             m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
-            EmitByteCode(SrslVmOpCodes.OpExitBlock, 0);
-            m_CurrentEnterBlockCount--;
             return null;
         }
 
