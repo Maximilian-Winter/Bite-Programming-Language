@@ -6,15 +6,16 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
+function TestFunction(n);
+
+
 var a = 0;
 while(a < 1000)
 {
-    Print(a++);
+    Print(TestFunction(a));
+    a++;
 }
 
-
-function TestFunction(n);
-Print(TestFunction(1000));
 Print(TestFunction(0));
 Print(TestFunction(1));
 Print(TestFunction(2));
