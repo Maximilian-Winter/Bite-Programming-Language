@@ -1702,6 +1702,64 @@ public class BiteVm
                         break;
                     }
 
+                    case SrslVmOpCodes.OpBitwiseOr:
+                    {
+                        DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                        DynamicBiteVariable valueLhs = m_VmStack.Pop();
+
+                        if ( valueLhs.DynamicType < DynamicVariableType.True &&
+                             valueRhs.DynamicType < DynamicVariableType.True )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    (int)valueLhs.NumberData | (int)valueRhs.NumberData ) );
+                        }
+                        else
+                        {
+                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                        }
+
+                        break;
+                    }
+                        
+                    case SrslVmOpCodes.OpBitwiseXor:
+                    {
+                        DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                        DynamicBiteVariable valueLhs = m_VmStack.Pop();
+
+                        if ( valueLhs.DynamicType < DynamicVariableType.True &&
+                             valueRhs.DynamicType < DynamicVariableType.True )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    (int)valueLhs.NumberData ^ (int)valueRhs.NumberData ) );
+                        }
+                        else
+                        {
+                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                        }
+
+                        break;
+                    }
+
+                    case SrslVmOpCodes.OpBitwiseAnd:
+                    {
+                        DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                        DynamicBiteVariable valueLhs = m_VmStack.Pop();
+
+                        if ( valueLhs.DynamicType < DynamicVariableType.True &&
+                             valueRhs.DynamicType < DynamicVariableType.True )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    (int)valueLhs.NumberData & (int)valueRhs.NumberData ) );
+                        }
+                        else
+                        {
+                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                        }
+                        break;
+                    }
                     case SrslVmOpCodes.OpNegate:
                     {
                         if ( m_VmStack.Peek().DynamicType < DynamicVariableType.True )
