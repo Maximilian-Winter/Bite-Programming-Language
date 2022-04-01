@@ -3,10 +3,14 @@ module MainModule;
 import System;
 using System;
 
+import CSharpSystem;
+using CSharpSystem;
+
+
 var a = 1 * 2 + 3 * 4;
-
-Print(a);
-
+var b = 2 * 5 - 4 / 2 + 6;
+Console.WriteLine(a);
+Console.WriteLine(b);
 /*
 
 for(var x = 0; x < 10; x++)
