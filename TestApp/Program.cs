@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Srsl.Ast;
-using Srsl.Parser;
-using Srsl.Runtime;
-using Srsl.Runtime.Bytecode;
-using Srsl.Runtime.CodeGen;
+using Bite.Ast;
+using Bite.Parser;
+using Bite.Runtime;
+using Bite.Runtime.Bytecode;
+using Bite.Runtime.CodeGen;
 
 namespace TestApp
 {

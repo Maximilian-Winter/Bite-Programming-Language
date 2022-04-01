@@ -3,57 +3,57 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
 
     public class SrslLexer : Lexer
     {
         public static readonly string[] tokenNames =
         {
-        "DeclareModule", "DeclareClass", "DeclareStruct", "DeclareClassInstance",
-        "DeclareFunction", "DeclareVariable", "DeclareGetter", "DeclareSetter",
-        "DeclareForLoop", "DeclareWhileLoop", "DeclareStatic", "DeclareAbstract",
-        "DeclarePublic", "DeclarePrivate", "ControlFlowIf", "ControlFlowElse",
-        "FunctionReturn", "NullReference", "ThisReference", "UsingDirective",
-        "ImportDirective", "AssignOperator", "PlusAssignOperator", "MinusAssignOperator",
-        "MultiplyAssignOperator", "DivideAssignOperator", "ModuloAssignOperator",
-        "BitwiseAndAssignOperator", "BitwiseOrAssignOperator", "BitwiseXorAssignOperator",
-        "BitwiseLeftShiftAssignOperator", "BitwiseRightShiftAssignOperator", "LogicalOrOperator",
-        "LogicalAndOperator", "UnequalOperator", "EqualOperator", "GreaterOperator",
-        "ShiftRightOperator", "GreaterEqualOperator", "SmallerOperator", "ShiftLeftOperator",
-        "SmallerEqualOperator", "MinusOperator", "MinusMinusOperator", "PlusOperator",
-        "PlusPlusOperator", "DivideOperator", "MultiplyOperator", "LogicalNegationOperator",
-        "DotOperator", "QuestionMarkOperator", "ColonOperator", "ReferenceOperator",
-        "ModuloOperator", "ComplimentOperator", "BitwiseAndOperator", "BitwiseXorOperator",
-        "BitwiseOrOperator", "OpeningRoundBracket", "ClosingRoundBracket", "OpeningCurlyBracket",
-        "ClosingCurlyBracket", "SquarebracketLeft", "SquarebracketRight", "CommaSeperator",
-        "SemicolonSeperator", "BooleanLiteral", "False_", "True_", "IntegerLiteral",
-        "FloatingLiteral", "StringLiteral", "UnterminatedStringLiteral",
-        "DecimalLiteral", "Identifier", "COMMENT", "WHITESPACE", "LINE_COMMENT"
+            "DeclareModule", "DeclareClass", "DeclareStruct", "DeclareClassInstance", 
+            "DeclareFunction", "DeclareVariable", "DeclareGetter", "DeclareSetter", 
+            "DeclareForLoop", "DeclareWhileLoop", "DeclareStatic", "DeclareAbstract", 
+            "DeclarePublic", "DeclarePrivate", "ControlFlowIf", "ControlFlowElse", 
+            "FunctionReturn", "Break", "NullReference", "ThisReference", "UsingDirective", 
+            "ImportDirective", "AssignOperator", "PlusAssignOperator", "MinusAssignOperator", 
+            "MultiplyAssignOperator", "DivideAssignOperator", "ModuloAssignOperator", 
+            "BitwiseAndAssignOperator", "BitwiseOrAssignOperator", "BitwiseXorAssignOperator", 
+            "BitwiseLeftShiftAssignOperator", "BitwiseRightShiftAssignOperator", "LogicalOrOperator", 
+            "LogicalAndOperator", "UnequalOperator", "EqualOperator", "GreaterOperator", 
+            "ShiftRightOperator", "GreaterEqualOperator", "SmallerOperator", "ShiftLeftOperator", 
+            "SmallerEqualOperator", "MinusOperator", "MinusMinusOperator", "PlusOperator", 
+            "PlusPlusOperator", "DivideOperator", "MultiplyOperator", "LogicalNegationOperator", 
+            "DotOperator", "QuestionMarkOperator", "ColonOperator", "ReferenceOperator", 
+            "ModuloOperator", "ComplimentOperator", "BitwiseAndOperator", "BitwiseXorOperator", 
+            "BitwiseOrOperator", "OpeningRoundBracket", "ClosingRoundBracket", "OpeningCurlyBracket", 
+            "ClosingCurlyBracket", "SquarebracketLeft", "SquarebracketRight", "CommaSeperator", 
+            "SemicolonSeperator", "BooleanLiteral", "False_", "True_", "IntegerLiteral", 
+            "FloatingLiteral", "StringLiteral", "UnterminatedStringLiteral", "DecimalLiteral", 
+            "Identifier", "COMMENT", "WHITESPACE", "LINE_COMMENT"
     };
 
         public const int
-            DeclareModule = 1, DeclareClass = 2, DeclareStruct = 3, DeclareClassInstance = 4,
-            DeclareFunction = 5, DeclareVariable = 6, DeclareGetter = 7, DeclareSetter = 8,
-            DeclareForLoop = 9, DeclareWhileLoop = 10, DeclareStatic = 11, DeclareAbstract = 12,
-            DeclarePublic = 13, DeclarePrivate = 14, ControlFlowIf = 15, ControlFlowElse = 16,
-            FunctionReturn = 17, NullReference = 18, ThisReference = 19, UsingDirective = 20,
-            ImportDirective = 21, AssignOperator = 22, PlusAssignOperator = 23, MinusAssignOperator = 24,
-            MultiplyAssignOperator = 25, DivideAssignOperator = 26, ModuloAssignOperator = 27,
-            BitwiseAndAssignOperator = 28, BitwiseOrAssignOperator = 29, BitwiseXorAssignOperator = 30,
-            BitwiseLeftShiftAssignOperator = 31, BitwiseRightShiftAssignOperator = 32,
-            LogicalOrOperator = 33, LogicalAndOperator = 34, UnequalOperator = 35, EqualOperator = 36,
-            GreaterOperator = 37, ShiftRightOperator = 38, GreaterEqualOperator = 39, SmallerOperator = 40,
-            ShiftLeftOperator = 41, SmallerEqualOperator = 42, MinusOperator = 43, MinusMinusOperator = 44,
-            PlusOperator = 45, PlusPlusOperator = 46, DivideOperator = 47, MultiplyOperator = 48,
-            LogicalNegationOperator = 49, DotOperator = 50, QuestionMarkOperator = 51, ColonOperator = 52,
-            ReferenceOperator = 53, ModuloOperator = 54, ComplimentOperator = 55, BitwiseAndOperator = 56,
-            BitwiseXorOperator = 57, BitwiseOrOperator = 58, OpeningRoundBracket = 59, ClosingRoundBracket = 60,
-            OpeningCurlyBracket = 61, ClosingCurlyBracket = 62, SquarebracketLeft = 63,
-            SquarebracketRight = 64, CommaSeperator = 65, SemicolonSeperator = 66, BooleanLiteral = 67,
-            False_ = 68, True_ = 69, IntegerLiteral = 70, FloatingLiteral = 71, StringLiteral = 72,
-            UnterminatedStringLiteral = 73, DecimalLiteral = 74, Identifier = 75, COMMENT = 76,
-            WHITESPACE = 77, LINE_COMMENT = 78;
+            DeclareModule=1, DeclareClass=2, DeclareStruct=3, DeclareClassInstance=4, 
+            DeclareFunction=5, DeclareVariable=6, DeclareGetter=7, DeclareSetter=8, 
+            DeclareForLoop=9, DeclareWhileLoop=10, DeclareStatic=11, DeclareAbstract=12, 
+            DeclarePublic=13, DeclarePrivate=14, ControlFlowIf=15, ControlFlowElse=16, 
+            FunctionReturn=17, Break=18, NullReference=19, ThisReference=20, UsingDirective=21, 
+            ImportDirective=22, AssignOperator=23, PlusAssignOperator=24, MinusAssignOperator=25, 
+            MultiplyAssignOperator=26, DivideAssignOperator=27, ModuloAssignOperator=28, 
+            BitwiseAndAssignOperator=29, BitwiseOrAssignOperator=30, BitwiseXorAssignOperator=31, 
+            BitwiseLeftShiftAssignOperator=32, BitwiseRightShiftAssignOperator=33, 
+            LogicalOrOperator=34, LogicalAndOperator=35, UnequalOperator=36, EqualOperator=37, 
+            GreaterOperator=38, ShiftRightOperator=39, GreaterEqualOperator=40, SmallerOperator=41, 
+            ShiftLeftOperator=42, SmallerEqualOperator=43, MinusOperator=44, MinusMinusOperator=45, 
+            PlusOperator=46, PlusPlusOperator=47, DivideOperator=48, MultiplyOperator=49, 
+            LogicalNegationOperator=50, DotOperator=51, QuestionMarkOperator=52, ColonOperator=53, 
+            ReferenceOperator=54, ModuloOperator=55, ComplimentOperator=56, BitwiseAndOperator=57, 
+            BitwiseXorOperator=58, BitwiseOrOperator=59, OpeningRoundBracket=60, ClosingRoundBracket=61, 
+            OpeningCurlyBracket=62, ClosingCurlyBracket=63, SquarebracketLeft=64, 
+            SquarebracketRight=65, CommaSeperator=66, SemicolonSeperator=67, BooleanLiteral=68, 
+            False_=69, True_=70, IntegerLiteral=71, FloatingLiteral=72, StringLiteral=73, 
+            UnterminatedStringLiteral=74, DecimalLiteral=75, Identifier=76, COMMENT=77, 
+            WHITESPACE=78, LINE_COMMENT=79;
 
         private readonly Dictionary<string, int> keywords = new Dictionary<string, int>
     {
@@ -74,6 +74,7 @@ namespace Srsl.Parser
         { "if", ControlFlowIf },
         { "else", ControlFlowElse },
         { "return", FunctionReturn },
+        { "break", Break },
         { "null", NullReference },
         { "this", ThisReference },
         { "using", UsingDirective },

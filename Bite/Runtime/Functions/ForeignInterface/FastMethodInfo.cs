@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Srsl.Runtime.Functions.ForeignInterface
+namespace Bite.Runtime.Functions.ForeignInterface
 {
 
     public class FastMethodInfo

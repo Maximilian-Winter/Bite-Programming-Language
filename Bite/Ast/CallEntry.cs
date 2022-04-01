@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public class CallEntry

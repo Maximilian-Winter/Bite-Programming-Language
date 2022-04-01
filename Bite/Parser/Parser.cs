@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
     public abstract class Parser
     {

@@ -1,4 +1,4 @@
-﻿namespace Srsl.Runtime
+﻿namespace Bite.Runtime
 {
 
     public enum SrslVmOpCodes : byte
@@ -40,8 +40,8 @@
         OpNot,
         OpDefineModule,
         OpDefineClass,
-        OpUsingStatmentHeader,
-        OpUsingStatmentBody,
+        OpUsingStatmentHead,
+        OpUsingStatmentEnd,
         OpDefineMethod,
         OpDefineLocalVar,
         OpDeclareLocalVar,

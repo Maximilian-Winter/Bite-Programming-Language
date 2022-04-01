@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
-using Srsl.Parser;
-using Srsl.Runtime;
 using System.IO;
 using System.Linq;
-using Srsl.Runtime.CodeGen;
+using Bite.Parser;
+using Bite.Runtime;
+using Bite.Runtime.CodeGen;
 
-namespace Srsl.Cli
+namespace Bite.Cli
 {
     internal class Program
     {

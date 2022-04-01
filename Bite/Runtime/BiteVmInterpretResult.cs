@@ -1,4 +1,4 @@
-﻿namespace Srsl.Runtime
+﻿namespace Bite.Runtime
 {
 
     public enum BiteVmInterpretResult

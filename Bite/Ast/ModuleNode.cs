@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public class ModuleNode : HeteroAstNode

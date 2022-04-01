@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
 
     public abstract class Lexer

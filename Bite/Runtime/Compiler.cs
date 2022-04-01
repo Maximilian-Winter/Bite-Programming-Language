@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Srsl.Parser;
-using Srsl.Runtime.CodeGen;
+using Bite.Parser;
+using Bite.Runtime.CodeGen;
 
-namespace Srsl.Runtime
+namespace Bite.Runtime
 {
     public class Compiler
     {

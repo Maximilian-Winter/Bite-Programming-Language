@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Srsl.SymbolTable
+namespace Bite.SymbolTable
 {
 
     public interface Scope

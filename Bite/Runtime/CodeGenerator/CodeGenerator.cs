@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Srsl.Ast;
-using Srsl.Runtime.Bytecode;
-using Srsl.SymbolTable;
+using Bite.Ast;
+using Bite.Runtime.Bytecode;
+using Bite.SymbolTable;
 
-namespace Srsl.Runtime.CodeGen
+namespace Bite.Runtime.CodeGen
 {
     public class CodeGenerator : HeteroAstVisitor<object>, IAstVisitor
     {
@@ -330,11 +330,12 @@ namespace Srsl.Runtime.CodeGen
 
         public override object Visit(UsingStatementNode node)
         {
-            EmitByteCode(SrslVmOpCodes.OpUsingStatmentHeader);
+            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             Compile(node.UsingNode);
-            EmitByteCode(SrslVmOpCodes.OpUsingStatmentBody);
+            EmitByteCode(SrslVmOpCodes.OpUsingStatmentHead);
             Compile(node.UsingBlock);
-
+            EmitByteCode(SrslVmOpCodes.OpUsingStatmentEnd);
+            EmitByteCode(SrslVmOpCodes.OpExitBlock);
             return null;
         }
 
@@ -496,8 +497,7 @@ namespace Srsl.Runtime.CodeGen
         {
             int d = 0;
             DynamicVariable variableSymbol = node.AstScopeNode.resolve(node.VarId.Id, out int moduleId, ref d) as DynamicVariable;
-
-
+            
             if (node.Initializer != null)
             {
                 Compile(node.Initializer);
@@ -1031,6 +1031,8 @@ namespace Srsl.Runtime.CodeGen
         public override object Visit(ForStatementNode node)
         {
             EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
+            m_CurrentEnterBlockCount++;
+            
             if (node.VariableDeclaration != null)
             {
                 Compile(node.VariableDeclaration);
@@ -1057,6 +1059,7 @@ namespace Srsl.Runtime.CodeGen
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpExitBlock, 0);
+            m_CurrentEnterBlockCount--;
             return null;
         }
 
@@ -1081,6 +1084,13 @@ namespace Srsl.Runtime.CodeGen
                 EmitByteCode(SrslVmOpCodes.OpExitBlock);
             }
             EmitReturn();
+
+            return null;
+        }
+        
+        public override object Visit(BreakStatementNode node)
+        {
+            EmitByteCode(SrslVmOpCodes.OpExitBlock);
 
             return null;
         }

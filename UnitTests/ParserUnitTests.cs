@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using Srsl.Ast;
-using Srsl.Parser;
-using Srsl.Runtime;
-using Srsl.Runtime.CodeGen;
-using Srsl.Runtime.Memory;
+using Bite.Ast;
+using Bite.Parser;
+using Bite.Runtime;
+using Bite.Runtime.CodeGen;
+using Bite.Runtime.Memory;
 using Xunit;
 
 namespace UnitTests

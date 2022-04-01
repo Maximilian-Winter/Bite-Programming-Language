@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Srsl.Runtime.Bytecode
+namespace Bite.Runtime.Bytecode
 {
 
     public static class ChunkHelper

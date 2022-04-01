@@ -1,6 +1,6 @@
-using Srsl.Parser;
-using Srsl.Runtime;
-using Srsl.Runtime.CodeGen;
+using Bite.Parser;
+using Bite.Runtime;
+using Bite.Runtime.CodeGen;
 using Xunit;
 
 namespace UnitTests

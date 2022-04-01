@@ -1,7 +1,7 @@
 ﻿using System;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
     public class Context<TNode> : IContext<TNode> where TNode : HeteroAstNode
     {

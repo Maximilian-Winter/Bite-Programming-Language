@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Srsl.Runtime.Memory
+namespace Bite.Runtime.Memory
 {
 
     public class ObjectPoolFastMemory

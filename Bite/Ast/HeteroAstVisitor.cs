@@ -1,4 +1,4 @@
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public abstract class HeteroAstVisitor<T>
@@ -48,6 +48,8 @@ namespace Srsl.Ast
         public abstract T Visit(WhileStatementNode node);
 
         public abstract T Visit(ReturnStatementNode node);
+        
+        public abstract T Visit(BreakStatementNode node);
 
         public abstract T Visit(InitializerNode node);
 

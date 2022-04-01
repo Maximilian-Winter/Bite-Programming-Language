@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Srsl.Cli
+namespace Bite.Cli
 {
 
     public class OptionAttribute : Attribute

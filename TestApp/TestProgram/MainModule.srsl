@@ -6,6 +6,16 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
+using (var sw = File.CreateText("c:\temp\MyTest42.txt"))
+{
+    sw.WriteLine("Hello");
+    sw.WriteLine("And");
+    sw.WriteLine("42");
+}
+
+/*
+
+
 function FindFibonacciNumber(n)
 {
     var count= 2;
@@ -39,8 +49,10 @@ while(count3 < 1000)
     }
     count3++;
 }
+
+            
 Console.WriteLine(temp);
-/*
+
 
 for(var x = 0; x < 10; x++)
 {

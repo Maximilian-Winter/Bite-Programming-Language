@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.SymbolTable
+namespace Bite.SymbolTable
 {
     public class ModuleSymbol : SymbolWithScope
     {

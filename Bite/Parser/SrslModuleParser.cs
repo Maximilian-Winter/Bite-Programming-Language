@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
     public partial class SrslModuleParser : Parser
     {

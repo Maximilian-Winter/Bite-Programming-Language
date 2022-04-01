@@ -1,4 +1,4 @@
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public abstract class DeclarationNode : StatementNode

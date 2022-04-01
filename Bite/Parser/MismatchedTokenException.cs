@@ -1,4 +1,4 @@
-﻿namespace Srsl.Parser
+﻿namespace Bite.Parser
 {
 
     public class MismatchedTokenException : RecognitionException

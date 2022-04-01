@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Srsl.Runtime.Memory
+namespace Bite.Runtime.Memory
 {
     public enum DynamicVariableType : uint
     {

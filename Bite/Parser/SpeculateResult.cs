@@ -1,6 +1,6 @@
-﻿using Srsl.Ast;
+﻿using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
     public struct SpeculateResult<TNode> where TNode : HeteroAstNode
     {

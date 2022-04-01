@@ -1,4 +1,4 @@
-﻿namespace Srsl.Cli
+﻿namespace Bite.Cli
 {
     public class CommandLineArgs
     {

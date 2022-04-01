@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Srsl.Ast;
-using Srsl.Runtime.Bytecode;
+using Bite.Ast;
+using Bite.Runtime.Bytecode;
 
-namespace Srsl.Runtime
+namespace Bite.Runtime
 {
     public class Module
     {

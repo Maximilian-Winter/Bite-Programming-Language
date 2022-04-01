@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace Srsl.SymbolTable
+namespace Bite.SymbolTable
 {
 
     public abstract class SymbolWithScope : BaseScope, Symbol, Scope
