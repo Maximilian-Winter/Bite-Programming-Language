@@ -1,10 +1,11 @@
-# Srsl - A Bytecode VM and Code Generator
+# Bite Programming Language
+Bite
+is a dynamic programming language.
 
-Srsl stands for "Simple Runtime Scripting Language".
+I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
 
 The idea was to have a dynamically interpreted language in C# to support modding functionality and easy patching for the Unity Game Engine.
 
-Right now only the basic functionality of the language is implemented!
 
 # Example Code
 

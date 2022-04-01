@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetName>srslvm</TargetName>
+		<AssemblyName>Srsl.Cli</AssemblyName>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net462</TargetFramework>
+		<StartupObject>Srsl.Cli.Program</StartupObject>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Bite\Bite.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="TestProgram\AModule.srsl">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="TestProgram\CSharpSystemModule.srsl">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="TestProgram\MainModule.srsl">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>

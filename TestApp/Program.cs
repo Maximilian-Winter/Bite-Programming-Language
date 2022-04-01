@@ -18,7 +18,7 @@ namespace TestApp
 
         public static void Main(string[] args)
         {
-            SrslParser parser = new SrslParser();
+            BiteParser parser = new BiteParser();
 
             var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
 
@@ -33,15 +33,15 @@ namespace TestApp
 
             var context= generator.CompileProgram(program);
 
-            SrslVm srslVm = new SrslVm();
+            BiteVm biteVm = new BiteVm();
 
-            int k = 5;
+            int k = 1;
             long elapsedMillisecondsAccu = 0;
             for (int i = 0; i < k; i++)
             {
                 Stopwatch stopwatch2 = new Stopwatch();
                 stopwatch2.Start();
-                srslVm.Interpret(context);
+                biteVm.Interpret(context);
                 stopwatch2.Stop();
                 Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
                 elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;
@@ -64,7 +64,7 @@ namespace TestApp
 
             ChunkDebugHelper.InstructionCounter.Clear();
 
-            Console.ReadLine();
+            //Console.ReadLine();
 
         }
 

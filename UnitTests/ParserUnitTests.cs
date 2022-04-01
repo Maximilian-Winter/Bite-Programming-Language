@@ -14,7 +14,7 @@ namespace UnitTests
     {
         private ExpressionNode ParseExpression(string expression)
         {
-            var parser = new SrslParser();
+            var parser = new BiteParser();
 
             return parser.ParseExpression(expression);
         }

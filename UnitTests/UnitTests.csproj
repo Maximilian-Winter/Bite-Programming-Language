@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Srsl\Srsl.csproj" />
+    <ProjectReference Include="..\Bite\Bite.csproj" />
   </ItemGroup>
 
 </Project>

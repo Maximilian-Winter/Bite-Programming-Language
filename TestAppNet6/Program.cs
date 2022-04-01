@@ -63,7 +63,7 @@ Console.WriteLine(greeting);"
 
         public static void TestExternalObjects()
         {
-            SrslParser parser = new SrslParser();
+            BiteParser parser = new BiteParser();
 
             var expression = parser.ParseExpression("a + b");
 
@@ -71,19 +71,19 @@ Console.WriteLine(greeting);"
 
             var context = generator.CompileExpression(expression);
 
-            SrslVm srslVm = new SrslVm();
+            BiteVm biteVm = new BiteVm();
 
-            srslVm.RegisterGlobalObject("a", "Hello");
-            srslVm.RegisterGlobalObject("b", "World");
+            biteVm.RegisterGlobalObject("a", "Hello");
+            biteVm.RegisterGlobalObject("b", "World");
 
-            var result = srslVm.Interpret(context);
+            var result = biteVm.Interpret(context);
 
-            Console.WriteLine(srslVm.RetVal.StringData);
+            Console.WriteLine(biteVm.RetVal.StringData);
         }
 
         public static void TestExpression()
         {
-            SrslParser parser = new SrslParser();
+            BiteParser parser = new BiteParser();
 
             var expression = parser.ParseExpression("1 + 1");
 
@@ -91,16 +91,16 @@ Console.WriteLine(greeting);"
 
             var context = generator.CompileExpression(expression);
 
-            SrslVm srslVm = new SrslVm();
+            BiteVm biteVm = new BiteVm();
 
-            var result = srslVm.Interpret(context);
+            var result = biteVm.Interpret(context);
 
-            Console.WriteLine(srslVm.RetVal.NumberData);
+            Console.WriteLine(biteVm.RetVal.NumberData);
         }
 
         public static void TestStatements()
         {
-            SrslParser parser = new SrslParser();
+            BiteParser parser = new BiteParser();
 
             var statements = parser.ParseStatements("1 + 1;");
 
@@ -108,11 +108,11 @@ Console.WriteLine(greeting);"
 
             var context = generator.CompileStatements(statements);
 
-            SrslVm srslVm = new SrslVm();
+            BiteVm biteVm = new BiteVm();
 
-            var result = srslVm.Interpret(context);
+            var result = biteVm.Interpret(context);
 
-            Console.WriteLine(srslVm.RetVal.NumberData);
+            Console.WriteLine(biteVm.RetVal.NumberData);
         }
 
 
@@ -128,7 +128,7 @@ Console.WriteLine(greeting);"
         public static void PerfTests()
         {
 
-            SrslParser parser = new SrslParser();
+            BiteParser parser = new BiteParser();
 
             var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
 
@@ -142,7 +142,7 @@ Console.WriteLine(greeting);"
 
             var context = generator.CompileProgram(program);
 
-            SrslVm srslVm = new SrslVm();
+            BiteVm biteVm = new BiteVm();
 
             int k = 5;
             long elapsedMillisecondsAccu = 0;
@@ -150,9 +150,9 @@ Console.WriteLine(greeting);"
             {
                 Stopwatch stopwatch2 = new Stopwatch();
                 stopwatch2.Start();
-                srslVm.Interpret(context);
+                biteVm.Interpret(context);
 
-                Console.WriteLine(srslVm.RetVal.ToString());
+                Console.WriteLine(biteVm.RetVal.ToString());
 
                 stopwatch2.Stop();
                 Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
