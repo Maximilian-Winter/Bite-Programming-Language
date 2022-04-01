@@ -1011,9 +1011,9 @@ namespace Bite.Runtime.CodeGen
         public override object Visit(IfStatementNode node)
         {
             Compile(node.Expression);
-            int thenJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
+            int thenJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             Compile(node.ThenBlock);
-            int overElseJump = EmitByteCode(SrslVmOpCodes.OpJump, 0, 0);
+            int overElseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
 
             foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
@@ -1026,7 +1026,7 @@ namespace Bite.Runtime.CodeGen
                 if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
                 {
                     Compile( nodeIfStatementEntry.ExpressionElseIf );
-                    int elseJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
+                    int elseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
                     Compile( nodeIfStatementEntry.ElseBlock );
                     m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                     m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
@@ -1073,6 +1073,8 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(WhileStatementNode node)
         {
+            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
+            m_CurrentEnterBlockCount++;
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
@@ -1080,6 +1082,8 @@ namespace Bite.Runtime.CodeGen
             m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
+            EmitByteCode(SrslVmOpCodes.OpExitBlock, 0);
+            m_CurrentEnterBlockCount--;
             return null;
         }
 

@@ -935,9 +935,12 @@ namespace Bite.Runtime.SymbolTable
         public override object Visit(WhileStatementNode node)
         {
             node.AstScopeNode = CurrentScope;
+            LocalScope l = new LocalScope( CurrentScope );
+            CurrentScope.nest( l );
+            pushScope( l );
             Resolve(node.Expression);
             Resolve(node.WhileBlock);
-
+            popScope();
             return null;
         }
 

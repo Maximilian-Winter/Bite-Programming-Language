@@ -1,4 +1,4 @@
-﻿#define BITE_VM_DEBUG_TRACE_EXECUTION
+﻿//#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
