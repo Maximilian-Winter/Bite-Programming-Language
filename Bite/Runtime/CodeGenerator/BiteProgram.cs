@@ -5,7 +5,7 @@ using Srsl.Runtime.SymbolTable;
 
 namespace Srsl.Runtime.CodeGen
 {
-    public class SrslProgram
+    public class BiteProgram
     {
         private Dictionary<string, Chunk> m_CompilingChunks;
         private Chunk m_CompilingChunk;
@@ -18,7 +18,7 @@ namespace Srsl.Runtime.CodeGen
         internal BinaryChunk CompiledMainChunk { get; private set; }
         internal Chunk CurrentChunk => m_CompilingChunk;
 
-        public SrslProgram(ModuleNode module)
+        public BiteProgram(ModuleNode module)
         {
             SymbolTableBuilder = new SymbolTableBuilder();
             SymbolTableBuilder.BuildModuleSymbolTable(module);
@@ -29,7 +29,7 @@ namespace Srsl.Runtime.CodeGen
             CompiledChunks = new Dictionary<string, BinaryChunk>();
         }
 
-        public SrslProgram(ProgramNode programNode)
+        public BiteProgram(ProgramNode programNode)
         {
             SymbolTableBuilder = new SymbolTableBuilder();
             SymbolTableBuilder.BuildProgramSymbolTable(programNode);
@@ -80,9 +80,9 @@ namespace Srsl.Runtime.CodeGen
             CompiledMainChunk = new BinaryChunk(MainChunk.SerializeToBytes(), MainChunk.Constants, MainChunk.Lines);
         }
 
-        public SrslVm Run()
+        public BiteVm Run()
         {
-            var srslVm = new SrslVm();
+            var srslVm = new BiteVm();
             srslVm.Interpret(this);
             return srslVm;
         }

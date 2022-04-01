@@ -3,16 +3,16 @@
 namespace Srsl.Runtime
 {
 
-    public class SrslChunkWrapper
+    public class BiteChunkWrapper
     {
         private BinaryChunk m_ChunkToWrap;
 
-        public SrslChunkWrapper()
+        public BiteChunkWrapper()
         {
             m_ChunkToWrap = null;
         }
 
-        public SrslChunkWrapper(BinaryChunk chunkToWrap)
+        public BiteChunkWrapper(BinaryChunk chunkToWrap)
         {
             m_ChunkToWrap = chunkToWrap;
         }

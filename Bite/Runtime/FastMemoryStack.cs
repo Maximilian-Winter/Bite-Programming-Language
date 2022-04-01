@@ -36,7 +36,7 @@ namespace Srsl.Runtime
 
 public class DynamicSrslVariableStack
 {
-    private DynamicSrslVariable[] m_DynamicVariables = new DynamicSrslVariable[1024];
+    private DynamicBiteVariable[] m_DynamicVariables = new DynamicBiteVariable[1024];
     private int m_DynamicVariablePointer = 0;
 
     public int Count
@@ -48,26 +48,26 @@ public class DynamicSrslVariableStack
         }
     }
 
-    public DynamicSrslVariable Peek()
+    public DynamicBiteVariable Peek()
     {
-        DynamicSrslVariable fastMemorySpace = m_DynamicVariables[Count - 1];
+        DynamicBiteVariable fastMemorySpace = m_DynamicVariables[Count - 1];
         return fastMemorySpace;
     }
     
-    public DynamicSrslVariable Peek(int i)
+    public DynamicBiteVariable Peek(int i)
     {
-        DynamicSrslVariable fastMemorySpace = m_DynamicVariables[i];
+        DynamicBiteVariable fastMemorySpace = m_DynamicVariables[i];
         return fastMemorySpace;
     }
 
-    public DynamicSrslVariable Pop()
+    public DynamicBiteVariable Pop()
     {
-        DynamicSrslVariable fastMemorySpace = m_DynamicVariables[--Count];
+        DynamicBiteVariable fastMemorySpace = m_DynamicVariables[--Count];
         return fastMemorySpace;
     }
 
     
-    public void Push(DynamicSrslVariable fastMemorySpace)
+    public void Push(DynamicBiteVariable fastMemorySpace)
     {
         m_DynamicVariables[Count] = fastMemorySpace;
 

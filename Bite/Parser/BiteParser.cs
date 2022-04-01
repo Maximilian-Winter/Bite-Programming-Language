@@ -7,7 +7,7 @@ using Srsl.Ast;
 namespace Srsl.Parser
 {
 
-    public class SrslParser
+    public class BiteParser
     {
         public bool ThrowOnRecognitionException { get; set; }
         public Exception Exception { get; private set; }

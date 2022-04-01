@@ -5,11 +5,11 @@ using Srsl.Runtime.Memory;
 namespace Srsl.Runtime.Functions.ForeignInterface
 {
 
-    public class ForeignLibraryInterfaceVm : ISrslVmCallable
+    public class ForeignLibraryInterfaceVm : IBiteVmCallable
     {
         #region Public
 
-        public object Call(List<DynamicSrslVariable> arguments)
+        public object Call(List<DynamicBiteVariable> arguments)
         {
             if (arguments.Count > 0)
             {
@@ -19,14 +19,14 @@ namespace Srsl.Runtime.Functions.ForeignInterface
                     if (!string.IsNullOrEmpty(typeString))
                     {
                         System.Type type = System.Type.GetType(typeString);
-                        DynamicSrslVariable methodString = fliObject.Get(-1, 0, -1, 1);
+                        DynamicBiteVariable methodString = fliObject.Get(-1, 0, -1, 1);
                         if (methodString.DynamicType == DynamicVariableType.String && !string.IsNullOrEmpty(methodString.StringData))
                         {
                             List<System.Type> argTypes = new List<System.Type>();
 
                             if (fliObject.Get("Arguments").ObjectData is FastMemorySpace instanceTypes)
                             {
-                                foreach (DynamicSrslVariable instanceProperty in instanceTypes.Properties)
+                                foreach (DynamicBiteVariable instanceProperty in instanceTypes.Properties)
                                 {
                                     argTypes.Add(instanceProperty.GetType());
                                 }
@@ -41,7 +41,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
                                 {
                                     List<object> args = new List<object>();
 
-                                    foreach (DynamicSrslVariable instanceProperty in instance.Properties)
+                                    foreach (DynamicBiteVariable instanceProperty in instance.Properties)
                                     {
                                         args.Add(instanceProperty.ToObject());
                                     }
@@ -60,7 +60,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
                                     {
                                         List<object> args = new List<object>();
 
-                                        foreach (DynamicSrslVariable instanceProperty in instance.Properties)
+                                        foreach (DynamicBiteVariable instanceProperty in instance.Properties)
                                         {
                                             args.Add(instanceProperty.ToObject());
                                         }
@@ -76,7 +76,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
 
                                     if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
                                     {
-                                        foreach (DynamicSrslVariable instanceProperty in
+                                        foreach (DynamicBiteVariable instanceProperty in
                                                  constructorInstanceTypes.Properties)
                                         {
                                             constructorArgTypes.Add(instanceProperty.GetType());
@@ -87,7 +87,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
 
                                     if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
                                     {
-                                        foreach (DynamicSrslVariable instanceProperty in constructorInstance.
+                                        foreach (DynamicBiteVariable instanceProperty in constructorInstance.
                                                      Properties)
                                         {
                                             constructorArgs.Add(instanceProperty.ToObject());
@@ -102,7 +102,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
                                     {
                                         List<object> args = new List<object>();
 
-                                        foreach (DynamicSrslVariable instanceProperty in instance.Properties)
+                                        foreach (DynamicBiteVariable instanceProperty in instance.Properties)
                                         {
                                             args.Add(instanceProperty.ToObject());
                                         }
@@ -128,7 +128,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
 
                                     if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
                                     {
-                                        foreach (DynamicSrslVariable instanceProperty in constructorInstanceTypes.
+                                        foreach (DynamicBiteVariable instanceProperty in constructorInstanceTypes.
                                                      Properties)
                                         {
                                             constructorArgTypes.Add(instanceProperty.GetType());
@@ -139,7 +139,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
 
                                     if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
                                     {
-                                        foreach (DynamicSrslVariable instanceProperty in constructorInstance.
+                                        foreach (DynamicBiteVariable instanceProperty in constructorInstance.
                                                      Properties)
                                         {
                                             constructorArgs.Add(instanceProperty.ToObject());
@@ -181,7 +181,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
 
                                 if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
                                 {
-                                    foreach (DynamicSrslVariable instanceProperty in constructorInstanceTypes.
+                                    foreach (DynamicBiteVariable instanceProperty in constructorInstanceTypes.
                                                  Properties)
                                     {
                                         constructorArgTypes.Add(instanceProperty.GetType());
@@ -192,7 +192,7 @@ namespace Srsl.Runtime.Functions.ForeignInterface
 
                                 if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
                                 {
-                                    foreach (DynamicSrslVariable instanceProperty in constructorInstance.
+                                    foreach (DynamicBiteVariable instanceProperty in constructorInstance.
                                                  Properties)
                                     {
                                         constructorArgs.Add(instanceProperty.ToObject());

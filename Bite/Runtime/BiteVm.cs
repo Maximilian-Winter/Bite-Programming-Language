@@ -32,7 +32,7 @@ namespace Srsl.Runtime
 
     }
 
-    public class SrslVm
+    public class BiteVm
     {
         private BinaryChunk m_CurrentChunk;
         private int m_CurrentInstructionPointer;
@@ -42,7 +42,7 @@ namespace Srsl.Runtime
 
         //private DynamicSrslVariable m_TopMostStackItem;
 
-        private List<DynamicSrslVariable> m_FunctionArguments = new List<DynamicSrslVariable>();
+        private List<DynamicBiteVariable> m_FunctionArguments = new List<DynamicBiteVariable>();
         private ObjectPoolFastMemory m_PoolFastMemoryFastMemory;
         private FastGlobalMemorySpace m_GlobalMemorySpace;
         private Scope m_CurrentScope;
@@ -69,7 +69,7 @@ namespace Srsl.Runtime
             FastMemorySpace callSpace = new FastMemorySpace("", m_GlobalMemorySpace, 0, m_CurrentChunk, m_CurrentInstructionPointer, 4);
             m_GlobalMemorySpace.Modules.Add(callSpace);
             callSpace.Define(
-                DynamicVariableExtension.ToDynamicVariable(new SrslChunkWrapper(new BinaryChunk())), "System.Object");
+                DynamicVariableExtension.ToDynamicVariable(new BiteChunkWrapper(new BinaryChunk())), "System.Object");
 
             callSpace.Define(
                 DynamicVariableExtension.ToDynamicVariable(new PrintFunctionVm()), "System.Print");
@@ -79,7 +79,7 @@ namespace Srsl.Runtime
             if (m_CompiledChunks.TryGetValue("System.CSharpInterface", out var chunk))
             {
                 callSpace.Define(
-                    DynamicVariableExtension.ToDynamicVariable(new SrslChunkWrapper(chunk)), "System.CSharpInterface");
+                    DynamicVariableExtension.ToDynamicVariable(new BiteChunkWrapper(chunk)), "System.CSharpInterface");
             }
         }
 
@@ -90,7 +90,7 @@ namespace Srsl.Runtime
             m_ExternalObjects.Add(varName, data);
         }
 
-        public SrslVmInterpretResult Interpret(SrslProgram context)
+        public SrslVmInterpretResult Interpret(BiteProgram context)
         {
             m_VmStack = new DynamicSrslVariableStack();
             //m_StackPointer = 0;
@@ -178,7 +178,7 @@ namespace Srsl.Runtime
                         case SrslVmOpCodes.OpDefineClass:
                             {
                                 string className = ReadConstant().StringConstantValue;
-                                SrslChunkWrapper chunkWrapper = new SrslChunkWrapper(
+                                BiteChunkWrapper chunkWrapper = new BiteChunkWrapper(
                                     CompiledChunks[className]);
 
                                 m_CurrentMemorySpace.Define(
@@ -188,7 +188,7 @@ namespace Srsl.Runtime
                         case SrslVmOpCodes.OpDefineMethod:
                             {
                                 string methodName = ReadConstant().StringConstantValue;
-                                SrslChunkWrapper chunkWrapper = new SrslChunkWrapper(
+                                BiteChunkWrapper chunkWrapper = new BiteChunkWrapper(
                                     CompiledChunks[methodName]);
 
                                 m_CurrentMemorySpace.Define(
@@ -209,9 +209,9 @@ namespace Srsl.Runtime
                         case SrslVmOpCodes.OpCallFunction:
                             {
                                 string method = ReadConstant().StringConstantValue;
-                                DynamicSrslVariable call = m_CurrentMemorySpace.Get(method);
+                                DynamicBiteVariable call = m_CurrentMemorySpace.Get(method);
 
-                                if (call.ObjectData is SrslChunkWrapper function)
+                                if (call.ObjectData is BiteChunkWrapper function)
                                 {
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
                                     callSpace.ResetPropertiesArray(m_FunctionArguments.Count);
@@ -229,7 +229,7 @@ namespace Srsl.Runtime
                                     m_CurrentChunk = function.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
                                 }
-                                if (call.ObjectData is ISrslVmCallable callable)
+                                if (call.ObjectData is IBiteVmCallable callable)
                                 {
                                     object returnVal = callable.Call(m_FunctionArguments);
 
@@ -244,8 +244,8 @@ namespace Srsl.Runtime
                         case SrslVmOpCodes.OpCallMemberFunction:
                             {
                                 ConstantValue constant = ReadConstant();
-                                DynamicSrslVariable dynamicSrslVariable = m_VmStack.Pop();
-                                if (dynamicSrslVariable.ObjectData is StaticWrapper wrapper)
+                                DynamicBiteVariable dynamicBiteVariable = m_VmStack.Pop();
+                                if (dynamicBiteVariable.ObjectData is StaticWrapper wrapper)
                                 {
                                     string methodName = constant.StringConstantValue;
                                     object[] functionArguments = new object[m_FunctionArguments.Count];
@@ -264,15 +264,15 @@ namespace Srsl.Runtime
                                         m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(returnVal));
                                     }
                                 }
-                                else if (dynamicSrslVariable.ObjectData is FastMemorySpace fastMemorySpace)
+                                else if (dynamicBiteVariable.ObjectData is FastMemorySpace fastMemorySpace)
                                 {
                                     string methodName = constant.StringConstantValue;
-                                    DynamicSrslVariable call = fastMemorySpace.Get(methodName);
+                                    DynamicBiteVariable call = fastMemorySpace.Get(methodName);
 
                                     m_CurrentMemorySpace = fastMemorySpace;
                                     if (call.ObjectData != null)
                                     {
-                                        if (call.ObjectData is SrslChunkWrapper function)
+                                        if (call.ObjectData is BiteChunkWrapper function)
                                         {
                                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
                                             callSpace.ResetPropertiesArray(m_FunctionArguments.Count);
@@ -289,7 +289,7 @@ namespace Srsl.Runtime
                                             m_CurrentChunk = function.ChunkToWrap;
                                             m_CurrentInstructionPointer = 0;
                                         }
-                                        if (call.ObjectData is ISrslVmCallable callable)
+                                        if (call.ObjectData is IBiteVmCallable callable)
                                         {
                                             object returnVal = callable.Call(m_FunctionArguments);
 
@@ -304,7 +304,7 @@ namespace Srsl.Runtime
                                         throw new Exception("Error expected Function, got null!");
                                     }
                                 }
-                                else if (dynamicSrslVariable.ObjectData is object obj)
+                                else if (dynamicBiteVariable.ObjectData is object obj)
                                 {
                                     string callString = obj + "." + constant.StringConstantValue;
                                     if (CachedMethods.ContainsKey(callString))
@@ -318,7 +318,7 @@ namespace Srsl.Runtime
                                             //  functionArgumentTypes[it] = functionArgument.GetType();
                                             it++;
                                         }
-                                        object returnVal = CachedMethods[callString].Invoke(dynamicSrslVariable.ObjectData, functionArguments);
+                                        object returnVal = CachedMethods[callString].Invoke(dynamicBiteVariable.ObjectData, functionArguments);
                                         if (returnVal != null)
                                         {
                                             m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(returnVal));
@@ -341,7 +341,7 @@ namespace Srsl.Runtime
                                         {
                                             FastMethodInfo fastMethodInfo = new FastMethodInfo(method);
                                             CachedMethods.Add(callString, fastMethodInfo);
-                                            object returnVal = fastMethodInfo.Invoke(dynamicSrslVariable.ObjectData, functionArguments);
+                                            object returnVal = fastMethodInfo.Invoke(dynamicBiteVariable.ObjectData, functionArguments);
                                             if (returnVal != null)
                                             {
                                                 m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(returnVal));
@@ -363,7 +363,7 @@ namespace Srsl.Runtime
                                 int idClass = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24); m_CurrentInstructionPointer += 4;
                                 int classMemberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24); m_CurrentInstructionPointer += 4;
 
-                                if (m_CurrentMemorySpace.Get(moduleIdClass, depthClass, -1, idClass).ObjectData is SrslChunkWrapper classWrapper)
+                                if (m_CurrentMemorySpace.Get(moduleIdClass, depthClass, -1, idClass).ObjectData is BiteChunkWrapper classWrapper)
                                 {
                                     FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace("", m_CurrentMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount);
                                     m_CurrentMemorySpace.Define(DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace));
@@ -394,7 +394,7 @@ namespace Srsl.Runtime
                                 int depthClass = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24); m_CurrentInstructionPointer += 4;
                                 int idClass = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24); m_CurrentInstructionPointer += 4;
                                 int classMemberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16) | (m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24); m_CurrentInstructionPointer += 4;
-                                if (m_CurrentMemorySpace.Get(moduleIdClass, depthClass, -1, idClass).ObjectData is SrslChunkWrapper classWrapper)
+                                if (m_CurrentMemorySpace.Get(moduleIdClass, depthClass, -1, idClass).ObjectData is BiteChunkWrapper classWrapper)
                                 {
                                     FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace("", m_CurrentMemorySpace, m_VmStack.Count, m_CurrentChunk, m_CurrentInstructionPointer, classMemberCount);
                                     classInstanceMemorySpace.m_EnclosingSpace = m_CurrentMemorySpace;
@@ -610,8 +610,8 @@ namespace Srsl.Runtime
                         }
                         case SrslVmOpCodes.OpAnd:
                         {
-                            DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                            DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                            DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                            DynamicBiteVariable valueLhs = m_VmStack.Pop();
                         
                             if ( (valueLhs.DynamicType == DynamicVariableType.True)  &&  (valueRhs.DynamicType == DynamicVariableType.True))
                             {
@@ -625,8 +625,8 @@ namespace Srsl.Runtime
                         }
                         case SrslVmOpCodes.OpOr:
                         {
-                            DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                            DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                            DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                            DynamicBiteVariable valueLhs = m_VmStack.Pop();
                         
                             if ( (valueLhs.DynamicType == DynamicVariableType.True)  ||  (valueRhs.DynamicType == DynamicVariableType.True))
                             {
@@ -730,8 +730,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpSmaller:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if ((valueLhs.DynamicType == 0 || valueLhs.DynamicType < DynamicVariableType.True) && (valueRhs.DynamicType == 0 || valueRhs.DynamicType < DynamicVariableType.True))
                                 {
@@ -747,8 +747,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpSmallerEqual:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -762,8 +762,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpGreater:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
@@ -778,8 +778,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpGreaterEqual:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
@@ -794,8 +794,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpEqual:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -809,8 +809,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpNotEqual:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -824,7 +824,7 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpNot:
                             {
-                                DynamicSrslVariable value = m_VmStack.Pop();
+                                DynamicBiteVariable value = m_VmStack.Pop();
 
                                 if (value.DynamicType == DynamicVariableType.False)
                                 {
@@ -840,8 +840,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpAdd:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType == DynamicVariableType.String || valueRhs.DynamicType == DynamicVariableType.String)
                                 {
@@ -877,8 +877,8 @@ namespace Srsl.Runtime
 
                         case SrslVmOpCodes.OpSubtract:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -893,8 +893,8 @@ namespace Srsl.Runtime
 
                         case SrslVmOpCodes.OpMultiply:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -909,8 +909,8 @@ namespace Srsl.Runtime
 
                         case SrslVmOpCodes.OpDivide:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -924,8 +924,8 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpModulo:
                             {
-                                DynamicSrslVariable valueRhs = m_VmStack.Pop();
-                                DynamicSrslVariable valueLhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueRhs = m_VmStack.Pop();
+                                DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
                                 if (valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType < DynamicVariableType.True)
                                 {
@@ -961,10 +961,10 @@ namespace Srsl.Runtime
 
                         case SrslVmOpCodes.OpExitBlock:
                         {
-                            DynamicSrslVariable dynamicSrslVariable = null;
+                            DynamicBiteVariable dynamicBiteVariable = null;
                                 if ( m_KeepLastItemOnStackToReturn )
                                 {
-                                    dynamicSrslVariable = m_VmStack.Pop();
+                                    dynamicBiteVariable = m_VmStack.Pop();
                                 }
                                 if (m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count)
                                 {
@@ -977,7 +977,7 @@ namespace Srsl.Runtime
                                 
                                 if ( m_KeepLastItemOnStackToReturn )
                                 {
-                                    m_VmStack.Push( dynamicSrslVariable );
+                                    m_VmStack.Push( dynamicBiteVariable );
                                 }
                                 break;
                             }
@@ -988,10 +988,10 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpReturn:
                             {
-                                DynamicSrslVariable dynamicSrslVariable = null;
+                                DynamicBiteVariable dynamicBiteVariable = null;
                                 if ( m_KeepLastItemOnStackToReturn )
                                 {
-                                    dynamicSrslVariable = m_VmStack.Pop();
+                                    dynamicBiteVariable = m_VmStack.Pop();
                                 }
                                 
                                 if (m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count)
@@ -1011,7 +1011,7 @@ namespace Srsl.Runtime
                                 m_CurrentMemorySpace = m_CallStack.Peek();
                                 if ( m_KeepLastItemOnStackToReturn )
                                 {
-                                    m_VmStack.Push( dynamicSrslVariable );
+                                    m_VmStack.Push( dynamicBiteVariable );
                                 }
                                 
                                 m_KeepLastItemOnStackToReturn = false;
@@ -1061,7 +1061,7 @@ namespace Srsl.Runtime
 
         }
 
-        public DynamicSrslVariable RetVal => m_VmStack.Peek();
+        public DynamicBiteVariable RetVal => m_VmStack.Peek();
 
         public void ShutdownVm()
         {

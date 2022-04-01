@@ -14,7 +14,7 @@ namespace Srsl.Runtime.Memory
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public class DynamicSrslVariable
+    public class DynamicBiteVariable
     {
         [FieldOffset(4)] public DynamicVariableType DynamicType;
         [FieldOffset(0)] public double NumberData;
@@ -22,7 +22,7 @@ namespace Srsl.Runtime.Memory
         [FieldOffset(8)] public object[] ArrayData;
         [FieldOffset(8)] public object ObjectData;
 
-        public DynamicSrslVariable()
+        public DynamicBiteVariable()
         {
             DynamicType = DynamicVariableType.Null;
             NumberData = 0;
@@ -33,26 +33,16 @@ namespace Srsl.Runtime.Memory
 
 
 
-        public DynamicSrslVariable(DynamicSrslVariable dynamicSrslVariable)
+        public DynamicBiteVariable(DynamicBiteVariable dynamicBiteVariable)
         {
-            DynamicType = dynamicSrslVariable.DynamicType;
-            NumberData = dynamicSrslVariable.NumberData;
-            StringData = dynamicSrslVariable.StringData;
-            ObjectData = dynamicSrslVariable.ObjectData;
-            ArrayData = dynamicSrslVariable.ArrayData;
+            DynamicType = dynamicBiteVariable.DynamicType;
+            NumberData = dynamicBiteVariable.NumberData;
+            StringData = dynamicBiteVariable.StringData;
+            ObjectData = dynamicBiteVariable.ObjectData;
+            ArrayData = dynamicBiteVariable.ArrayData;
         }
 
-        public DynamicSrslVariable(int value)
-        {
-            DynamicType = 0;
-            NumberData = value;
-
-            StringData = null;
-            ObjectData = null;
-            ArrayData = null;
-        }
-
-        public DynamicSrslVariable(double value)
+        public DynamicBiteVariable(int value)
         {
             DynamicType = 0;
             NumberData = value;
@@ -62,7 +52,17 @@ namespace Srsl.Runtime.Memory
             ArrayData = null;
         }
 
-        public DynamicSrslVariable(bool value)
+        public DynamicBiteVariable(double value)
+        {
+            DynamicType = 0;
+            NumberData = value;
+
+            StringData = null;
+            ObjectData = null;
+            ArrayData = null;
+        }
+
+        public DynamicBiteVariable(bool value)
         {
             NumberData = 0;
             StringData = null;
@@ -80,7 +80,7 @@ namespace Srsl.Runtime.Memory
         }
 
 
-        public DynamicSrslVariable(string value)
+        public DynamicBiteVariable(string value)
         {
             NumberData = 0;
             ObjectData = null;
@@ -91,7 +91,7 @@ namespace Srsl.Runtime.Memory
         }
 
 
-        public DynamicSrslVariable(object value)
+        public DynamicBiteVariable(object value)
         {
             switch (value)
             {
@@ -160,7 +160,7 @@ namespace Srsl.Runtime.Memory
             }
         }
 
-        public DynamicSrslVariable(object[] value)
+        public DynamicBiteVariable(object[] value)
         {
             NumberData = 0;
             StringData = null;

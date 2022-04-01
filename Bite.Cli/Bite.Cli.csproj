@@ -4,10 +4,11 @@
 		<TargetName>srsl</TargetName>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net462</TargetFramework>
+		<RootNamespace>Srsl.Cli</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Srsl\Srsl.csproj" />
+		<ProjectReference Include="..\Bite\Bite.csproj" />
 	</ItemGroup>
 
 </Project>

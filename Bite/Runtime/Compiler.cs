@@ -10,7 +10,7 @@ namespace Srsl.Runtime
     public class Compiler
     {
         private readonly bool m_ThrowOnRecognitionException;
-        private SrslParser m_Parser;
+        private BiteParser m_Parser;
 
         public Exception Exception => m_Parser.Exception;
         public bool Failed => m_Parser.Failed;
@@ -20,9 +20,9 @@ namespace Srsl.Runtime
             m_ThrowOnRecognitionException = throwOnRecognitionException;
         }
 
-        public SrslProgram Compile(string mainModule, IEnumerable<string> modules)
+        public BiteProgram Compile(string mainModule, IEnumerable<string> modules)
         {
-            m_Parser = new SrslParser
+            m_Parser = new BiteParser
             {
                 ThrowOnRecognitionException = m_ThrowOnRecognitionException
             };
@@ -32,9 +32,9 @@ namespace Srsl.Runtime
             return generator.CompileProgram(program);
         }
 
-        public SrslProgram CompileExpression(string expression)
+        public BiteProgram CompileExpression(string expression)
         {
-            m_Parser = new SrslParser
+            m_Parser = new BiteParser
             {
                 ThrowOnRecognitionException = m_ThrowOnRecognitionException
             };
@@ -46,9 +46,9 @@ namespace Srsl.Runtime
             return generator.CompileExpression(expressionNode);
         }
 
-        public SrslProgram Compile(IReadOnlyCollection<Module> modules)
+        public BiteProgram Compile(IReadOnlyCollection<Module> modules)
         {
-            m_Parser = new SrslParser
+            m_Parser = new BiteParser
             {
                 ThrowOnRecognitionException = m_ThrowOnRecognitionException
             };

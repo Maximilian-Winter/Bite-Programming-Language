@@ -4,9 +4,9 @@ using Srsl.Runtime.Memory;
 namespace Srsl.Runtime.Functions
 {
 
-    public interface ISrslVmCallable
+    public interface IBiteVmCallable
     {
-        object Call(List<DynamicSrslVariable> arguments);
+        object Call(List<DynamicBiteVariable> arguments);
     }
 
 }

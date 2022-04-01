@@ -60,9 +60,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Srsl\Srsl.csproj">
-      <Project>{2B941484-FB5E-4B3F-AF7D-BF61238D6F16}</Project>
-      <Name>Srsl</Name>
+    <ProjectReference Include="..\Bite\Bite.csproj">
+      <Project>{2b941484-fb5e-4b3f-af7d-bf61238d6f16}</Project>
+      <Name>Bite</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -21,7 +21,7 @@ namespace Srsl.Runtime.CodeGen
         private List<int> m_ConstructingOpCodeData;
         private int m_ConstructingLine;
 
-        private SrslProgram m_SrslProgram;
+        private BiteProgram m_BiteProgram;
 
         private void BeginConstuctingByteCodeInstruction(SrslVmOpCodes byteCode, int line = 0)
         {
@@ -39,36 +39,36 @@ namespace Srsl.Runtime.CodeGen
         {
             ByteCode byCode = new ByteCode(m_ConstructingOpCode);
             byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
-            m_SrslProgram.CurrentChunk.WriteToChunk(byCode, m_ConstructingLine);
+            m_BiteProgram.CurrentChunk.WriteToChunk(byCode, m_ConstructingLine);
             m_ConstructingOpCodeData = null;
             m_ConstructingOpCode = SrslVmOpCodes.OpNone;
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, int line = 0)
         {
-            return m_SrslProgram.CurrentChunk.WriteToChunk(byteCode, line);
+            return m_BiteProgram.CurrentChunk.WriteToChunk(byteCode, line);
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int line)
         {
             ByteCode byCode = new ByteCode(byteCode, opCodeData);
-            return m_SrslProgram.CurrentChunk.WriteToChunk(byCode, line);
+            return m_BiteProgram.CurrentChunk.WriteToChunk(byCode, line);
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int opCodeData2, int line)
         {
             ByteCode byCode = new ByteCode(byteCode, opCodeData, opCodeData2);
-            return m_SrslProgram.CurrentChunk.WriteToChunk(byCode, line);
+            return m_BiteProgram.CurrentChunk.WriteToChunk(byCode, line);
         }
 
         private int EmitByteCode(ByteCode byteCode, int line = 0)
         {
-            return m_SrslProgram.CurrentChunk.WriteToChunk(byteCode, line);
+            return m_BiteProgram.CurrentChunk.WriteToChunk(byteCode, line);
         }
 
         private int EmitByteCode(SrslVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
         {
-            return m_SrslProgram.CurrentChunk.WriteToChunk(byteCode, constantValue, line);
+            return m_BiteProgram.CurrentChunk.WriteToChunk(byteCode, constantValue, line);
         }
 
         private int EmitReturn(int line = 0)
@@ -94,31 +94,31 @@ namespace Srsl.Runtime.CodeGen
         }
 
 
-        public SrslProgram CompileProgram(ProgramNode programNode)
+        public BiteProgram CompileProgram(ProgramNode programNode)
         {
-            m_SrslProgram = new SrslProgram(programNode);
+            m_BiteProgram = new BiteProgram(programNode);
 
             programNode.Accept(this);
             
-            m_SrslProgram.Build();
+            m_BiteProgram.Build();
 
-            return m_SrslProgram;
+            return m_BiteProgram;
         }
 
 
-        public SrslProgram CompileStatements(ModuleNode module, List<StatementNode> statements)
+        public BiteProgram CompileStatements(ModuleNode module, List<StatementNode> statements)
         {
             module.Statements = statements;
 
-            m_SrslProgram = new SrslProgram(module);
+            m_BiteProgram = new BiteProgram(module);
 
             module.Accept(this);
 
-            m_SrslProgram.Build();
+            m_BiteProgram.Build();
 
-            return m_SrslProgram;
+            return m_BiteProgram;
         }
-        public SrslProgram CompileStatements(IReadOnlyCollection<StatementNode> statements)
+        public BiteProgram CompileStatements(IReadOnlyCollection<StatementNode> statements)
         {
             var module = new ModuleNode()
             {
@@ -128,16 +128,16 @@ namespace Srsl.Runtime.CodeGen
                 Statements = statements
             };
 
-            m_SrslProgram = new SrslProgram(module);
+            m_BiteProgram = new BiteProgram(module);
 
             module.Accept(this);
 
-            m_SrslProgram.Build();
+            m_BiteProgram.Build();
 
-            return m_SrslProgram;
+            return m_BiteProgram;
         }
 
-        public SrslProgram CompileExpression(ExpressionNode expression)
+        public BiteProgram CompileExpression(ExpressionNode expression)
         {
             var module = new ModuleNode()
             {
@@ -153,7 +153,7 @@ namespace Srsl.Runtime.CodeGen
                 }
             };
 
-            m_SrslProgram = new SrslProgram(module);
+            m_BiteProgram = new BiteProgram(module);
 
             module.Accept(this);
 
@@ -162,9 +162,9 @@ namespace Srsl.Runtime.CodeGen
             //    statement.Accept(this);
             //}
 
-            m_SrslProgram.Build();
+            m_BiteProgram.Build();
 
-            return m_SrslProgram;
+            return m_BiteProgram;
         }
 
 
@@ -172,7 +172,7 @@ namespace Srsl.Runtime.CodeGen
         public override object Visit(ProgramNode node)
         {
             //Chunk saveChunk1 = m_CompilationContext.m_CompilingChunk;
-            m_SrslProgram.PushChunk();
+            m_BiteProgram.PushChunk();
 
             /*int d = 0;
             ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
@@ -218,7 +218,7 @@ namespace Srsl.Runtime.CodeGen
 
             //m_CompilingChunk = new Chunk();
 
-            m_SrslProgram.NewChunk();
+            m_BiteProgram.NewChunk();
 
             ByteCode byteCode = new ByteCode(SrslVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber);
             EmitByteCode(byteCode);
@@ -227,11 +227,11 @@ namespace Srsl.Runtime.CodeGen
             EmitByteCode(byteCode);
 
             //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilationContext.CurrentChunk);
-            m_SrslProgram.SaveCurrentChunk("System.CSharpInterface");
+            m_BiteProgram.SaveCurrentChunk("System.CSharpInterface");
             //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilingChunk);
 
             //m_CompilationContext.RestoreChunk(saveChunk1);
-            m_SrslProgram.PopChunk();
+            m_BiteProgram.PopChunk();
 
 
             foreach (KeyValuePair<string, ModuleNode> module in node.ModuleNodes)
@@ -260,27 +260,27 @@ namespace Srsl.Runtime.CodeGen
         {
             m_CurrentModuleName = node.ModuleIdent.ToString();
             //Chunk saveChunk = m_CompilingChunk;
-            m_SrslProgram.PushChunk();
+            m_BiteProgram.PushChunk();
 
             int d = 0;
-            ModuleSymbol mod = m_SrslProgram.SymbolTableBuilder.CurrentScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
-            if (m_SrslProgram.HasChunk(m_CurrentModuleName))
+            ModuleSymbol mod = m_BiteProgram.SymbolTableBuilder.CurrentScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
+            if (m_BiteProgram.HasChunk(m_CurrentModuleName))
             {
                 //m_CompilingChunk = CompilingChunks[m_CurrentModuleName];
-                m_SrslProgram.RestoreChunk(m_CurrentModuleName);
+                m_BiteProgram.RestoreChunk(m_CurrentModuleName);
             }
             else
             {
-                m_SrslProgram.CurrentChunk.
+                m_BiteProgram.CurrentChunk.
                     WriteToChunk(
                         SrslVmOpCodes.OpDefineModule,
                         new ConstantValue(m_CurrentModuleName),
                         mod.NumberOfSymbols,
                         0);
                 //m_CompilingChunk = new Chunk();
-                m_SrslProgram.NewChunk();
+                m_BiteProgram.NewChunk();
                 //CompilingChunks.Add(m_CurrentModuleName, m_CompilingChunk);
-                m_SrslProgram.SaveCurrentChunk(m_CurrentModuleName);
+                m_BiteProgram.SaveCurrentChunk(m_CurrentModuleName);
             }
 
             /*foreach ( ModuleIdentifier importedModule in node.ImportedModules )
@@ -313,7 +313,7 @@ namespace Srsl.Runtime.CodeGen
                 }
             }
 
-            m_SrslProgram.PopChunk(); //m_CompilingChunk = saveChunk;
+            m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
 
             return null;
         }
@@ -405,20 +405,20 @@ namespace Srsl.Runtime.CodeGen
             m_CurrentClassName = symbol.QualifiedName;
             //Chunk saveChunk = m_CompilingChunk;
 
-            m_SrslProgram.PushChunk();
+            m_BiteProgram.PushChunk();
 
-            if (m_SrslProgram.HasChunk(m_CurrentClassName))
+            if (m_BiteProgram.HasChunk(m_CurrentClassName))
             {
                 //m_CompilingChunk = CompilingChunks[m_CurrentClassName];
-                m_SrslProgram.RestoreChunk(m_CurrentClassName);
+                m_BiteProgram.RestoreChunk(m_CurrentClassName);
             }
             else
             {
                 EmitByteCode(SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
-                m_SrslProgram.NewChunk(); //m_CompilingChunk = new Chunk();
+                m_BiteProgram.NewChunk(); //m_CompilingChunk = new Chunk();
                                                  // CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
-                m_SrslProgram.SaveCurrentChunk(m_CurrentClassName);
+                m_BiteProgram.SaveCurrentChunk(m_CurrentClassName);
             }
 
             foreach (FieldSymbol field in symbol.Fields)
@@ -452,28 +452,28 @@ namespace Srsl.Runtime.CodeGen
                     //EmitByteCode( method.InsertionOrderNumber );
                 }
             }
-            m_SrslProgram.PopChunk(); //m_CompilingChunk = saveChunk;
+            m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
             return null;
         }
 
         public override object Visit(FunctionDeclarationNode node)
         {
-            m_SrslProgram.PushChunk(); //Chunk saveChunk = m_CompilingChunk;
+            m_BiteProgram.PushChunk(); //Chunk saveChunk = m_CompilingChunk;
             int d = 0;
             FunctionSymbol symbol = node.AstScopeNode.resolve(node.FunctionId.Id, out int moduleId, ref d) as FunctionSymbol;
-            if (m_SrslProgram.HasChunk(symbol.QualifiedName))
+            if (m_BiteProgram.HasChunk(symbol.QualifiedName))
             {
                 //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
-                m_SrslProgram.RestoreChunk(symbol.QualifiedName);
+                m_BiteProgram.RestoreChunk(symbol.QualifiedName);
             }
             else
             {
                 EmitByteCode(SrslVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
                 //m_CompilingChunk = new Chunk();
-                m_SrslProgram.NewChunk();
+                m_BiteProgram.NewChunk();
                 //CompilingChunks.Add(symbol.QualifiedName, m_CompilingChunk);
-                m_SrslProgram.SaveCurrentChunk(symbol.QualifiedName);
+                m_BiteProgram.SaveCurrentChunk(symbol.QualifiedName);
             }
             /*if ( node.Parameters != null )
             {
@@ -488,7 +488,7 @@ namespace Srsl.Runtime.CodeGen
                 Compile(node.FunctionBlock);
             }
 
-            m_SrslProgram.PopChunk(); //m_CompilingChunk = saveChunk;
+            m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
             return null;
         }
 
@@ -1006,22 +1006,22 @@ namespace Srsl.Runtime.CodeGen
             int thenJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
             Compile(node.ThenBlock);
             int overElseJump = EmitByteCode(SrslVmOpCodes.OpJump, 0, 0);
-            m_SrslProgram.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_SrslProgram.CurrentChunk.SerializeToBytes().Length);
+            m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
 
             foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
             {
                 if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else )
                 {
                     Compile( nodeIfStatementEntry.ElseBlock );
-                    m_SrslProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_SrslProgram.CurrentChunk.SerializeToBytes().Length);
+                    m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
                 if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
                 {
                     Compile( nodeIfStatementEntry.ExpressionElseIf );
                     int elseJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
                     Compile( nodeIfStatementEntry.ElseBlock );
-                    m_SrslProgram.CurrentChunk.Code[elseJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_SrslProgram.CurrentChunk.SerializeToBytes().Length);
-                    m_SrslProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_SrslProgram.CurrentChunk.SerializeToBytes().Length);
+                    m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                    m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
             }
             
@@ -1040,7 +1040,7 @@ namespace Srsl.Runtime.CodeGen
                 Compile(node.ExpressionStatement);
             }
             
-            int jumpCodeWhileBegin = m_SrslProgram.CurrentChunk.SerializeToBytes().Length;
+            int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             if (node.Expression1 != null)
             {
                 Compile(node.Expression1);
@@ -1053,7 +1053,7 @@ namespace Srsl.Runtime.CodeGen
             {
                 Compile(node.Expression2);
             }
-            m_SrslProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_SrslProgram.CurrentChunk.SerializeToBytes().Length);
+            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpExitBlock, 0);
@@ -1062,11 +1062,11 @@ namespace Srsl.Runtime.CodeGen
 
         public override object Visit(WhileStatementNode node)
         {
-            int jumpCodeWhileBegin = m_SrslProgram.CurrentChunk.SerializeToBytes().Length;
+            int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
             Compile(node.WhileBlock);
-            m_SrslProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_SrslProgram.CurrentChunk.SerializeToBytes().Length);
+            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             return null;

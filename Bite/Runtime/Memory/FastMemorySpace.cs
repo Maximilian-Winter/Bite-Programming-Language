@@ -7,8 +7,8 @@ namespace Srsl.Runtime.Memory
     public class FastMemorySpace
     {
         public FastMemorySpace m_EnclosingSpace;
-        public Dictionary<string, DynamicSrslVariable> NamesToProperties = new Dictionary<string, DynamicSrslVariable>();
-        public DynamicSrslVariable[] Properties;
+        public Dictionary<string, DynamicBiteVariable> NamesToProperties = new Dictionary<string, DynamicBiteVariable>();
+        public DynamicBiteVariable[] Properties;
         public string Name;
         public int StackCountAtBegin = 0;
 
@@ -24,23 +24,23 @@ namespace Srsl.Runtime.Memory
             m_EnclosingSpace = enclosingSpace;
             Name = name;
             StackCountAtBegin = stackCount;
-            Properties = new DynamicSrslVariable[memberCount];
+            Properties = new DynamicBiteVariable[memberCount];
         }
 
         public void ResetPropertiesArray(int memberCount)
         {
-            Properties = new DynamicSrslVariable[memberCount];
+            Properties = new DynamicBiteVariable[memberCount];
             currentMemoryPointer = 0;
         }
 
-        public virtual void Define(DynamicSrslVariable value)
+        public virtual void Define(DynamicBiteVariable value)
         {
             Properties[currentMemoryPointer] = value;
 
             currentMemoryPointer++;
         }
 
-        public virtual void Define(DynamicSrslVariable value, string idStr, bool addToProperties = true)
+        public virtual void Define(DynamicBiteVariable value, string idStr, bool addToProperties = true)
         {
             if ( addToProperties )
             {
@@ -60,7 +60,7 @@ namespace Srsl.Runtime.Memory
             }
         }
 
-        public virtual DynamicSrslVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)
+        public virtual DynamicBiteVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)
         {
             if (NamesToProperties.ContainsKey(idStr))
             {
@@ -88,7 +88,7 @@ namespace Srsl.Runtime.Memory
             return false;
         }
 
-        public virtual void Put(string idStr, DynamicSrslVariable value)
+        public virtual void Put(string idStr, DynamicBiteVariable value)
         {
             if (NamesToProperties.ContainsKey(idStr))
             {
@@ -101,7 +101,7 @@ namespace Srsl.Runtime.Memory
                 m_EnclosingSpace.Put(idStr, value);
             }
         }
-        public virtual DynamicSrslVariable Get(int moduleId, int depth, int classId, int id)
+        public virtual DynamicBiteVariable Get(int moduleId, int depth, int classId, int id)
         {
             if (moduleId >= 0)
             {
@@ -181,7 +181,7 @@ namespace Srsl.Runtime.Memory
             return false;
         }
 
-        public virtual void Put(int moduleId, int depth, int classId, int id, DynamicSrslVariable value)
+        public virtual void Put(int moduleId, int depth, int classId, int id, DynamicBiteVariable value)
         {
             if (moduleId >= 0)
             {

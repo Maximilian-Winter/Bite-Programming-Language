@@ -11,7 +11,7 @@ namespace UnitTests
 
         private ExecResult ExecExpression(string expression)
         {
-            var parser = new SrslParser();
+            var parser = new BiteParser();
 
             var expressionNode = parser.ParseExpression(expression);
 
@@ -19,7 +19,7 @@ namespace UnitTests
 
             var context = generator.CompileExpression(expressionNode);
 
-            var srslVm = new SrslVm();
+            var srslVm = new BiteVm();
 
             var result = srslVm.Interpret(context);
 

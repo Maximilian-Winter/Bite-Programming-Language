@@ -17,7 +17,7 @@ namespace Srsl.Runtime.Memory
             set => m_Modules = value;
         }
 
-        public override DynamicSrslVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)
+        public override DynamicBiteVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)
         {
             foreach (FastMemorySpace fastMemorySpace in m_Modules)
             {

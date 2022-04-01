@@ -24,15 +24,15 @@ namespace Srsl.Cli
 
             var files = Directory.EnumerateFiles(options.Path, "*.srsl", SearchOption.AllDirectories);
 
-            SrslParser parser = new SrslParser();
+            BiteParser parser = new BiteParser();
             var program = parser.ParseModules(options.MainModule, files.Select(File.ReadAllText));
             CodeGenerator generator = new CodeGenerator();
             var context = generator.CompileProgram(program);
-            SrslVm srslVm = new SrslVm();
+            BiteVm biteVm = new BiteVm();
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            srslVm.Interpret(context);
+            biteVm.Interpret(context);
             stopwatch.Stop();
         }
     }

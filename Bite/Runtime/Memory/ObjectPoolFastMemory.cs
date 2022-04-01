@@ -20,7 +20,7 @@ namespace Srsl.Runtime.Memory
         public FastMemorySpace Get()
         {
             FastMemorySpace fastMemorySpace = m_FastCallMemorySpaces[m_FastMemorySpacePointer];
-            fastMemorySpace.Properties = Array.Empty<DynamicSrslVariable>();
+            fastMemorySpace.Properties = Array.Empty<DynamicBiteVariable>();
             fastMemorySpace.NamesToProperties.Clear();
             
             if ( m_FastMemorySpacePointer >= 1023 )

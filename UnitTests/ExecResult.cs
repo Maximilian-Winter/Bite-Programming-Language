@@ -8,6 +8,6 @@ namespace UnitTests
     public class ExecResult
     {
         public SrslVmInterpretResult InterpretResult { get; set; }
-        public DynamicSrslVariable LastValue { get; set; }
+        public DynamicBiteVariable LastValue { get; set; }
     }
 }

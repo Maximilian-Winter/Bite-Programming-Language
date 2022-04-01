@@ -5,11 +5,11 @@ using Srsl.Runtime.Memory;
 namespace Srsl.Runtime.Functions
 {
 
-    public class PrintFunctionVm : ISrslVmCallable
+    public class PrintFunctionVm : IBiteVmCallable
     {
         #region Public
 
-        public object Call(List<DynamicSrslVariable> arguments)
+        public object Call(List<DynamicBiteVariable> arguments)
         {
             if (arguments[0].DynamicType != DynamicVariableType.Null)
             {
