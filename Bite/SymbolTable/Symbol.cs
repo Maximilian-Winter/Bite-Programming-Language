@@ -1,4 +1,4 @@
-﻿namespace Srsl.SymbolTable
+﻿namespace Bite.SymbolTable
 {
 
     public interface Symbol

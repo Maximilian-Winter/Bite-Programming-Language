@@ -1,4 +1,4 @@
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public class ExpressionStatementNode : StatementNode

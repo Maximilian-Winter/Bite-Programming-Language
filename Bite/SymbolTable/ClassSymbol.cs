@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Srsl.SymbolTable
+namespace Bite.SymbolTable
 {
 
     public class ClassSymbol : DataAggregateSymbol

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
     public partial class SrslModuleParser
     {
@@ -199,6 +199,11 @@ namespace Srsl.Parser
         public virtual IContext<ReturnStatementNode> returnStatement()
         {
             return ProcessRule("returnStatement", _returnStatement);
+        }
+        
+        public virtual IContext<BreakStatementNode> breakStatement()
+        {
+            return ProcessRule("breakStatement", _breakStatement);
         }
 
         public virtual IContext<HeteroAstNode> statement()

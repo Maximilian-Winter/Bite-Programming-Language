@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
 
 public partial class SrslModuleParser
@@ -2341,6 +2341,28 @@ public partial class SrslModuleParser
 
         return new Context < ReturnStatementNode >( null );
     }
+    
+    public virtual IContext < BreakStatementNode > _breakStatement()
+    {
+        IContext < BreakStatementNode > matchContext = null;
+
+        if ( Speculating )
+        {
+            if ( !match( SrslLexer.Break, out matchContext ) )
+                return matchContext;
+
+            return matchContext;
+        }
+        else
+        {
+            if ( !match( SrslLexer.Break, out matchContext ) )
+                return matchContext;
+
+            BreakStatementNode returnStatementNode = new BreakStatementNode();
+
+            return new Context < BreakStatementNode >( returnStatementNode );
+        }
+    }
 
     public IContext < HeteroAstNode > _statement()
     {
@@ -2377,6 +2399,13 @@ public partial class SrslModuleParser
             // Console.WriteLine( "predict alternative return statement" );
 
             return returnStatement();
+        }
+        
+        if ( speculate_break_statement() )
+        {
+            // Console.WriteLine( "predict alternative break statement" );
+
+            return breakStatement();
         }
 
         if ( speculate_while_statement() )
@@ -2459,7 +2488,7 @@ public partial class SrslModuleParser
         if ( contextBlock2.Failed )
             return Context < UsingStatementNode >.AsFailed( contextBlock2.Exception );
 
-        return null;
+        return new Context < UsingStatementNode >( null );
     }
 
     public virtual IContext < StructDeclarationNode > _structDeclaration()
@@ -3289,7 +3318,7 @@ public partial class SrslModuleParser
 
             if ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective )
             {
-                while ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective )
+                while ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective && LA( 2 ) != SrslLexer.OpeningRoundBracket )
                 {
                     if ( LA( 1 ) == SrslLexer.ImportDirective )
                     {

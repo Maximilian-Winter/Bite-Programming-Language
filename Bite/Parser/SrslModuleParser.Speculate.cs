@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Srsl.Ast;
+using Bite.Ast;
 
-namespace Srsl.Parser
+namespace Bite.Parser
 {
     public partial class SrslModuleParser
     {
@@ -126,6 +126,12 @@ namespace Srsl.Parser
         {
             // Console.WriteLine( "attempt alternative return statement" );
             return speculate(returnStatement);
+        }
+        
+        public virtual bool speculate_break_statement()
+        {
+            // Console.WriteLine( "attempt alternative return statement" );
+            return speculate(breakStatement);
         }
 
         public virtual bool speculate_statement()

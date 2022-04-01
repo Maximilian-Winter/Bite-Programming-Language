@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
-using Srsl.Runtime.Memory;
+using Bite.Runtime.Memory;
 
-namespace Srsl.Runtime.Bytecode
+namespace Bite.Runtime.Bytecode
 {
 
     [StructLayout(LayoutKind.Explicit)]

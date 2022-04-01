@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using Srsl.Runtime.Memory;
+using Bite.Runtime.Memory;
 
-namespace Srsl.Runtime.Functions.ForeignInterface
+namespace Bite.Runtime.Functions.ForeignInterface
 {
 
     public class ForeignLibraryInterfaceVm : IBiteVmCallable

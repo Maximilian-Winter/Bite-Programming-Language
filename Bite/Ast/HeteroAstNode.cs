@@ -1,6 +1,6 @@
-using Srsl.SymbolTable;
+using Bite.SymbolTable;
 
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public abstract class HeteroAstNode 

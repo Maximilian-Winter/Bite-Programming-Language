@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Srsl.Runtime.Memory;
+using Bite.Runtime.Memory;
 
-namespace Srsl.Runtime.Functions
+namespace Bite.Runtime.Functions
 {
 
     public class PrintFunctionVm : IBiteVmCallable

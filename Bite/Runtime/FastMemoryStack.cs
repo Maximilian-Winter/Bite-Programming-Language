@@ -1,7 +1,7 @@
 ﻿using System;
-using Srsl.Runtime.Memory;
+using Bite.Runtime.Memory;
 
-namespace Srsl.Runtime
+namespace Bite.Runtime
 {
     public class FastMemoryStack
     {
@@ -50,30 +50,63 @@ public class DynamicSrslVariableStack
 
     public DynamicBiteVariable Peek()
     {
-        DynamicBiteVariable fastMemorySpace = m_DynamicVariables[Count - 1];
-        return fastMemorySpace;
+        DynamicBiteVariable dynamicVariable = m_DynamicVariables[Count - 1];
+        return dynamicVariable;
     }
     
     public DynamicBiteVariable Peek(int i)
     {
-        DynamicBiteVariable fastMemorySpace = m_DynamicVariables[i];
-        return fastMemorySpace;
+        DynamicBiteVariable dynamicVariable = m_DynamicVariables[i];
+        return dynamicVariable;
     }
 
     public DynamicBiteVariable Pop()
     {
-        DynamicBiteVariable fastMemorySpace = m_DynamicVariables[--Count];
-        return fastMemorySpace;
+        DynamicBiteVariable dynamicVariable = m_DynamicVariables[--Count];
+        return dynamicVariable;
     }
 
     
-    public void Push(DynamicBiteVariable fastMemorySpace)
+    public void Push(DynamicBiteVariable dynamicVar)
     {
-        m_DynamicVariables[Count] = fastMemorySpace;
+        m_DynamicVariables[Count] = dynamicVar;
 
         if (Count >= 1023)
         {
-            throw new IndexOutOfRangeException("Call Stack Overflow");
+            throw new IndexOutOfRangeException("Stack Overflow");
+        }
+        Count++;
+    }
+}
+
+public class UsingStatementStack
+{
+    private object[] m_UsedObjects = new object[128];
+    private int m_UsedObjectPointer = 0;
+
+    public int Count
+    {
+        get => m_UsedObjectPointer;
+        set
+        {
+            m_UsedObjectPointer = value;
+        }
+    }
+    
+    public void Pop()
+    {
+        object usedObject = m_UsedObjects[--Count];
+        ((IDisposable)usedObject).Dispose();
+    }
+
+    
+    public void Push(object usedObject)
+    {
+        m_UsedObjects[Count] = usedObject;
+
+        if (Count >= 1023)
+        {
+            throw new IndexOutOfRangeException("Using Statement Overflow");
         }
         Count++;
     }

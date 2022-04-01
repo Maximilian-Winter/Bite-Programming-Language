@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Srsl.Runtime.Bytecode
+namespace Bite.Runtime.Bytecode
 {
 
     public class InstructionAnalysis

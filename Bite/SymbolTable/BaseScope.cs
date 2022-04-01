@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Srsl.SymbolTable
+namespace Bite.SymbolTable
 {
 
     public abstract class BaseScope : Scope

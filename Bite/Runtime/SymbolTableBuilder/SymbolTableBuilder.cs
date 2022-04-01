@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Srsl.Ast;
-using Srsl.SymbolTable;
+using Bite.Ast;
+using Bite.SymbolTable;
 
-namespace Srsl.Runtime.SymbolTable
+namespace Bite.Runtime.SymbolTable
 {
 
     public class SymbolTableBuilder : HeteroAstVisitor<object>, IAstVisitor
@@ -273,9 +273,20 @@ namespace Srsl.Runtime.SymbolTable
 
         public override object Visit(UsingStatementNode node)
         {
+            node.AstScopeNode = CurrentScope;
+            LocalScope l = new LocalScope( CurrentScope );
+            CurrentScope.nest( l );
+            pushScope( l );
+            
             Resolve(node.UsingNode);
             Resolve(node.UsingBlock);
-
+            
+            popScope();
+            return null;
+        }
+        
+        public override object Visit(BreakStatementNode node)
+        {
             return null;
         }
 

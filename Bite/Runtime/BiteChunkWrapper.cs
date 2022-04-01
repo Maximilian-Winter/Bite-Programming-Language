@@ -1,6 +1,6 @@
-﻿using Srsl.Runtime.Bytecode;
+﻿using Bite.Runtime.Bytecode;
 
-namespace Srsl.Runtime
+namespace Bite.Runtime
 {
 
     public class BiteChunkWrapper

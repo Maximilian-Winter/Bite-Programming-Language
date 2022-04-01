@@ -1,6 +1,6 @@
 ﻿using Force.DeepCloner;
 
-namespace Srsl.Runtime.Memory
+namespace Bite.Runtime.Memory
 {
 
     public static class DynamicVariableExtension

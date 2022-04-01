@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Srsl.Parser;
+using Bite.Parser;
 
-namespace Srsl.Ast
+namespace Bite.Ast
 {
 
     public class ModifiersNode : HeteroAstNode

@@ -107,6 +107,8 @@ statement   :exprStatement
             |forStatement
             |ifStatement
             |returnStatement
+            |breakStatement
+            |usingStatement
             |whileStatement
             |block ;  
             
@@ -116,6 +118,8 @@ forStatement        :DeclareForLoop OpeningRoundBracket ( variableDeclaration | 
 ifStatement         :ControlFlowIf OpeningRoundBracket expression ClosingRoundBracket block
                      ( (ControlFlowElse ControlFlowIf|ControlFlowElse) block )* ;
 returnStatement     :FunctionReturn expression? SemicolonSeperator ;
+breakStatement      :Break SemicolonSeperator;
+usingStatement      :UsingDirective OpeningRoundBracket expression ClosingRoundBracket block;
 whileStatement      :DeclareWhileLoop OpeningRoundBracket expression ClosingRoundBracket block ;
 block               :OpeningCurlyBracket declaration* ClosingCurlyBracket ;
 
@@ -178,6 +182,7 @@ DeclarePrivate: 'private';
 ControlFlowIf: 'if';
 ControlFlowElse: 'else';
 FunctionReturn: 'return';
+Break: 'break';
 NullReference: 'null';
 ThisReference: 'this';
 UsingDirective: 'using';

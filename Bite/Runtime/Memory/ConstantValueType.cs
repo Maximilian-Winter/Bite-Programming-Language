@@ -1,4 +1,4 @@
-namespace Srsl.Runtime.Memory
+namespace Bite.Runtime.Memory
 {
 
     public enum ConstantValueType : byte

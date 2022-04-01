@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using Srsl.Ast;
-using Srsl.Runtime.Bytecode;
-using Srsl.Runtime.SymbolTable;
+using Bite.Ast;
+using Bite.Runtime.Bytecode;
+using Bite.Runtime.SymbolTable;
 
-namespace Srsl.Runtime.CodeGen
+namespace Bite.Runtime.CodeGen
 {
     public class BiteProgram
     {
