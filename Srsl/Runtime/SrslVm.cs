@@ -666,6 +666,14 @@ namespace Srsl.Runtime
                             }
                         case SrslVmOpCodes.OpCompliment:
                             {
+                                if (m_VmStack.Peek().DynamicType < DynamicVariableType.True)
+                                {
+                                    m_VmStack.Peek().NumberData = ~(int)m_VmStack.Peek().NumberData;
+                                }
+                                else
+                                {
+                                    throw new Exception("Can only complement Integer Numbers!");
+                                }
                                 break;
                             }
                         case SrslVmOpCodes.OpPrefixDecrement:
@@ -676,7 +684,7 @@ namespace Srsl.Runtime
                                 }
                                 else
                                 {
-                                    throw new Exception("Can only negate Integers and Floating Point Numbers!");
+                                    throw new Exception("Can only decrement Integers and Floating Point Numbers!");
                                 }
 
                                 break;
@@ -689,7 +697,7 @@ namespace Srsl.Runtime
                                 }
                                 else
                                 {
-                                    throw new Exception("Can only negate Integers and Floating Point Numbers!");
+                                    throw new Exception("Can only increment Integers and Floating Point Numbers!");
                                 }
 
                                 break;
@@ -702,7 +710,7 @@ namespace Srsl.Runtime
                                 }
                                 else
                                 {
-                                    throw new Exception("Can only negate Integers and Floating Point Numbers!");
+                                    throw new Exception("Can only decrement Integers and Floating Point Numbers!");
                                 }
 
                                 break;
@@ -715,7 +723,7 @@ namespace Srsl.Runtime
                                 }
                                 else
                                 {
-                                    throw new Exception("Can only negate Integers and Floating Point Numbers!");
+                                    throw new Exception("Can only increment Integers and Floating Point Numbers!");
                                 }
 
                                 break;
