@@ -888,9 +888,21 @@ namespace Srsl.Runtime.SymbolTable
 
         public override object Visit(ForStatementNode node)
         {
+            node.AstScopeNode = CurrentScope;
+            LocalScope l = new LocalScope( CurrentScope );
+            CurrentScope.nest( l );
+            pushScope( l );
+            
             if (node.VariableDeclaration != null)
             {
                 Resolve(node.VariableDeclaration);
+            }
+            else
+            {
+                if (node.ExpressionStatement != null)
+                {
+                    Resolve(node.ExpressionStatement);
+                }
             }
 
             if (node.Expression1 != null)
@@ -898,17 +910,14 @@ namespace Srsl.Runtime.SymbolTable
                 Resolve(node.Expression1);
             }
 
+            Resolve(node.Block);
             if (node.Expression2 != null)
             {
                 Resolve(node.Expression2);
             }
 
-            if (node.ExpressionStatement != null)
-            {
-                Resolve(node.ExpressionStatement);
-            }
-
-            Resolve(node.Block);
+            
+            popScope();
             return null;
         }
 

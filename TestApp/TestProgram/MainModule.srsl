@@ -6,6 +6,62 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
+var c = new Object();
+var f = 0;
+
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           c[x][y][z] = "Number: " + f;
+           f++;
+        }
+    }
+}
+
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           Console.WriteLine(c[x][y][z]);
+        }
+    }
+}
+
+
+/*
+
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           c[x][y][z] = "Number: " + f;
+           f++;
+        }
+    }
+}
+
+for(var x = 0; x < 10; x++)
+{
+    for(var y = 0; y < 10; y++)
+    {
+        for(var z = 0; z < 10; z++)
+        {
+           Print(c[x][y][z]);
+        }
+    }
+}
+
+
+
+
+
 function FindFibonacciNumber(n)
 {
     var count= 2;
@@ -40,3 +96,57 @@ while(count3 < 1000)
     count3++;
 }
 Console.WriteLine(temp);
+
+
+
+if(!true)
+{
+    Console.WriteLine("1");
+}
+else if(true)
+{
+    Console.WriteLine("2");
+}
+else if(!true || false)
+{
+    Console.WriteLine("3");
+}
+else
+{
+    Console.WriteLine("4");
+}
+
+if(!true)
+{
+    Console.WriteLine("1");
+}
+else if(false)
+{
+    Console.WriteLine("2");
+}
+else if(!true || true)
+{
+    Console.WriteLine("3");
+}
+else
+{
+    Console.WriteLine("4");
+}
+
+if(!true)
+{
+    Console.WriteLine("1");
+}
+else if(false)
+{
+    Console.WriteLine("2");
+}
+else if(!true || false)
+{
+    Console.WriteLine("3");
+}
+else
+{
+    Console.WriteLine("4");
+}
+*/

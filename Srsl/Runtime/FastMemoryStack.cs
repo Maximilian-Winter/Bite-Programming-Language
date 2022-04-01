@@ -33,4 +33,49 @@ namespace Srsl.Runtime
             m_FastMemoryPointer++;
         }
     }
+
+public class DynamicSrslVariableStack
+{
+    private DynamicSrslVariable[] m_DynamicVariables = new DynamicSrslVariable[1024];
+    private int m_DynamicVariablePointer = 0;
+
+    public int Count
+    {
+        get => m_DynamicVariablePointer;
+        set
+        {
+            m_DynamicVariablePointer = value;
+        }
+    }
+
+    public DynamicSrslVariable Peek()
+    {
+        DynamicSrslVariable fastMemorySpace = m_DynamicVariables[Count - 1];
+        return fastMemorySpace;
+    }
+    
+    public DynamicSrslVariable Peek(int i)
+    {
+        DynamicSrslVariable fastMemorySpace = m_DynamicVariables[i];
+        return fastMemorySpace;
+    }
+
+    public DynamicSrslVariable Pop()
+    {
+        DynamicSrslVariable fastMemorySpace = m_DynamicVariables[--Count];
+        return fastMemorySpace;
+    }
+
+    
+    public void Push(DynamicSrslVariable fastMemorySpace)
+    {
+        m_DynamicVariables[Count] = fastMemorySpace;
+
+        if (Count >= 1023)
+        {
+            throw new IndexOutOfRangeException("Call Stack Overflow");
+        }
+        Count++;
+    }
+}
 }

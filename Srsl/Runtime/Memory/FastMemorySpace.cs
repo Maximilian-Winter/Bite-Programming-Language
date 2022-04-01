@@ -40,16 +40,24 @@ namespace Srsl.Runtime.Memory
             currentMemoryPointer++;
         }
 
-        public virtual void Define(DynamicSrslVariable value, string idStr)
+        public virtual void Define(DynamicSrslVariable value, string idStr, bool addToProperties = true)
         {
-            Properties[currentMemoryPointer] = value;
-
-            if (!string.IsNullOrEmpty(idStr))
+            if ( addToProperties )
             {
-                NamesToProperties.Add(idStr, Properties[currentMemoryPointer]);
+                Properties[currentMemoryPointer] = value;
+                if (!string.IsNullOrEmpty(idStr))
+                {
+                    NamesToProperties.Add(idStr, Properties[currentMemoryPointer]);
+                }
+                currentMemoryPointer++;
             }
-
-            currentMemoryPointer++;
+            else
+            {
+                if (!string.IsNullOrEmpty(idStr))
+                {
+                    NamesToProperties.Add(idStr, value);
+                }
+            }
         }
 
         public virtual DynamicSrslVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)
