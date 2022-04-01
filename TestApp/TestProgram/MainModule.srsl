@@ -6,7 +6,16 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
-function TestFunction(n);
+var a = 5;
+var b = 10;
+
+b *= a;
+
+Print(b);
+Print(a);
+
+/*
+
 
 function FindPrimeNumber(n)
 {
@@ -40,14 +49,6 @@ Print(FindPrimeNumber(8));
 Print(FindPrimeNumber(16));
 Print(FindPrimeNumber(32));
 Print(FindPrimeNumber(64));
-
-
-function TestFunction(n)
-{
-    return n + 1;
-}
-/*
-
 
 function FindFibonacciNumber(n)
 {
