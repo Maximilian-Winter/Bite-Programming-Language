@@ -2,9 +2,10 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Bite.Parser;
-using Bite.Runtime;
-using Bite.Runtime.CodeGen;
+
+using Bite.Cli.CommandLine;
+using Srsl.Runtime.CodeGen;
+
 
 namespace Bite.Cli
 {
@@ -14,26 +15,16 @@ namespace Bite.Cli
         {
             var commandLine = new CommandLineArgs(args);
 
-            var options = commandLine.Parse<Options>();
+            commandLine.Parse<Options>(o =>
+            {
+                var files = Directory.EnumerateFiles(o.Path, "*.srsl", SearchOption.AllDirectories);
 
-            //var options = new Options()
-            //{
-            //    MainModule = "MainModule",
-            //    Path = ".\\TestProgram",
-            //};
+                var compiler = new Compiler(true);
 
-            var files = Directory.EnumerateFiles(options.Path, "*.srsl", SearchOption.AllDirectories);
+                var program = compiler.Compile(o.MainModule, files.Select(File.ReadAllText));
 
-            BiteParser parser = new BiteParser();
-            var program = parser.ParseModules(options.MainModule, files.Select(File.ReadAllText));
-            CodeGenerator generator = new CodeGenerator();
-            var context = generator.CompileProgram(program);
-            BiteVm biteVm = new BiteVm();
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            biteVm.Interpret(context);
-            stopwatch.Stop();
+                program.Run();
+            });
         }
     }
 }

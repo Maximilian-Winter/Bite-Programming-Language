@@ -6,6 +6,14 @@ using Bite.SymbolTable;
 
 namespace Bite.Runtime.CodeGen
 {
+    public class CompilerException : Exception
+    {
+        public CompilerException(string message) : base(message)
+        {
+
+        }
+    }
+
     public class CodeGenerator : HeteroAstVisitor<object>, IAstVisitor
     {
         private int m_CurrentEnterBlockCount = 0;
@@ -1183,6 +1191,11 @@ namespace Bite.Runtime.CodeGen
                         Symbol symbol = node.AstScopeNode.resolve(node.PrimaryId.Id, out int moduleId, ref d);
                         AddToConstuctingByteCodeInstruction(moduleId);
                         AddToConstuctingByteCodeInstruction(d);
+
+                        if (symbol == null)
+                        {
+                            throw new CompilerException($"Failed to resolve symbol '{node.PrimaryId.Id}' in scope '{node.AstScopeNode.Name}'");
+                        }
 
                         if (symbol.SymbolScope is ClassSymbol s)
                         {

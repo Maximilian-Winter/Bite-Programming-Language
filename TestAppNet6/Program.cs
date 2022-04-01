@@ -116,6 +116,15 @@ Console.WriteLine(greeting);"
         }
 
 
+        public static void TestProgram()
+        {
+
+            var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
+            var compiler = new Compiler(true);
+            var program = compiler.Compile("MainModule", files.Select(File.ReadAllText));
+            var vm = program.Run();
+        }
+
         public static void PerfTests()
         {
 
