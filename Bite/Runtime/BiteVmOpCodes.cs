@@ -33,6 +33,8 @@
         OpBitwiseOr,
         OpBitwiseAnd,
         OpBitwiseXor,
+        OpBitwiseLeftShift,
+        OpBitwiseRightShift,
         OpPostfixIncrement,
         OpPostfixDecrement,
         OpPrefixIncrement,
