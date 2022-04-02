@@ -66,48 +66,6 @@ The following code will calculate the first 36 fibonacci numbers 1000 times:
 ![CodeBitePic](https://user-images.githubusercontent.com/24946356/161370277-ec838b53-0865-4536-ae74-c4b25d4ac850.PNG)
 
 
-```
-module MainModule;
-
-import System;
-using System;
-
-function FindFibonacciNumber(n)
-{
-    var count= 2;
-    var a = 1;
-    var b = 1;
-    var c = 1;
-    if(n == 0)
-    {
-        return 0;
-    }
-    while(count<n)
-    {
-        c = a + b;
-        a = b;
-        b = c; 
-        count++;
-    }
-
-    return c;
-}
-
-var temp = 0;
-var count3 = 0;
-
-while(count3 < 1000)
-{
-    var count2 = 0;
-    while(count2 < 37)
-    {
-        temp = FindFibonacciNumber(count2);
-        count2++;
-    }
-    count3++;
-}
-```
-
 # Usage
 
 The easiest way to get up and running is to create an instance of the `Compiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
@@ -147,9 +105,6 @@ The following command will compile the bite modules in `.\TestProgram` and start
 ```
 
 
-
-
-
 # Importing and using C# Types and Objects.
 
 You can import c# types into a module. For example, to write to the console you can use the `CSharpInterface` object like so:
@@ -175,9 +130,3 @@ For .NET Core to .NET 6.0, you need to specify an Assembly Qualified Name if the
 ```
 CSharpInterfaceObject.Type = "System.Console, System.Console";
 ```
-
-# VS Code Extension for Syntax Highlighting.
-https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code
-
-vsix to install it locally
-https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha
