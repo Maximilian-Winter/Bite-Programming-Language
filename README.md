@@ -127,3 +127,7 @@ For .NET Core to .NET 6.0, you need to specify an Assembly Qualified Name if the
 ```
 CSharpInterfaceObject.Type = "System.Console, System.Console";
 ```
+
+# VS Code Extension for Syntax Highlighting.
+https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code
+https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha
