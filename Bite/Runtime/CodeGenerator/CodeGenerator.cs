@@ -430,6 +430,7 @@ namespace Bite.Runtime.CodeGen
                 m_BiteProgram.SaveCurrentChunk(m_CurrentClassName);
             }
 
+           
             foreach (FieldSymbol field in symbol.Fields)
             {
                 if (field.DefinitionNode != null && field.DefinitionNode is VariableDeclarationNode variableDeclarationNode)
@@ -442,14 +443,14 @@ namespace Bite.Runtime.CodeGen
                 }
                 else
                 {
-
-                    EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
-
+                    if ( !field.Name.Equals( "this" ) )
+                    {
+                        EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
+                    }
                     //EmitByteCode( field.Type );
                 }
             }
-
-            foreach (MethodSymbol method in symbol.DefinedMethods)
+            foreach (MethodSymbol method in symbol.Methods)
             {
                 if (method.DefNode != null)
                 {
@@ -461,6 +462,9 @@ namespace Bite.Runtime.CodeGen
                     //EmitByteCode( method.InsertionOrderNumber );
                 }
             }
+
+           
+            EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
             m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
             return null;
         }
@@ -472,6 +476,7 @@ namespace Bite.Runtime.CodeGen
             FunctionSymbol symbol = node.AstScopeNode.resolve(node.FunctionId.Id, out int moduleId, ref d) as FunctionSymbol;
             if (m_BiteProgram.HasChunk(symbol.QualifiedName))
             {
+                EmitByteCode(BiteVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
                 //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
                 m_BiteProgram.RestoreChunk(symbol.QualifiedName);
             }

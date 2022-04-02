@@ -16,7 +16,14 @@ namespace Bite.Runtime.CodeGen
         internal Dictionary<string, BinaryChunk> CompiledChunks { get; }
         internal Chunk MainChunk { get;  }
         internal BinaryChunk CompiledMainChunk { get; private set; }
-        internal Chunk CurrentChunk => m_CompilingChunk;
+        internal Chunk CurrentChunk
+        {
+            get => m_CompilingChunk;
+            set
+            {
+                m_CompilingChunk = value;
+            }
+        }
 
         public BiteProgram(ModuleNode module)
         {
@@ -25,7 +32,7 @@ namespace Bite.Runtime.CodeGen
             //SymbolTableBuilder.BuildStatementsSymbolTable(statements);
             m_CompilingChunks = new Dictionary<string, Chunk>();
             MainChunk = new Chunk();
-            m_CompilingChunk = MainChunk;
+            CurrentChunk = MainChunk;
             CompiledChunks = new Dictionary<string, BinaryChunk>();
         }
 
@@ -35,7 +42,7 @@ namespace Bite.Runtime.CodeGen
             SymbolTableBuilder.BuildProgramSymbolTable(programNode);
             m_CompilingChunks = new Dictionary<string, Chunk>();
             MainChunk = new Chunk();
-            m_CompilingChunk = MainChunk;
+            CurrentChunk = MainChunk;
             CompiledChunks = new Dictionary<string, BinaryChunk>();
         }
 
@@ -46,17 +53,17 @@ namespace Bite.Runtime.CodeGen
 
         internal void PushChunk()
         {
-            _savedChunks.Push(m_CompilingChunk);
+            _savedChunks.Push(CurrentChunk);
         }
 
         internal void PopChunk()
         {
-            m_CompilingChunk = _savedChunks.Pop();
+            CurrentChunk = _savedChunks.Pop();
         }
 
         internal void NewChunk()
         {
-            m_CompilingChunk = new Chunk();
+            CurrentChunk = new Chunk();
         }
 
         internal void SaveCurrentChunk(string moduleName)
@@ -66,7 +73,7 @@ namespace Bite.Runtime.CodeGen
 
         internal void RestoreChunk(string moduleName)
         {
-            m_CompilingChunk = m_CompilingChunks[moduleName];
+            CurrentChunk = m_CompilingChunks[moduleName];
         }
 
         internal void Build()
