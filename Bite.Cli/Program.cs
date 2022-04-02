@@ -16,7 +16,7 @@ namespace Bite.Cli
 
             commandLine.Parse<Options>(o =>
             {
-                var files = Directory.EnumerateFiles(o.Path, "*.srsl", SearchOption.AllDirectories);
+                var files = Directory.EnumerateFiles(o.Path, "*.bite", SearchOption.AllDirectories);
 
                 var compiler = new Compiler(true);
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetName>srslvm</TargetName>
+		<TargetName>bitevm</TargetName>
 		<AssemblyName>Bite.Cli</AssemblyName>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net462</TargetFramework>
@@ -14,13 +14,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="TestProgram\AModule.srsl">
+	  <None Update="TestProgram\CSharpSystemModule.bite">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Update="TestProgram\CSharpSystemModule.srsl">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="TestProgram\MainModule.srsl">
+	  <None Update="TestProgram\MainModule.bite">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
