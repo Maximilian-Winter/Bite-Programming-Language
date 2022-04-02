@@ -1,15 +1,20 @@
 # Bite Programming Language
 Bite is a dynamic programming language. 
 
-
 It uses Modules, Classes and Functions to separate the code.
-
+My idea was it to have a dynamically interpreted language in C# to support modding functionality and easy patching for the Unity Game Engine.
 
 # Features
 
 * Module system
 * Dynamically typed
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
+
+# Overall Status
+
+I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
+
+
 
 # Modules
 Bite modules encapsulate code, classes and functions similar to namespaces in C#. You can import one module into another to access its declarations.
@@ -45,13 +50,6 @@ VariableName;        // ModuleName Variable
 ```
 
 The main module code is executed after the imported module code is excecuted.
-
-
-# Overall Status
-
-I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
-
-The idea was to have a dynamically interpreted language in C# to support modding functionality and easy patching for the Unity Game Engine.
 
 
 # Example Code
