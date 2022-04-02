@@ -63,10 +63,10 @@ while(count3 < 1000)
 
 # Usage
 
-The easiest way to get up and running is to create an instance of the `Compiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Srsl code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+The easiest way to get up and running is to create an instance of the `Compiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 ```c#
-   var files = Directory.EnumerateFiles(o.Path, "*.srsl", SearchOption.AllDirectories);
+   var files = Directory.EnumerateFiles(o.Path, "*.bite", SearchOption.AllDirectories);
 
     // Sets ThrowOnRecognitionException to catch parsing errors
     var compiler = new Compiler(true);
@@ -79,12 +79,12 @@ The easiest way to get up and running is to create an instance of the `Compiler`
 
 # CLI
 
-The `Srsl.Cli` project outputs an executable `srslvm.exe` that will compile and run a set of files in the specified location.
+The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location.
 
 ```
 USAGE:
 
-  srslvm.exe <OPTIONS>
+  bitevm.exe <OPTIONS>
 
 OPTIONS:
 
@@ -93,10 +93,10 @@ OPTIONS:
   -i  (--input) : A list of modules to be loaded
 ```
 
-The following command will compile the srsl modules in `.\TestProgram` and start execution from the `MainModule` module.
+The following command will compile the bite modules in `.\TestProgram` and start execution from the `MainModule` module.
 
 ```
-  srslvm -m MainModule -p .\TestProgram
+  bitevm -m MainModule -p .\TestProgram
 ```
 
 # Modules

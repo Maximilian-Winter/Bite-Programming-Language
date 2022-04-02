@@ -74,7 +74,7 @@ namespace Bite.Runtime.SymbolTable
 
             m.EnclosingScope = CurrentScope;
             pushScope(m);
-            SrslClassType classType = new SrslClassType("Object");
+            BiteClassType classType = new BiteClassType("Object");
 
             ClassSymbol classSymbol = new ClassSymbol(
                 "Object",
@@ -92,7 +92,7 @@ namespace Bite.Runtime.SymbolTable
                 ClassAndMemberModifiers.None);
 
             ParameterSymbol parameterSymbol = new ParameterSymbol("x");
-            SrslClassType functionType = new SrslClassType("Object");
+            BiteClassType functionType = new BiteClassType("Object");
 
             functionSymbol.Type = functionType;
             functionSymbol.EnclosingScope = CurrentScope;
@@ -115,7 +115,7 @@ namespace Bite.Runtime.SymbolTable
                 ClassAndMemberModifiers.None);
 
             ParameterSymbol parameterCSharpInterfaceSymbol = new ParameterSymbol("x");
-            SrslClassType functionTypeCSharpInterface = new SrslClassType("Object");
+            BiteClassType functionTypeCSharpInterface = new BiteClassType("Object");
 
             functionSymbol.Type = functionTypeCSharpInterface;
             functionSymbol.EnclosingScope = CurrentScope;
@@ -132,7 +132,7 @@ namespace Bite.Runtime.SymbolTable
             popScope();
             CurrentScope.define(functionSymbol);
 
-            SrslClassType classTypeFli = new SrslClassType("CSharpInterface");
+            BiteClassType classTypeFli = new BiteClassType("CSharpInterface");
 
             ClassSymbol classSymbolFli = new ClassSymbol(
                 "CSharpInterface",
@@ -146,19 +146,19 @@ namespace Bite.Runtime.SymbolTable
             pushScope(classSymbolFli);
             FieldSymbol fieldSymbol = new FieldSymbol("Type", AccesModifierType.Public, ClassAndMemberModifiers.None);
 
-            fieldSymbol.Type = new SrslClassType("Object");
+            fieldSymbol.Type = new BiteClassType("Object");
             fieldSymbol.DefinitionNode = null;
             CurrentScope.define(fieldSymbol);
 
             fieldSymbol = new FieldSymbol("Method", AccesModifierType.Public, ClassAndMemberModifiers.None);
 
-            fieldSymbol.Type = new SrslClassType("Object");
+            fieldSymbol.Type = new BiteClassType("Object");
             fieldSymbol.DefinitionNode = null;
             CurrentScope.define(fieldSymbol);
 
             fieldSymbol = new FieldSymbol("ObjectInstance", AccesModifierType.Public, ClassAndMemberModifiers.None);
 
-            fieldSymbol.Type = new SrslClassType("Object");
+            fieldSymbol.Type = new BiteClassType("Object");
             fieldSymbol.DefinitionNode = null;
             CurrentScope.define(fieldSymbol);
 
@@ -167,7 +167,7 @@ namespace Bite.Runtime.SymbolTable
             ClassInstanceDeclarationNode typeDecl = new ClassInstanceDeclarationNode();
             typeDecl.AstScopeNode = CurrentScope;
             typeDecl.ClassName = new Identifier("Object");
-            fieldSymbol.Type = new SrslClassType("Object");
+            fieldSymbol.Type = new BiteClassType("Object");
             fieldSymbol.DefinitionNode = typeDecl;
             CurrentScope.define(fieldSymbol);
 
@@ -176,7 +176,7 @@ namespace Bite.Runtime.SymbolTable
                 AccesModifierType.Public,
                 ClassAndMemberModifiers.None);
 
-            fieldSymbol.Type = new SrslClassType("Object");
+            fieldSymbol.Type = new BiteClassType("Object");
             fieldSymbol.DefinitionNode = typeDecl;
             CurrentScope.define(fieldSymbol);
 
@@ -371,7 +371,7 @@ namespace Bite.Runtime.SymbolTable
 
             ClassType enclosingClass = m_CurrentClass;
             m_CurrentClass = ClassType.CLASS;
-            SrslClassType classType = new SrslClassType(node.ClassId.Id);
+            BiteClassType classType = new BiteClassType(node.ClassId.Id);
 
             ClassSymbol classSymbol = new ClassSymbol(
                 node.ClassId.Id,
@@ -437,7 +437,7 @@ namespace Bite.Runtime.SymbolTable
                         memberDeclarationContext.VarId.Id,
                         isPublicField ? AccesModifierType.Public : AccesModifierType.Private,
                         isStaticField ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None);
-                    fieldSymbol.Type = new SrslClassType("Object");
+                    fieldSymbol.Type = new BiteClassType("Object");
                     fieldSymbol.DefinitionNode = memberDeclarationContext;
                     CurrentScope.define(fieldSymbol);
                 }
@@ -463,7 +463,7 @@ namespace Bite.Runtime.SymbolTable
                         isPublicField ? AccesModifierType.Public : AccesModifierType.Private,
                         isStaticField ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None);
 
-                    fieldSymbol.Type = new SrslClassType(memberDeclarationContext.ClassName.Id);
+                    fieldSymbol.Type = new BiteClassType(memberDeclarationContext.ClassName.Id);
                     fieldSymbol.DefinitionNode = memberDeclarationContext;
                     CurrentScope.define(fieldSymbol);
                 }
@@ -577,7 +577,7 @@ namespace Bite.Runtime.SymbolTable
                 isStatic ? ClassAndMemberModifiers.Static :
                 isAbstract ? ClassAndMemberModifiers.Abstract : ClassAndMemberModifiers.None);
 
-            SrslClassType functionType = new SrslClassType("Object");
+            BiteClassType functionType = new BiteClassType("Object");
 
             f.Type = functionType;
             f.defNode = node;
@@ -637,7 +637,7 @@ namespace Bite.Runtime.SymbolTable
                 declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
                 isStatic ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None);
 
-            variableSymbol.Type = new SrslClassType("Object");
+            variableSymbol.Type = new BiteClassType("Object");
             variableSymbol.DefinitionNode = node;
             CurrentScope.define(variableSymbol);
 
@@ -655,7 +655,7 @@ namespace Bite.Runtime.SymbolTable
             bool isStatic = node.Modifiers.Modifiers != null &&
                             node.Modifiers.Modifiers.Contains(ModifiersNode.ModifierTypes.DeclareStatic);
 
-            SrslClassType classType = new SrslClassType(node.ClassName.Id);
+            BiteClassType classType = new BiteClassType(node.ClassName.Id);
 
             DynamicVariable classInstance = new DynamicVariable(
                 node.InstanceId.Id,

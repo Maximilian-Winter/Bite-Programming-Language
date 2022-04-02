@@ -23,9 +23,9 @@ namespace Bite.Parser
         {
             ProgramNode program = new ProgramNode(mainModule);
 
-            foreach (Func<string> srslModule in modules)
+            foreach (Func<string> biteModule in modules)
             {
-                ModuleNode module = ParseModule(srslModule());
+                ModuleNode module = ParseModule(biteModule());
                 program.AddModule(module);
             }
 
@@ -42,18 +42,18 @@ namespace Bite.Parser
         {
             ProgramNode program = new ProgramNode(mainModule);
 
-            foreach (string srslModule in modules)
+            foreach (string biteModule in modules)
             {
-                ModuleNode module = ParseModule(srslModule);
+                ModuleNode module = ParseModule(biteModule);
                 program.AddModule(module);
             }
 
             return program;
         }
 
-        public ModuleNode ParseModule(string srslModule)
+        public ModuleNode ParseModule(string biteModule)
         {
-            BiteLexer lexer = new BiteLexer(srslModule);
+            BiteLexer lexer = new BiteLexer(biteModule);
             BiteModuleParser parser = new BiteModuleParser(lexer);
             var context = parser.module();
             Exception = context.Exception;

@@ -1,7 +1,7 @@
 ﻿namespace Bite.Runtime
 {
 
-    public enum SrslVmOpCodes : byte
+    public enum BiteVmOpCodes : byte
     {
         OpNone,
         OpPopStack,

@@ -10,10 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestProgram\CSharpSystemModule.srsl">
+    <None Update="TestProgram\CSharpSystemModule.bite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestProgram\MainModule.srsl">
+    <None Update="TestProgram\MainModule.bite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

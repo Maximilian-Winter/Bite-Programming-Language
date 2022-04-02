@@ -5,7 +5,7 @@ namespace Bite.Runtime.Bytecode
 
     public static class ChunkHelper
     {
-        public static int WriteToChunk(this Chunk chunk, SrslVmOpCodes code, int line)
+        public static int WriteToChunk(this Chunk chunk, BiteVmOpCodes code, int line)
         {
             chunk.Code.Add(new ByteCode(code));
             chunk.Lines.Add(line);
@@ -19,7 +19,7 @@ namespace Bite.Runtime.Bytecode
             return chunk.Code.Count - 1;
         }
 
-        public static int WriteToChunk(this Chunk chunk, SrslVmOpCodes code, ConstantValue constant, int line)
+        public static int WriteToChunk(this Chunk chunk, BiteVmOpCodes code, ConstantValue constant, int line)
         {
             chunk.Code.Add(new ByteCode(code, chunk.Constants.Count));
             chunk.Constants.Add(constant);
@@ -27,7 +27,7 @@ namespace Bite.Runtime.Bytecode
             return chunk.Code.Count - 1;
         }
 
-        public static int WriteToChunk(this Chunk chunk, SrslVmOpCodes code, ConstantValue constant, int opCodeData, int line)
+        public static int WriteToChunk(this Chunk chunk, BiteVmOpCodes code, ConstantValue constant, int opCodeData, int line)
         {
             chunk.Code.Add(new ByteCode(code, chunk.Constants.Count, opCodeData));
             chunk.Constants.Add(constant);

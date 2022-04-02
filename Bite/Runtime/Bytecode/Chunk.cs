@@ -6,67 +6,55 @@ namespace Bite.Runtime.Bytecode
 
     public class ByteCode
     {
-        public ByteCode(SrslVmOpCodes opCode)
+        public ByteCode(BiteVmOpCodes opCode)
         {
             OpCode = opCode;
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData };
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData1, int opCodeData2)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData1, int opCodeData2)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData1, opCodeData2 };
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData1, opCodeData2, opCodeData3 };
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData1, opCodeData2, opCodeData3, opCodeData4 };
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4, int opCodeData5)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4, int opCodeData5)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData1, opCodeData2, opCodeData3, opCodeData4, opCodeData5 };
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4, int opCodeData5, int opCodeData6)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4, int opCodeData5, int opCodeData6)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData1, opCodeData2, opCodeData3, opCodeData4, opCodeData5, opCodeData6 };
         }
 
-        public ByteCode(SrslVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4, int opCodeData5, int opCodeData6, int opCodeData7)
+        public ByteCode(BiteVmOpCodes opCode, int opCodeData1, int opCodeData2, int opCodeData3, int opCodeData4, int opCodeData5, int opCodeData6, int opCodeData7)
         {
             OpCode = opCode;
             OpCodeData = new[] { opCodeData1, opCodeData2, opCodeData3, opCodeData4, opCodeData5, opCodeData6, opCodeData7 };
         }
 
-        public SrslVmOpCodes OpCode;
+        public BiteVmOpCodes OpCode;
         public int[] OpCodeData;
-
-        /* public SrslVmOpCodes OpCode
-         {
-             get => m_OpCode;
-             set => m_OpCode = value;
-         }
-
-         public int[] OpCodeData
-         {
-             get => m_OpCodeData;
-             set => m_OpCodeData = value;
-         }*/
 
         public override string ToString()
         {

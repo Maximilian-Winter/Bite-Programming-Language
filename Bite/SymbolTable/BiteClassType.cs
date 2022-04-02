@@ -3,9 +3,9 @@
 namespace Bite.SymbolTable
 {
 
-    public class SrslClassType : Type
+    public class BiteClassType : Type
     {
-        private static readonly List<string> s_SrslClassTypes = new List<string>();
+        private static readonly List<string> s_BiteClassTypes = new List<string>();
         private static int s_ClassTypeIndex = 0;
 
         public string Name { get; }
@@ -14,18 +14,18 @@ namespace Bite.SymbolTable
 
         #region Public
 
-        public SrslClassType(string typeName)
+        public BiteClassType(string typeName)
         {
             Name = typeName;
 
-            if (s_SrslClassTypes.Contains(typeName))
+            if (s_BiteClassTypes.Contains(typeName))
             {
-                s_ClassTypeIndex = s_SrslClassTypes.FindIndex(s => s == typeName);
+                s_ClassTypeIndex = s_BiteClassTypes.FindIndex(s => s == typeName);
             }
             else
             {
-                s_ClassTypeIndex = s_SrslClassTypes.Count;
-                s_SrslClassTypes.Add(typeName);
+                s_ClassTypeIndex = s_BiteClassTypes.Count;
+                s_BiteClassTypes.Add(typeName);
             }
         }
 

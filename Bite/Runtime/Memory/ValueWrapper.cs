@@ -172,7 +172,6 @@ namespace Bite.Runtime.Memory
 
         public object ToObject()
         {
-            //DynamicVariableExtension.ReturnDynamicSrslVariable( this );
             if (DynamicType == DynamicVariableType.Null)
             {
                 return null;

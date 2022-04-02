@@ -60,7 +60,7 @@ namespace Bite.Runtime
         private bool m_SetMember = false;
         private bool m_KeepLastItemOnStackToReturn = false;
         private DynamicBiteVariable m_ReturnRegister = null;
-        private SrslVmOpCodes m_CurrentByteCodeInstruction = SrslVmOpCodes.OpNone;
+        private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
         public Dictionary<string, BinaryChunk> CompiledChunks => m_CompiledChunks;
 
@@ -126,9 +126,9 @@ namespace Bite.Runtime
             return Run();
         }
 
-        private SrslVmOpCodes ReadInstruction()
+        private BiteVmOpCodes ReadInstruction()
         {
-            m_CurrentByteCodeInstruction = (SrslVmOpCodes)m_CurrentChunk.Code[m_CurrentInstructionPointer];
+            m_CurrentByteCodeInstruction = (BiteVmOpCodes)m_CurrentChunk.Code[m_CurrentInstructionPointer];
             m_CurrentInstructionPointer++;
 
             return m_CurrentByteCodeInstruction;
@@ -166,30 +166,30 @@ namespace Bite.Runtime
                 m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer );
 #endif
 
-                    SrslVmOpCodes instruction = ReadInstruction();
+                    BiteVmOpCodes instruction = ReadInstruction();
 
                     switch (instruction)
                     {
-                        case SrslVmOpCodes.OpNone:
+                        case BiteVmOpCodes.OpNone:
                             {
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpPopStack:
+                        case BiteVmOpCodes.OpPopStack:
                             {
                                 m_VmStack.Pop();
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBreak:
+                        case BiteVmOpCodes.OpBreak:
                             {
                                 m_CurrentInstructionPointer = m_LoopEndJumpCode;
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDefineModule:
+                        case BiteVmOpCodes.OpDefineModule:
                             {
                                 string moduleName = ReadConstant().StringConstantValue;
                                 int depth = 0;
@@ -223,7 +223,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDefineClass:
+                        case BiteVmOpCodes.OpDefineClass:
                             {
                                 string className = ReadConstant().StringConstantValue;
 
@@ -236,7 +236,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDefineMethod:
+                        case BiteVmOpCodes.OpDefineMethod:
                             {
                                 string methodName = ReadConstant().StringConstantValue;
 
@@ -250,7 +250,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBindToFunction:
+                        case BiteVmOpCodes.OpBindToFunction:
                             {
                                 int numberOfArguments = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                         (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -268,7 +268,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpCallFunction:
+                        case BiteVmOpCodes.OpCallFunction:
                             {
                                 string method = ReadConstant().StringConstantValue;
                                 DynamicBiteVariable call = m_CurrentMemorySpace.Get(method);
@@ -306,7 +306,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpCallMemberFunction:
+                        case BiteVmOpCodes.OpCallMemberFunction:
                             {
                                 ConstantValue constant = ReadConstant();
                                 DynamicBiteVariable dynamicBiteVariable = m_VmStack.Pop();
@@ -450,7 +450,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDefineLocalInstance:
+                        case BiteVmOpCodes.OpDefineLocalInstance:
                             {
                                 int moduleIdClass = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                     (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -504,21 +504,21 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDefineLocalVar:
+                        case BiteVmOpCodes.OpDefineLocalVar:
                             {
                                 m_CurrentMemorySpace.Define(m_VmStack.Pop());
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDeclareLocalVar:
+                        case BiteVmOpCodes.OpDeclareLocalVar:
                             {
                                 m_CurrentMemorySpace.Define(DynamicVariableExtension.ToDynamicVariable());
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSetLocalInstance:
+                        case BiteVmOpCodes.OpSetLocalInstance:
                             {
                                 int moduleIdLocalInstance = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                             (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -603,7 +603,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpGetLocalVar:
+                        case BiteVmOpCodes.OpGetLocalVar:
                             {
                                 m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                             (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -643,7 +643,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpGetModule:
+                        case BiteVmOpCodes.OpGetModule:
                             {
                                 int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                          (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -657,7 +657,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpGetMember:
+                        case BiteVmOpCodes.OpGetMember:
                             {
                                 int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                          (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -671,7 +671,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSetMember:
+                        case BiteVmOpCodes.OpSetMember:
                             {
                                 int id = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                          (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -685,7 +685,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSetLocalVar:
+                        case BiteVmOpCodes.OpSetLocalVar:
                             {
                                 int moduleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -724,7 +724,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpConstant:
+                        case BiteVmOpCodes.OpConstant:
                             {
                                 ConstantValue constantValue = ReadConstant();
 
@@ -761,7 +761,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpWhileLoop:
+                        case BiteVmOpCodes.OpWhileLoop:
                             {
                                 int jumpCodeHeaderStart = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                           (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -781,7 +781,7 @@ namespace Bite.Runtime
 
                                 if (m_VmStack.Pop().DynamicType == DynamicVariableType.True)
                                 {
-                                    m_CurrentChunk.Code[jumpCodeBodyEnd] = (byte)SrslVmOpCodes.OpJump;
+                                    m_CurrentChunk.Code[jumpCodeBodyEnd] = (byte)BiteVmOpCodes.OpJump;
                                     IntByteStruct intByteStruct = new IntByteStruct();
                                     intByteStruct.integer = jumpCodeHeaderStart;
                                     m_CurrentChunk.Code[jumpCodeBodyEnd + 1] = intByteStruct.byte0;
@@ -808,7 +808,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpJump:
+                        case BiteVmOpCodes.OpJump:
                             {
                                 int jumpCode = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -821,7 +821,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpAssign:
+                        case BiteVmOpCodes.OpAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -868,7 +868,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDivideAssign:
+                        case BiteVmOpCodes.OpDivideAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -939,7 +939,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpMultiplyAssign:
+                        case BiteVmOpCodes.OpMultiplyAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1010,7 +1010,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpPlusAssign:
+                        case BiteVmOpCodes.OpPlusAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1081,7 +1081,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpMinusAssign:
+                        case BiteVmOpCodes.OpMinusAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1152,7 +1152,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpModuloAssign:
+                        case BiteVmOpCodes.OpModuloAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1223,7 +1223,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseAndAssign:
+                        case BiteVmOpCodes.OpBitwiseAndAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1294,7 +1294,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseOrAssign:
+                        case BiteVmOpCodes.OpBitwiseOrAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1365,7 +1365,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseXorAssign:
+                        case BiteVmOpCodes.OpBitwiseXorAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1436,7 +1436,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseLeftShiftAssign:
+                        case BiteVmOpCodes.OpBitwiseLeftShiftAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1507,7 +1507,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseRightShiftAssign:
+                        case BiteVmOpCodes.OpBitwiseRightShiftAssign:
                             {
                                 if (m_SetMember)
                                 {
@@ -1578,7 +1578,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSetElement:
+                        case BiteVmOpCodes.OpSetElement:
                             {
                                 int elementAccessCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                          (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -1609,7 +1609,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpGetElement:
+                        case BiteVmOpCodes.OpGetElement:
                             {
                                 int elementAccessCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                          (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -1640,21 +1640,21 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpUsingStatmentHead:
+                        case BiteVmOpCodes.OpUsingStatmentHead:
                             {
                                 m_UsingStatementStack.Push(m_CurrentMemorySpace.Get(-1, 0, -1, 0).ObjectData);
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpUsingStatmentEnd:
+                        case BiteVmOpCodes.OpUsingStatmentEnd:
                             {
                                 m_UsingStatementStack.Pop();
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpTernary:
+                        case BiteVmOpCodes.OpTernary:
                             {
                                 if (m_VmStack.Pop().DynamicType == DynamicVariableType.True)
                                 {
@@ -1668,7 +1668,7 @@ namespace Bite.Runtime
                                 }
                                 break;
                             }
-                        case SrslVmOpCodes.OpAnd:
+                        case BiteVmOpCodes.OpAnd:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1686,7 +1686,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpOr:
+                        case BiteVmOpCodes.OpOr:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1704,7 +1704,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseOr:
+                        case BiteVmOpCodes.OpBitwiseOr:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1724,7 +1724,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseXor:
+                        case BiteVmOpCodes.OpBitwiseXor:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1744,7 +1744,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseAnd:
+                        case BiteVmOpCodes.OpBitwiseAnd:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1763,7 +1763,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseLeftShift:
+                        case BiteVmOpCodes.OpBitwiseLeftShift:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1782,7 +1782,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpBitwiseRightShift:
+                        case BiteVmOpCodes.OpBitwiseRightShift:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1802,7 +1802,7 @@ namespace Bite.Runtime
                             }
 
 
-                        case SrslVmOpCodes.OpNegate:
+                        case BiteVmOpCodes.OpNegate:
                             {
                                 var currentStack = m_VmStack.Peek();
 
@@ -1818,7 +1818,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpAffirm:
+                        case BiteVmOpCodes.OpAffirm:
                             {
                                 var currentStack = m_VmStack.Peek();
 
@@ -1834,7 +1834,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpCompliment:
+                        case BiteVmOpCodes.OpCompliment:
                             {
                                 var currentStack = m_VmStack.Peek();
                                 
@@ -1850,7 +1850,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpPrefixDecrement:
+                        case BiteVmOpCodes.OpPrefixDecrement:
                             {
                                 var currentStack = m_VmStack.Peek();
 
@@ -1866,7 +1866,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpPrefixIncrement:
+                        case BiteVmOpCodes.OpPrefixIncrement:
                             {
                                 var currentStack = m_VmStack.Peek();
 
@@ -1882,7 +1882,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpPostfixDecrement:
+                        case BiteVmOpCodes.OpPostfixDecrement:
                             {
                                 var currentStack = m_VmStack.Peek();
 
@@ -1898,7 +1898,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpPostfixIncrement:
+                        case BiteVmOpCodes.OpPostfixIncrement:
                             {
                                 var currentStack = m_VmStack.Peek();
 
@@ -1914,7 +1914,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSmaller:
+                        case BiteVmOpCodes.OpSmaller:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1934,7 +1934,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSmallerEqual:
+                        case BiteVmOpCodes.OpSmallerEqual:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1954,7 +1954,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpGreater:
+                        case BiteVmOpCodes.OpGreater:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1974,7 +1974,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpGreaterEqual:
+                        case BiteVmOpCodes.OpGreaterEqual:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1994,7 +1994,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpEqual:
+                        case BiteVmOpCodes.OpEqual:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2014,7 +2014,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpNotEqual:
+                        case BiteVmOpCodes.OpNotEqual:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2034,7 +2034,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpNot:
+                        case BiteVmOpCodes.OpNot:
                             {
                                 DynamicBiteVariable value = m_VmStack.Pop();
 
@@ -2052,7 +2052,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpAdd:
+                        case BiteVmOpCodes.OpAdd:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2101,7 +2101,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpSubtract:
+                        case BiteVmOpCodes.OpSubtract:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2121,7 +2121,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpMultiply:
+                        case BiteVmOpCodes.OpMultiply:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2141,7 +2141,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpDivide:
+                        case BiteVmOpCodes.OpDivide:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2161,7 +2161,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpModulo:
+                        case BiteVmOpCodes.OpModulo:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -2181,7 +2181,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpJumpIfFalse:
+                        case BiteVmOpCodes.OpJumpIfFalse:
                             {
                                 int offset = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                              (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -2198,7 +2198,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpEnterBlock:
+                        case BiteVmOpCodes.OpEnterBlock:
                             {
                                 int memberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                   (m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8) |
@@ -2216,7 +2216,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpExitBlock:
+                        case BiteVmOpCodes.OpExitBlock:
                             {
                                 if (m_KeepLastItemOnStackToReturn)
                                 {
@@ -2248,14 +2248,14 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpKeepLastItemOnStack:
+                        case BiteVmOpCodes.OpKeepLastItemOnStack:
                             {
                                 m_KeepLastItemOnStackToReturn = true;
 
                                 break;
                             }
 
-                        case SrslVmOpCodes.OpReturn:
+                        case BiteVmOpCodes.OpReturn:
                             {
                                 if (m_KeepLastItemOnStackToReturn)
                                 {
