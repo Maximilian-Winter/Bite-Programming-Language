@@ -13,7 +13,6 @@ namespace Bite.Runtime.CodeGen
         private Stack<Chunk> _savedChunks = new Stack<Chunk>();
 
         internal BaseScope BaseScope { get; }
-        internal IEnumerable<KeyValuePair<string, Chunk>> CompilingChunks => m_CompilingChunks;
         internal Dictionary<string, BinaryChunk> CompiledChunks { get; }
         internal Chunk MainChunk { get;  }
         internal BinaryChunk CompiledMainChunk { get; private set; }
@@ -71,10 +70,11 @@ namespace Bite.Runtime.CodeGen
             m_CompilingChunk = m_CompilingChunks[moduleName];
         }
 
+
         internal void Build()
         {
 
-            foreach (KeyValuePair<string, Chunk> compilingChunk in CompilingChunks)
+            foreach (KeyValuePair<string, Chunk> compilingChunk in m_CompilingChunks)
             {
                 CompiledChunks.Add(compilingChunk.Key, new BinaryChunk(compilingChunk.Value.SerializeToBytes(), compilingChunk.Value.Constants, compilingChunk.Value.Lines));
             }

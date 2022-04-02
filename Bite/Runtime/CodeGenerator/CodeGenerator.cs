@@ -6,14 +6,6 @@ using Bite.SymbolTable;
 
 namespace Bite.Runtime.CodeGen
 {
-    public class CompilerException : Exception
-    {
-        public CompilerException(string message) : base(message)
-        {
-
-        }
-    }
-
     public class CodeGenerator : HeteroAstVisitor<object>, IAstVisitor
     {
         private int m_CurrentEnterBlockCount = 0;
@@ -128,13 +120,12 @@ namespace Bite.Runtime.CodeGen
 
             return m_BiteProgram;
         }
+
         public BiteProgram CompileStatements(IReadOnlyCollection<StatementNode> statements)
         {
             var module = new ModuleNode()
             {
                 ModuleIdent = new ModuleIdentifier("MainModule"),
-                //ImportedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
-                //UsedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
                 Statements = statements
             };
 
@@ -152,8 +143,6 @@ namespace Bite.Runtime.CodeGen
             var module = new ModuleNode()
             {
                 ModuleIdent = new ModuleIdentifier("MainModule"),
-                //ImportedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
-                //UsedModules = new List<ModuleIdentifier>() { new ModuleIdentifier("System", null) },
                 Statements = new List<StatementNode>()
                 {
                     new ExpressionStatementNode()
@@ -167,11 +156,6 @@ namespace Bite.Runtime.CodeGen
 
             module.Accept(this);
 
-            //foreach (var statement in statements)
-            //{
-            //    statement.Accept(this);
-            //}
-
             m_BiteProgram.Build();
 
             return m_BiteProgram;
@@ -181,52 +165,13 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(ProgramNode node)
         {
-            //Chunk saveChunk1 = m_CompilationContext.m_CompilingChunk;
             m_BiteProgram.PushChunk();
 
-            /*int d = 0;
-            ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
-            EmitByteCode( BiteVmOpCodes.OpDefineModule,  new ConstantValue("System"));
-            //EmitByteCode( mod.InsertionOrderNumber);
-            m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( "System", m_CompilingChunk);
-            Chunk saveChunk2 = m_CompilingChunk;
-
-            int d2 = 0;
-            ClassSymbol c = m.resolve( "Object", out int moduleId2, ref d2 ) as ClassSymbol;
-            EmitByteCode( BiteVmOpCodes.OpDefineClass, new ConstantValue("System.Object") );
-            //EmitByteCode( symbol.InsertionOrderNumber );
-            m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( "System.Object", m_CompilingChunk);
-            m_CompilingChunk = saveChunk2;
-
-            int d4 = 0;
-            MethodSymbol method = m.resolve( "Print", out int moduleId4, ref d4 ) as MethodSymbol;
-            EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue("System.Print") );
-            //EmitByteCode( symbol.InsertionOrderNumber );
-            m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( "System.Print", m_CompilingChunk);
-            m_CompilingChunk = saveChunk2;
-
-            int d5 = 0;
-            MethodSymbol method2 = m.resolve( "CSharpInterfaceCall", out int moduleId5, ref d5 ) as MethodSymbol;
-            EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue("System.CSharpInterfaceCall") );
-            //EmitByteCode( symbol.InsertionOrderNumber );
-            m_CompilingChunk = new Chunk();
-            CompilingChunks.Add( "System.CSharpInterfaceCall", m_CompilingChunk);
-            m_CompilingChunk = saveChunk2;
-
-            int d3 = 0;
-            ClassSymbol c2 = m.resolve( "CSharpInterface", out int moduleId3, ref d3 ) as ClassSymbol;
-            EmitByteCode( BiteVmOpCodes.OpDefineClass, new ConstantValue("System.CSharpInterface") );*/
-            //EmitByteCode( symbol.InsertionOrderNumber );
             int d = 0;
             ModuleSymbol m = node.AstScopeNode.resolve("System", out int moduleId, ref d) as ModuleSymbol;
 
             int d2 = 0;
             ClassSymbol c = m.resolve("Object", out int moduleId2, ref d2) as ClassSymbol;
-
-            //m_CompilingChunk = new Chunk();
 
             m_BiteProgram.NewChunk();
 
@@ -236,11 +181,8 @@ namespace Bite.Runtime.CodeGen
             EmitByteCode(byteCode);
             EmitByteCode(byteCode);
 
-            //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilationContext.CurrentChunk);
             m_BiteProgram.SaveCurrentChunk("System.CSharpInterface");
-            //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilingChunk);
 
-            //m_CompilationContext.RestoreChunk(saveChunk1);
             m_BiteProgram.PopChunk();
 
 
@@ -249,32 +191,22 @@ namespace Bite.Runtime.CodeGen
             {
                 Compile(module);
             }
-
-            //var mainModule = node.GetMainModule();
-
-            //if (mainModule != null)
-            //{
-            //    Compile(mainModule);
-            //}
-            //else
-            //{
-            //    throw new Exception("Main Module: " + node.MainModule + " not found!");
-            //}
-
             return null;
         }
 
         public override object Visit(ModuleNode node)
         {
             m_CurrentModuleName = node.ModuleIdent.ToString();
-            //Chunk saveChunk = m_CompilingChunk;
+
             m_BiteProgram.PushChunk();
 
             int d = 0;
             ModuleSymbol mod = m_BiteProgram.BaseScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
+
+            // TODO: What happens when we encounter a module that has a name that is already in the program?
+
             if (m_BiteProgram.HasChunk(m_CurrentModuleName))
             {
-                //m_CompilingChunk = CompilingChunks[m_CurrentModuleName];
                 m_BiteProgram.RestoreChunk(m_CurrentModuleName);
             }
             else
@@ -285,9 +217,8 @@ namespace Bite.Runtime.CodeGen
                         new ConstantValue(m_CurrentModuleName),
                         mod.NumberOfSymbols,
                         0);
-                //m_CompilingChunk = new Chunk();
                 m_BiteProgram.NewChunk();
-                //CompilingChunks.Add(m_CurrentModuleName, m_CompilingChunk);
+
                 m_BiteProgram.SaveCurrentChunk(m_CurrentModuleName);
             }
 
@@ -321,7 +252,7 @@ namespace Bite.Runtime.CodeGen
                 }
             }
 
-            m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
+            m_BiteProgram.PopChunk();;
 
             return null;
         }
@@ -412,21 +343,19 @@ namespace Bite.Runtime.CodeGen
             int d = 0;
             ClassSymbol symbol = (ClassSymbol)node.AstScopeNode.resolve(node.ClassId.Id, out int moduleId, ref d);
             m_CurrentClassName = symbol.QualifiedName;
-            //Chunk saveChunk = m_CompilingChunk;
 
             m_BiteProgram.PushChunk();
 
             if (m_BiteProgram.HasChunk(m_CurrentClassName))
             {
-                //m_CompilingChunk = CompilingChunks[m_CurrentClassName];
                 m_BiteProgram.RestoreChunk(m_CurrentClassName);
             }
             else
             {
                 EmitByteCode(BiteVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
-                m_BiteProgram.NewChunk(); //m_CompilingChunk = new Chunk();
-                                          // CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
+
+                m_BiteProgram.NewChunk(); 
                 m_BiteProgram.SaveCurrentChunk(m_CurrentClassName);
             }
 
@@ -461,29 +390,32 @@ namespace Bite.Runtime.CodeGen
                     //EmitByteCode( method.InsertionOrderNumber );
                 }
             }
-            m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
+            m_BiteProgram.PopChunk();
+
             return null;
         }
 
         public override object Visit(FunctionDeclarationNode node)
         {
-            m_BiteProgram.PushChunk(); //Chunk saveChunk = m_CompilingChunk;
+            m_BiteProgram.PushChunk();
+
             int d = 0;
+
             FunctionSymbol symbol = node.AstScopeNode.resolve(node.FunctionId.Id, out int moduleId, ref d) as FunctionSymbol;
+            
             if (m_BiteProgram.HasChunk(symbol.QualifiedName))
             {
-                //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
                 m_BiteProgram.RestoreChunk(symbol.QualifiedName);
             }
             else
             {
                 EmitByteCode(BiteVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
-                //m_CompilingChunk = new Chunk();
+
                 m_BiteProgram.NewChunk();
-                //CompilingChunks.Add(symbol.QualifiedName, m_CompilingChunk);
                 m_BiteProgram.SaveCurrentChunk(symbol.QualifiedName);
             }
+
             /*if ( node.Parameters != null )
             {
                 foreach ( Identifier parametersIdentifier in node.Parameters.Identifiers )
@@ -497,13 +429,15 @@ namespace Bite.Runtime.CodeGen
                 Compile(node.FunctionBlock);
             }
 
-            m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
+            m_BiteProgram.PopChunk();
+
             return null;
         }
 
         public override object Visit(VariableDeclarationNode node)
         {
             int d = 0;
+
             DynamicVariable variableSymbol = node.AstScopeNode.resolve(node.VarId.Id, out int moduleId, ref d) as DynamicVariable;
 
             if (node.Initializer != null)
@@ -516,15 +450,20 @@ namespace Bite.Runtime.CodeGen
             {
                 EmitByteCode(BiteVmOpCodes.OpDeclareLocalVar);
             }
+
             return null;
         }
 
         public override object Visit(ClassInstanceDeclarationNode node)
         {
             int d = 0;
+            
             DynamicVariable variableSymbol = node.AstScopeNode.resolve(node.InstanceId.Id, out int moduleId, ref d) as DynamicVariable;
+            
             int d2 = 0;
+            
             ClassSymbol classSymbol = node.AstScopeNode.resolve(node.ClassName.Id, out int moduleId2, ref d2) as ClassSymbol;
+            
             if (node.IsVariableRedeclaration)
             {
                 ByteCode byteCode = new ByteCode(
