@@ -20,7 +20,7 @@ namespace TestApp
         {
             BiteParser parser = new BiteParser();
 
-            var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
+            var files = Directory.EnumerateFiles(".\\TestProgram", "*.bite", SearchOption.AllDirectories);
 
             var program = parser.ParseModules("MainModule", files.Select<string, Func<string>>(f =>
             {

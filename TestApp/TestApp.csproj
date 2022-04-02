@@ -52,10 +52,10 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="TestProgram\CSharpSystemModule.srsl">
+    <None Include="TestProgram\CSharpSystemModule.bite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestProgram\MainModule.srsl">
+    <None Include="TestProgram\MainModule.bite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
