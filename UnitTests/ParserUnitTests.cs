@@ -42,8 +42,10 @@ namespace UnitTests
             Assert.Equal(operatorType, binaryExpression.Operator);
         }
 
+        #region Arithmetic Operators
+
         [Fact]
-        public void AddNumbers()
+        public void ArithmeticAddNumbers()
         {
             var result = ParseExpression("1 + 1");
 
@@ -55,7 +57,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void SubtractNumbers()
+        public void ArithmeticSubtractNumbers()
         {
             var result = ParseExpression("6 - 3");
 
@@ -67,7 +69,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void MultiplyNumbers()
+        public void ArithmeticMultiplyNumbers()
         {
             var result = ParseExpression("4 * 4");
 
@@ -79,7 +81,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void DivideNumbers()
+        public void ArithmeticDivideNumbers()
         {
             var result = ParseExpression("1 / 2");
 
@@ -91,7 +93,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void MultipleAddition()
+        public void ArithmeticMultipleAddition()
         {
             var result = ParseExpression("1 + 2 + 3");
 
@@ -107,13 +109,13 @@ namespace UnitTests
         }
 
         [Fact]
-        public void OperatorPrecedenceMultiplyBeforeAdd()
+        public void ArithmeticOperatorPrecedenceMultiplyBeforeAdd()
         {
             var result = ParseExpression("1 + 2 * 3");
         }
 
         [Fact]
-        public void OperatorPrecedenceMultiplyBeforeAddOuterFirst()
+        public void ArithmeticOperatorPrecedenceMultiplyBeforeAddOuterFirst()
         {
             var result = ParseExpression("1 * 2 + 3 * 4");
 
@@ -133,13 +135,13 @@ namespace UnitTests
         }
 
         [Fact]
-        public void OperatorPrecedenceDivideBeforeSubtract()
+        public void ArithmeticOperatorPrecedenceDivideBeforeSubtract()
         {
             var result = ParseExpression("1 - 3 / 3");
         }
 
         [Fact]
-        public void OperatorPrecedence()
+        public void ArithmeticOperatorPrecedence()
         {
             var result = ParseExpression("2 * 5 - 4 / 2 + 6");
 
@@ -162,7 +164,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void ParenthesesPrecedenceGroupByAdditionSubtraction()
+        public void ArithmeticParenthesesPrecedenceGroupByAdditionSubtraction()
         {
             var result = ParseExpression("2 * (5 - 4) / (2 + 6)");
 
@@ -186,7 +188,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void ParenthesesPrecedenceGroupByMultiplicationDivision()
+        public void ArithmeticParenthesesPrecedenceGroupByMultiplicationDivision()
         {
             var result = ParseExpression("(2 * 5) - (4 / 2) + 6");
 
@@ -207,5 +209,9 @@ namespace UnitTests
                 BinaryOperationNode.BinaryOperatorType.Minus
             );
         }
+
+
+        #endregion
+
     }
 }
