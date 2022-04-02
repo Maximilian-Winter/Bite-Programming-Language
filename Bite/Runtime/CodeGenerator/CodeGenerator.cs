@@ -666,6 +666,7 @@ namespace Bite.Runtime.CodeGen
                 int d = 0;
                 int d2 = 0;
                 bool isModuleSymbol = false;
+                bool isClassSymbol = false;
                 Symbol var = node.AstScopeNode.resolve(node.Primary.PrimaryId.Id, out int moduleId, ref d);
                 ModuleSymbol moduleSymbol = null;
                 ClassSymbol classSymbol = null;
@@ -676,7 +677,11 @@ namespace Bite.Runtime.CodeGen
                 }
                 else
                 {
-                    classSymbol = node.AstScopeNode.resolve((var as DynamicVariable).Type.Name, out int moduleId2, ref d2) as ClassSymbol;
+                    if ( var is DynamicVariable dynamicVariable && dynamicVariable.Type != null )
+                    {
+                        classSymbol = node.AstScopeNode.resolve(dynamicVariable.Type.Name, out int moduleId2, ref d2) as ClassSymbol;
+                        isClassSymbol = true;
+                    }
                 }
 
                 //DynamicVariable dynamicVariable = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d) as DynamicVariable;
@@ -752,7 +757,7 @@ namespace Bite.Runtime.CodeGen
                             }
 
                         }
-                        else
+                        else if(isClassSymbol)
                         {
                             int d4 = 0;
                             FunctionSymbol memberSymbol = classSymbol.resolve(
@@ -769,6 +774,10 @@ namespace Bite.Runtime.CodeGen
                                 EmitByteCode(BiteVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
                             }
 
+                        }
+                        else
+                        {
+                            EmitByteCode(BiteVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                         }
 
                     }
@@ -793,7 +802,7 @@ namespace Bite.Runtime.CodeGen
                                     EmitByteCode(byteCode);
 
                                 }
-                                else
+                                else if(isClassSymbol)
                                 {
                                     int d4 = 0;
 
@@ -806,6 +815,10 @@ namespace Bite.Runtime.CodeGen
                                         BiteVmOpCodes.OpSetMember,
                                         memberSymbol.InsertionOrderNumber);
                                     EmitByteCode(byteCode);
+                                }
+                                else
+                                {
+                                    EmitByteCode(BiteVmOpCodes.OpSetMember, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                                 }
                             }
                             else
@@ -825,7 +838,7 @@ namespace Bite.Runtime.CodeGen
                                     EmitByteCode(byteCode);
 
                                 }
-                                else
+                                else if(isClassSymbol)
                                 {
                                     int d4 = 0;
 
@@ -838,6 +851,10 @@ namespace Bite.Runtime.CodeGen
                                         BiteVmOpCodes.OpGetMember,
                                         memberSymbol.InsertionOrderNumber);
                                     EmitByteCode(byteCode);
+                                }
+                                else
+                                {
+                                    EmitByteCode(BiteVmOpCodes.OpGetMember, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                                 }
 
                             }

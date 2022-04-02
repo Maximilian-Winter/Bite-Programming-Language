@@ -6,6 +6,47 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
+class TestClass
+{
+    var x = 5;
+}
+
+function TestFunction(n)
+{
+    n.x = 10;
+}
+
+
+
+var a = new TestClass();
+
+Print(a.x);
+
+TestFunction(a);
+
+Print(a.x);
+/*
+class Foo
+{
+    var x = 2;
+    var y = 4;
+    var z = 8;
+
+    function FooFunc()
+    {
+        return x * y * z;
+    }
+}
+
+class Bar : Foo
+{
+}
+
+var a = new Bar();
+Print(a.x);
+Print(a.y);
+Print(a.z);
+Print(a.FooFunc());
 
 function FindFibonacciNumber(n)
 {
@@ -42,39 +83,6 @@ while(count3 < 1000)
 }
 
 Print(temp);
-
-
-
-
-
-
-
-
-
-/*
-class Foo
-{
-    var x = 2;
-    var y = 4;
-    var z = 8;
-
-    function FooFunc()
-    {
-        return x * y * z;
-    }
-}
-
-class Bar : Foo
-{
-}
-
-var a = new Bar();
-Print(a.x);
-Print(a.y);
-Print(a.z);
-Print(a.FooFunc());
-
-
 
 function FindPrimeNumber(n)
 {
