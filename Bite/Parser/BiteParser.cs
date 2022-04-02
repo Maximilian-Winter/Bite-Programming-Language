@@ -32,6 +32,7 @@ namespace Bite.Parser
             return program;
         }
 
+
         /// <summary>
         /// Parses a set of modules and returns a <see cref="ProgramNode"/>
         /// </summary>
@@ -42,11 +43,20 @@ namespace Bite.Parser
         {
             ProgramNode program = new ProgramNode(mainModule);
 
-            foreach (string srslModule in modules)
+            var parsedModules = modules.Select(ParseModule).ToList();
+
+            //var root = MakeDependencyTree(parsedModules);
+
+            //foreach (string srslModule in modules)
+            //{
+            //    ModuleNode module = ParseModule(srslModule);
+            //}
+
+            foreach (var module in parsedModules)
             {
-                ModuleNode module = ParseModule(srslModule);
                 program.AddModule(module);
             }
+
 
             return program;
         }

@@ -77,7 +77,7 @@ namespace Bite.Runtime
                 m_CurrentInstructionPointer,
                 4);
 
-            m_GlobalMemorySpace.Modules.Add(callSpace);
+            m_GlobalMemorySpace.AddModule(callSpace);
 
             callSpace.Define(
                 DynamicVariableExtension.ToDynamicVariable(new BiteChunkWrapper(new BinaryChunk())),
@@ -214,7 +214,7 @@ namespace Bite.Runtime
                                     m_CurrentInstructionPointer,
                                     numberOfMembers);
 
-                                m_GlobalMemorySpace.Modules.Add(callSpace);
+                                m_GlobalMemorySpace.AddModule(callSpace);
                                 m_CurrentChunk = CompiledChunks[moduleName];
                                 m_CurrentInstructionPointer = 0;
                                 m_CurrentMemorySpace = callSpace;
@@ -649,7 +649,7 @@ namespace Bite.Runtime
                                          (m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24);
 
                                 m_CurrentInstructionPointer += 4;
-                                FastMemorySpace obj = m_GlobalMemorySpace.Modules[id];
+                                FastMemorySpace obj = m_GlobalMemorySpace.GetModule(id);
                                 m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(obj));
 
                                 break;

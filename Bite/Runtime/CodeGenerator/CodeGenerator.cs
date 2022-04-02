@@ -109,7 +109,7 @@ namespace Bite.Runtime.CodeGen
             m_BiteProgram = new BiteProgram(programNode);
 
             programNode.Accept(this);
-            
+
             m_BiteProgram.Build();
 
             return m_BiteProgram;
@@ -244,24 +244,22 @@ namespace Bite.Runtime.CodeGen
             m_BiteProgram.PopChunk();
 
 
-            foreach (KeyValuePair<string, ModuleNode> module in node.ModuleNodes)
-            {
-                //ModuleSymbol moduleSymbol = m_SymbolTableBuilder.CurrentScope.resolve( module.Key ) as ModuleSymbol;
 
-                if (module.Key != node.MainModule)
-                {
-                    Compile(module.Value);
-                }
+            foreach (var module in node.GetModulesInDepedencyOrder())
+            {
+                Compile(module);
             }
 
-            if (node.ModuleNodes.ContainsKey(node.MainModule))
-            {
-                Compile(node.ModuleNodes[node.MainModule]);
-            }
-            else
-            {
-                throw new Exception("Main Module: " + node.MainModule + " not found!");
-            }
+            //var mainModule = node.GetMainModule();
+
+            //if (mainModule != null)
+            //{
+            //    Compile(mainModule);
+            //}
+            //else
+            //{
+            //    throw new Exception("Main Module: " + node.MainModule + " not found!");
+            //}
 
             return null;
         }
@@ -405,7 +403,7 @@ namespace Bite.Runtime.CodeGen
 
             EmitByteCode(SrslVmOpCodes.OpExitBlock);
             m_CurrentEnterBlockCount--;
-            
+
             return null;
         }
 
@@ -428,7 +426,7 @@ namespace Bite.Runtime.CodeGen
                 EmitByteCode(SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
                 m_BiteProgram.NewChunk(); //m_CompilingChunk = new Chunk();
-                                                 // CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
+                                          // CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
                 m_BiteProgram.SaveCurrentChunk(m_CurrentClassName);
             }
 
@@ -507,7 +505,7 @@ namespace Bite.Runtime.CodeGen
         {
             int d = 0;
             DynamicVariable variableSymbol = node.AstScopeNode.resolve(node.VarId.Id, out int moduleId, ref d) as DynamicVariable;
-            
+
             if (node.Initializer != null)
             {
                 Compile(node.Initializer);
@@ -570,7 +568,7 @@ namespace Bite.Runtime.CodeGen
 
                 EmitByteCode(byteCode);
             }
-            
+
             if (node.IsFunctionCall)
             {
                 //EmitByteCode( SrslVmOpCodes.OpCallFunction );
@@ -641,7 +639,7 @@ namespace Bite.Runtime.CodeGen
                 }
             }
 
-           
+
 
             if (node.CallEntries != null)
             {
@@ -694,12 +692,12 @@ namespace Bite.Runtime.CodeGen
                             }
                         }
 
-                        if ( m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1 )
+                        if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1)
                         {
                             ByteCode byteCode = new ByteCode(
                                 SrslVmOpCodes.OpSetElement,
                                 terminalNode.ElementAccess.Count);
-                            
+
                             EmitByteCode(byteCode);
                         }
                         else
@@ -707,12 +705,12 @@ namespace Bite.Runtime.CodeGen
                             ByteCode byteCode = new ByteCode(
                                 SrslVmOpCodes.OpGetElement,
                                 terminalNode.ElementAccess.Count);
-                            
+
                             EmitByteCode(byteCode);
                         }
-                      
 
-                       
+
+
                     }
 
                     if (terminalNode.IsFunctionCall)
@@ -1018,29 +1016,29 @@ namespace Bite.Runtime.CodeGen
             int overElseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
 
-            foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
+            foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
             {
-                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else )
+                if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else)
                 {
-                    Compile( nodeIfStatementEntry.ElseBlock );
+                    Compile(nodeIfStatementEntry.ElseBlock);
                     m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
-                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
+                if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf)
                 {
-                    Compile( nodeIfStatementEntry.ExpressionElseIf );
+                    Compile(nodeIfStatementEntry.ExpressionElseIf);
                     int elseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
-                    Compile( nodeIfStatementEntry.ElseBlock );
+                    Compile(nodeIfStatementEntry.ElseBlock);
                     m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                     m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
             }
-            
+
             return null;
         }
 
         public override object Visit(ForStatementNode node)
         {
-           
+
             EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             m_CurrentEnterBlockCount++;
             PreviousLoopBlockCount = m_CurrentEnterBlockCount;
@@ -1052,14 +1050,14 @@ namespace Bite.Runtime.CodeGen
             {
                 Compile(node.ExpressionStatement);
             }
-            
+
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             if (node.Expression1 != null)
             {
                 Compile(node.Expression1);
             }
-            
-         
+
+
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
             Compile(node.Block);
             if (node.Expression2 != null)
@@ -1077,7 +1075,7 @@ namespace Bite.Runtime.CodeGen
         public override object Visit(WhileStatementNode node)
         {
             PreviousLoopBlockCount = m_CurrentEnterBlockCount;
-            
+
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
@@ -1100,15 +1098,15 @@ namespace Bite.Runtime.CodeGen
 
             return null;
         }
-        
+
         public override object Visit(BreakStatementNode node)
         {
-            for ( int i = 0; i < (m_CurrentEnterBlockCount - PreviousLoopBlockCount); i++ )
+            for (int i = 0; i < (m_CurrentEnterBlockCount - PreviousLoopBlockCount); i++)
             {
                 EmitByteCode(SrslVmOpCodes.OpExitBlock);
             }
 
-            EmitByteCode( SrslVmOpCodes.OpBreak );
+            EmitByteCode(SrslVmOpCodes.OpBreak);
             return null;
         }
 
@@ -1123,7 +1121,7 @@ namespace Bite.Runtime.CodeGen
         {
             Compile(node.LeftOperand);
             Compile(node.RightOperand);
-            
+
             switch (node.Operator)
             {
                 case BinaryOperationNode.BinaryOperatorType.Plus:
@@ -1177,19 +1175,19 @@ namespace Bite.Runtime.CodeGen
                 case BinaryOperationNode.BinaryOperatorType.Or:
                     EmitByteCode(SrslVmOpCodes.OpOr);
                     break;
-                
+
                 case BinaryOperationNode.BinaryOperatorType.BitwiseOr:
                     EmitByteCode(SrslVmOpCodes.OpBitwiseOr);
                     break;
-                
+
                 case BinaryOperationNode.BinaryOperatorType.BitwiseAnd:
                     EmitByteCode(SrslVmOpCodes.OpBitwiseAnd);
                     break;
-                
+
                 case BinaryOperationNode.BinaryOperatorType.BitwiseXor:
                     EmitByteCode(SrslVmOpCodes.OpBitwiseXor);
                     break;
-                
+
                 case BinaryOperationNode.BinaryOperatorType.ShiftLeft:
                     EmitByteCode(SrslVmOpCodes.OpBitwiseLeftShift);
                     break;
@@ -1208,10 +1206,10 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(TernaryOperationNode node)
         {
-            Compile( node.RightOperand );
-            Compile( node.MidOperand );
-            Compile( node.LeftOperand );
-            EmitByteCode( SrslVmOpCodes.OpTernary );
+            Compile(node.RightOperand);
+            Compile(node.MidOperand);
+            Compile(node.LeftOperand);
+            EmitByteCode(SrslVmOpCodes.OpTernary);
             return null;
         }
 
@@ -1389,7 +1387,7 @@ namespace Bite.Runtime.CodeGen
 
                 case ReturnStatementNode returnStatement:
                     return Visit(returnStatement);
-                
+
                 case BreakStatementNode returnStatement:
                     return Visit(returnStatement);
 

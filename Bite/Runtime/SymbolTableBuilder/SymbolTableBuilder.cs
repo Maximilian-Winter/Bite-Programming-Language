@@ -195,9 +195,9 @@ namespace Bite.Runtime.SymbolTable
             InitScopes();
             node.AstScopeNode = CurrentScope;
 
-            foreach (KeyValuePair<string, ModuleNode> module in node.ModuleNodes)
+            foreach (ModuleNode module in node.GetModulesInDepedencyOrder())
             {
-                Resolve(module.Value);
+                Resolve(module);
             }
 
             return null;
