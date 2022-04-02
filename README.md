@@ -130,4 +130,6 @@ CSharpInterfaceObject.Type = "System.Console, System.Console";
 
 # VS Code Extension for Syntax Highlighting.
 https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code
+
+vsix to install it locally
 https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha
