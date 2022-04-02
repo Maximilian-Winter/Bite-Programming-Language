@@ -12,7 +12,7 @@ namespace Bite.Runtime.Memory
         {
             for ( int i = 0; i < 1024; i++ )
             {
-                m_FastCallMemorySpaces[i] = new FastMemorySpace( "", null, 0, null, 0, 0 );
+                m_FastCallMemorySpaces[i] = new FastMemorySpace($"$object_{i}", null, 0, null, 0, 0 );
             }
         }
         

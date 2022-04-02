@@ -70,7 +70,7 @@ namespace Bite.Runtime
             string moduleName = "System";
 
             FastMemorySpace callSpace = new FastMemorySpace(
-                "",
+                "$root",
                 m_GlobalMemorySpace,
                 0,
                 m_CurrentChunk,
@@ -207,7 +207,7 @@ namespace Bite.Runtime
                                 m_CurrentInstructionPointer += 4;
 
                                 FastModuleMemorySpace callSpace = new FastModuleMemorySpace(
-                                    "",
+                                    $"$module_{moduleName}",
                                     m_GlobalMemorySpace,
                                     m_VmStack.Count,
                                     m_CurrentChunk,
@@ -484,7 +484,7 @@ namespace Bite.Runtime
                                     BiteChunkWrapper classWrapper)
                                 {
                                     FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
-                                        "",
+                                        $"$class_{moduleIdClass}",
                                         m_CurrentMemorySpace,
                                         m_VmStack.Count,
                                         m_CurrentChunk,
@@ -573,7 +573,7 @@ namespace Bite.Runtime
                                     BiteChunkWrapper classWrapper)
                                 {
                                     FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
-                                        "",
+                                        $"class_{moduleIdClass}",
                                         m_CurrentMemorySpace,
                                         m_VmStack.Count,
                                         m_CurrentChunk,
