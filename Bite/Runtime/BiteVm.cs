@@ -1914,7 +1914,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case BiteVmOpCodes.OpSmaller:
+                        case BiteVmOpCodes.OpLess:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1934,7 +1934,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case BiteVmOpCodes.OpSmallerEqual:
+                        case BiteVmOpCodes.OpLessOrEqual:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();

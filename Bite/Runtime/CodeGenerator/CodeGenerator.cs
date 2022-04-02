@@ -1167,11 +1167,11 @@ namespace Bite.Runtime.CodeGen
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Less:
-                    EmitByteCode(BiteVmOpCodes.OpSmaller);
+                    EmitByteCode(BiteVmOpCodes.OpLess);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.LessOrEqual:
-                    EmitByteCode(BiteVmOpCodes.OpSmallerEqual);
+                    EmitByteCode(BiteVmOpCodes.OpLessOrEqual);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Greater:
