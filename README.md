@@ -101,17 +101,13 @@ The following command will compile the srsl modules in `.\TestProgram` and start
 
 # Modules
 
-**TODO:**
-
-Srsl modules encapsulate code similar to classes in C#. You can import one module into another to access its declarations.
+Bite modules encapsulate code and classes similar to namespaces in C#. You can import one module into another to access its declarations.
 
 
 
-# Importing System Types
+# Importing C# System Types.
 
-**TODO:**
-
-You can import system types into a module. For example, to write to the console you can use the `CSharpInterface` object like so:
+You can import c# system types into a module. For example, to write to the console you can use the `CSharpInterface` object like so:
 
 ```
 module CSharpSystem;
