@@ -31,6 +31,8 @@ namespace Bite.Runtime.Memory
             ArrayData = null;
         }
 
+        
+        
 
 
         public DynamicBiteVariable(DynamicBiteVariable dynamicBiteVariable)
@@ -169,6 +171,16 @@ namespace Bite.Runtime.Memory
             DynamicType = DynamicVariableType.Array;
 
         }
+        
+        public void Change(DynamicBiteVariable dynamicBiteVariable)
+        {
+            DynamicType = dynamicBiteVariable.DynamicType;
+            NumberData = dynamicBiteVariable.NumberData;
+            StringData = dynamicBiteVariable.StringData;
+            ObjectData = dynamicBiteVariable.ObjectData;
+            ArrayData = dynamicBiteVariable.ArrayData;
+        }
+
 
         public object ToObject()
         {

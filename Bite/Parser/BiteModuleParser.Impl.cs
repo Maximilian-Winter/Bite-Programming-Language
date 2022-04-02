@@ -157,7 +157,7 @@ public partial class BiteModuleParser
             }
         }
 
-        return null;
+        return new Context < ArgumentsNode >( null );
     }
 
     public virtual IContext < AssignmentNode > _assignment()

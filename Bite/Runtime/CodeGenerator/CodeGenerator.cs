@@ -230,11 +230,18 @@ namespace Bite.Runtime.CodeGen
 
             m_BiteProgram.NewChunk();
 
-            ByteCode byteCode = new ByteCode(BiteVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber);
+            ByteCode byteCode = new ByteCode(BiteVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber, 1024);
+            
             EmitByteCode(byteCode);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "Type" ) );
             EmitByteCode(byteCode);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "Method" ) );
             EmitByteCode(byteCode);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "Arguments" ) );
             EmitByteCode(byteCode);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ConstructorArguments" ) );
+            EmitByteCode(byteCode);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ObjectInstance" ) );
 
             //m_CompilationContext.CompilingChunks.Add("System.CSharpInterface", m_CompilationContext.CurrentChunk);
             m_BiteProgram.SaveCurrentChunk("System.CSharpInterface");
@@ -446,6 +453,7 @@ namespace Bite.Runtime.CodeGen
                     if ( !field.Name.Equals( "this" ) )
                     {
                         EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
+                        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( field.Name ) );
                     }
                     //EmitByteCode( field.Type );
                 }
@@ -465,6 +473,7 @@ namespace Bite.Runtime.CodeGen
 
            
             EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "this" ) );
             m_BiteProgram.PopChunk(); //m_CompilingChunk = saveChunk;
             return null;
         }
@@ -515,11 +524,12 @@ namespace Bite.Runtime.CodeGen
             {
                 Compile(node.Initializer);
                 EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
-
+                EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
             }
             else
             {
                 EmitByteCode(BiteVmOpCodes.OpDeclareLocalVar);
+                EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
             }
             return null;
         }
@@ -543,6 +553,7 @@ namespace Bite.Runtime.CodeGen
                 classSymbol.NumberOfSymbols);
 
                 EmitByteCode(byteCode);
+                EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
             }
             else
             {
@@ -554,8 +565,50 @@ namespace Bite.Runtime.CodeGen
                     classSymbol.NumberOfSymbols);
 
                 EmitByteCode(byteCode);
+                EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
             }
 
+            if ( node.Arguments != null && node.Arguments.Expressions.Count > 0 )
+            {
+                foreach ( var methodSymbol in classSymbol.Methods )
+                {
+                    if ( methodSymbol.IsConstructor && node.Arguments.Expressions.Count == methodSymbol.NumberOfParameters )
+                    {
+                        ByteCode byteCode = new ByteCode(
+                            BiteVmOpCodes.OpGetLocalVar,
+                            moduleId,
+                            d,
+                            -1,
+                            variableSymbol.InsertionOrderNumber);
+
+                        foreach ( var argument in node.Arguments.Expressions )
+                        {
+                            Compile( argument );
+                        }
+                        EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.Arguments.Expressions.Count, 0 );
+                        EmitByteCode(byteCode);
+                        EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
+                    }
+                }
+            }
+            else
+            {
+                foreach ( var methodSymbol in classSymbol.Methods )
+                {
+                    if ( methodSymbol.IsConstructor && methodSymbol.NumberOfParameters == 0 )
+                    {
+                        ByteCode byteCode = new ByteCode(
+                            BiteVmOpCodes.OpGetLocalVar,
+                            moduleId,
+                            d,
+                            -1,
+                            variableSymbol.InsertionOrderNumber);
+                    
+                        EmitByteCode(byteCode);
+                        EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
+                    }
+                }
+            }
             /*foreach ( var methodSymbol in classSymbol.Methods )
             {
                 if ( methodSymbol.IsConstructor )
@@ -732,9 +785,6 @@ namespace Bite.Runtime.CodeGen
 
                             EmitByteCode(byteCode);
                         }
-
-
-
                     }
 
                     if (terminalNode.IsFunctionCall)
@@ -818,7 +868,7 @@ namespace Bite.Runtime.CodeGen
                                 }
                                 else
                                 {
-                                    EmitByteCode(BiteVmOpCodes.OpSetMember, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                                    EmitByteCode(BiteVmOpCodes.OpSetMemberWithString, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                                 }
                             }
                             else
@@ -854,7 +904,7 @@ namespace Bite.Runtime.CodeGen
                                 }
                                 else
                                 {
-                                    EmitByteCode(BiteVmOpCodes.OpGetMember, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                                    EmitByteCode(BiteVmOpCodes.OpGetMemberWithString, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                                 }
 
                             }

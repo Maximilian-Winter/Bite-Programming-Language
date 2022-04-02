@@ -9,6 +9,32 @@ using CSharpSystem;
 class TestClass
 {
     var x = 5;
+    function TestClass(n)
+    {
+        x = n;
+    }
+}
+
+function TestFunction(n)
+{
+    n.x = 10;
+}
+
+
+
+var a = new TestClass(150);
+
+Print(a.x);
+
+TestFunction(a);
+
+Print(a.x);
+
+/*
+// Value Type Class Wraper Example Start:
+class TestClass
+{
+    var x = 5;
 }
 
 function TestFunction(n)
@@ -25,7 +51,13 @@ Print(a.x);
 TestFunction(a);
 
 Print(a.x);
+
+// Value Type Class Wraper Example End
+*/
+
+
 /*
+// Inheritance Example Start:
 class Foo
 {
     var x = 2;
@@ -47,6 +79,13 @@ Print(a.x);
 Print(a.y);
 Print(a.z);
 Print(a.FooFunc());
+
+// Inheritance Example End
+*/
+
+
+/*
+// Fibonacci Example Start:
 
 function FindFibonacciNumber(n)
 {
@@ -84,6 +123,13 @@ while(count3 < 1000)
 
 Print(temp);
 
+// Fibonacci Example End
+*/
+
+
+/*
+
+// Prime Number Example Start:
 function FindPrimeNumber(n)
 {
     var count=0;
@@ -116,6 +162,12 @@ Print(FindPrimeNumber(8));
 Print(FindPrimeNumber(16));
 Print(FindPrimeNumber(32));
 Print(FindPrimeNumber(64));
+
+// Prime Number Example End
+*/
+
+/*
+// Fibonacci in Class Example Start:
 
 class Fibo
 {
@@ -157,8 +209,14 @@ while(count3 < 1000)
 
             
 Console.WriteLine(temp);
+// Fibonacci in Class Example End
+*/
 
 
+/*
+// Dynamic Array Example Start:
+var c = new Object();
+var f = 0;
 for(var x = 0; x < 10; x++)
 {
     for(var y = 0; y < 10; y++)
@@ -182,6 +240,15 @@ for(var x = 0; x < 10; x++)
     }
 }
 
+// Dynamic Array Example End
+
+*/
+
+
+
+
+/*
+// Binary Operation Chaining Test Start:
 var a = 1 * 2 + 3 * 4;
 var b = 2 * 5 - 4 / 2 + 6;
 var c = 2 * 5 - (4 / 2 + 6);
@@ -191,6 +258,13 @@ Console.WriteLine(a);
 Console.WriteLine(b);
 Console.WriteLine(c);
 Console.WriteLine(d);
+
+// Binary Operation Chaining Test End
+*/
+
+
+/*
+// Branching Test Start:
 
 if(!true)
 {
@@ -242,4 +316,6 @@ else
 {
     Console.WriteLine("4");
 }
+
+// Branching Test End
 */
