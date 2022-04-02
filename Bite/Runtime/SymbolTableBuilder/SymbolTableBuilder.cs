@@ -497,7 +497,7 @@ namespace Bite.Runtime.SymbolTable
                         throw new Exception("Methods can't be abstract in a normal class!");
                     }
 
-                    FunctionType declarationType = memberDeclarationContext.FunctionId.Equals(node.ClassId)
+                    FunctionType declarationType = memberDeclarationContext.FunctionId.Id.Equals(node.ClassId.Id)
                         ? FunctionType.CONSTRUCTOR
                         : FunctionType.METHOD;
 
@@ -514,7 +514,7 @@ namespace Bite.Runtime.SymbolTable
                     f.EnclosingScope = CurrentScope;
                     pushScope(f);
 
-                    if (memberDeclarationContext.Parameters != null)
+                    if (memberDeclarationContext.Parameters != null && memberDeclarationContext.Parameters.Identifiers != null)
                     {
                         memberDeclarationContext.Parameters.AstScopeNode = CurrentScope;
 

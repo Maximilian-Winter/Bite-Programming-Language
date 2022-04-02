@@ -498,6 +498,7 @@ namespace Bite.Runtime
                                     m_CurrentChunk = classWrapper.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
                                     m_CallStack.Push(m_CurrentMemorySpace);
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace));
                                 }
 
                                 break;
@@ -596,6 +597,7 @@ namespace Bite.Runtime
                                     m_CurrentInstructionPointer = 0;
 
                                     m_CallStack.Push(classInstanceMemorySpace);
+                                    
                                 }
 
                                 break;

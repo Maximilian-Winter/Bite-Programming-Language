@@ -836,7 +836,7 @@ public partial class SrslModuleParser
             return new Context < ClassDeclarationNode >( classDeclarationNode );
         }
 
-        return null;
+        return new Context < ClassDeclarationNode >( null );
     }
 
     public virtual IContext < ClassDeclarationNode > _classDeclarationForward()
@@ -961,7 +961,7 @@ public partial class SrslModuleParser
             return new Context < ClassDeclarationNode >( classDeclarationNode );
         }
 
-        return null;
+        return new Context < ClassDeclarationNode >( null );
     }
 
     public virtual IContext < ClassInstanceDeclarationNode > _classInstanceDeclaration()

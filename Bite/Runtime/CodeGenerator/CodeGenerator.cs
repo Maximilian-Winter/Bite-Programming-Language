@@ -553,6 +553,20 @@ namespace Bite.Runtime.CodeGen
                 EmitByteCode(byteCode);
             }
 
+            /*foreach ( var methodSymbol in classSymbol.Methods )
+            {
+                if ( methodSymbol.IsConstructor )
+                {
+                    ByteCode byteCode = new ByteCode(
+                        SrslVmOpCodes.OpGetLocalInstance,
+                        moduleId,
+                        d,
+                        variableSymbol.InsertionOrderNumber);
+                    
+                    EmitByteCode(byteCode);
+                    EmitByteCode( SrslVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
+                }
+            }*/
             return null;
         }
 
