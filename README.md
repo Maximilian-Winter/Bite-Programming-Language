@@ -20,6 +20,7 @@ I'm still in the progress of developing the language itself. After that I will i
 ToDo:
 * Finish implementation of private and public access modifiers
 * Finish implementation of static and abstract modifiers
+* Implementing Constructors for classes
 * More Testing
 
 # Modules
