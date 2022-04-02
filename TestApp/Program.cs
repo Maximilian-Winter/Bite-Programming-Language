@@ -35,7 +35,7 @@ namespace TestApp
 
             BiteVm biteVm = new BiteVm();
 
-            int k = 3;
+            int k = 1;
             long elapsedMillisecondsAccu = 0;
             for (int i = 0; i < k; i++)
             {

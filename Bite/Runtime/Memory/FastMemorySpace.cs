@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Bite.Runtime.Bytecode;
 
 namespace Bite.Runtime.Memory
@@ -47,7 +48,7 @@ namespace Bite.Runtime.Memory
                 Properties[currentMemoryPointer] = value;
                 if (!string.IsNullOrEmpty(idStr))
                 {
-                    NamesToProperties.Add(idStr, Properties[currentMemoryPointer]);
+                    NamesToProperties.Add(idStr,  Properties[currentMemoryPointer]);
                 }
                 currentMemoryPointer++;
             }
@@ -92,7 +93,8 @@ namespace Bite.Runtime.Memory
         {
             if (NamesToProperties.ContainsKey(idStr))
             {
-                NamesToProperties[idStr] = value;
+                NamesToProperties[idStr].Change(value);
+                
                 return;
             }
 
@@ -168,7 +170,7 @@ namespace Bite.Runtime.Memory
                 memorySpace = m_EnclosingSpace;
             }
 
-            if (memorySpace != null && id < memorySpace.currentMemoryPointer)
+            if (memorySpace != null)
             {
                 if (classId >= 0)
                 {
@@ -196,9 +198,10 @@ namespace Bite.Runtime.Memory
                     if (classId >= 0)
                     {
                         FastMemorySpace fms = fastGlobalMemorySpace.GetModule(moduleId).Properties[classId].ObjectData as FastMemorySpace;
-                        fms.Properties[id] = value;
+                        fms.Properties[id].Change(value);
+                        return;
                     }
-                    fastGlobalMemorySpace.GetModule(moduleId).Properties[id] = value;
+                    fastGlobalMemorySpace.GetModule(moduleId).Properties[id].Change(value);
                 }
                 return;
             }
@@ -206,17 +209,12 @@ namespace Bite.Runtime.Memory
             FastMemorySpace memorySpace = this;
             for (int i = 0; i < depth; i++)
             {
-                memorySpace = m_EnclosingSpace;
+                memorySpace = memorySpace.m_EnclosingSpace;
             }
 
             if (memorySpace != null && id < memorySpace.currentMemoryPointer)
             {
-                if (classId >= 0)
-                {
-                    FastMemorySpace fms = memorySpace.Properties[classId].ObjectData as FastMemorySpace;
-                    fms.Properties[id] = value;
-                }
-                memorySpace.Properties[id] = value;
+                memorySpace.Properties[id].Change( value );
             }
         }
         public FastMemorySpace GetEnclosingSpace()

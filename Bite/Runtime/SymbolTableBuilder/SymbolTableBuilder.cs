@@ -410,11 +410,20 @@ namespace Bite.Runtime.SymbolTable
                 classSymbol.BaseClassNames = baseClasses;
             }
 
+          
             pushScope(classSymbol);
-            FieldSymbol thisSymbol = new FieldSymbol("this", AccesModifierType.Private, ClassAndMemberModifiers.None);
-            thisSymbol.Type = classType;
-            CurrentScope.define(thisSymbol);
-
+            foreach ( FieldSymbol fieldSymbol in classSymbol.Fields )
+            {
+                if( !fieldSymbol.Name.Equals("this") )
+                {
+                    CurrentScope.define(fieldSymbol);
+                }
+            }
+            foreach ( MethodSymbol methodSymbol in classSymbol.Methods )
+            {
+                CurrentScope.define(methodSymbol);
+            }
+            
             foreach (VariableDeclarationNode memberDeclarationContext in node.BlockStatement.Declarations.Variables)
             {
                 memberDeclarationContext.AstScopeNode = CurrentScope;
@@ -537,6 +546,10 @@ namespace Bite.Runtime.SymbolTable
                 }
             }
 
+            FieldSymbol thisSymbol = new FieldSymbol("this", AccesModifierType.Private, ClassAndMemberModifiers.None);
+            thisSymbol.Type = classType;
+            CurrentScope.define(thisSymbol);
+            
             popScope();
 
             CurrentScope.define(classSymbol);

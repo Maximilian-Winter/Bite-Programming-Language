@@ -58,8 +58,10 @@ namespace Bite.Runtime
         private string m_LastElement = "";
         private bool m_SetElement = false;
         private bool m_SetMember = false;
+        private string m_MemberWithStringToSet = "";
+        private bool m_SetMemberWithString = false;
         private bool m_KeepLastItemOnStackToReturn = false;
-        private DynamicBiteVariable m_ReturnRegister = null;
+        private DynamicBiteVariable m_ReturnRegister;
         private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
         public Dictionary<string, BinaryChunk> CompiledChunks => m_CompiledChunks;
@@ -480,6 +482,9 @@ namespace Bite.Runtime
 
                                 m_CurrentInstructionPointer += 4;
 
+                                BiteVmOpCodes biteVmOpCode = ReadInstruction();
+                                string instanceName = ReadConstant().StringConstantValue;
+                                
                                 if (m_CurrentMemorySpace.Get(moduleIdClass, depthClass, -1, idClass).ObjectData is
                                     BiteChunkWrapper classWrapper)
                                 {
@@ -492,7 +497,7 @@ namespace Bite.Runtime
                                         classMemberCount);
 
                                     m_CurrentMemorySpace.Define(
-                                        DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace));
+                                        DynamicVariableExtension.ToDynamicVariable(classInstanceMemorySpace), instanceName);
 
                                     m_CurrentMemorySpace = classInstanceMemorySpace;
                                     m_CurrentChunk = classWrapper.ChunkToWrap;
@@ -506,14 +511,18 @@ namespace Bite.Runtime
 
                         case BiteVmOpCodes.OpDefineLocalVar:
                             {
-                                m_CurrentMemorySpace.Define(m_VmStack.Pop());
+                                BiteVmOpCodes biteVmOpCode = ReadInstruction();
+                                string instanceName = ReadConstant().StringConstantValue;
+                                m_CurrentMemorySpace.Define(m_VmStack.Pop(), instanceName);
 
                                 break;
                             }
 
                         case BiteVmOpCodes.OpDeclareLocalVar:
                             {
-                                m_CurrentMemorySpace.Define(DynamicVariableExtension.ToDynamicVariable());
+                                BiteVmOpCodes biteVmOpCode = ReadInstruction();
+                                string instanceName = ReadConstant().StringConstantValue;
+                                m_CurrentMemorySpace.Define(DynamicVariableExtension.ToDynamicVariable(), instanceName);
 
                                 break;
                             }
@@ -684,6 +693,13 @@ namespace Bite.Runtime
 
                                 break;
                             }
+                        
+                        case BiteVmOpCodes.OpSetMemberWithString:
+                        {
+                            m_MemberWithStringToSet = ReadConstant().StringConstantValue;
+                            m_SetMemberWithString = true;
+                            break;
+                        }
 
                         case BiteVmOpCodes.OpSetLocalVar:
                             {
@@ -852,6 +868,21 @@ namespace Bite.Runtime
                                     }
 
                                     m_SetElement = false;
+                                }
+                                else if (m_SetMemberWithString)
+                                {
+                                    FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
+
+                                    if (fastMemorySpace.NamesToProperties.ContainsKey(m_MemberWithStringToSet))
+                                    {
+                                        fastMemorySpace.Put(m_MemberWithStringToSet, m_VmStack.Pop());
+                                    }
+                                    else
+                                    {
+                                        fastMemorySpace.Define(m_VmStack.Pop(), m_MemberWithStringToSet);
+                                    }
+
+                                    m_SetMemberWithString = false;
                                 }
                                 else
                                 {

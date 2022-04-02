@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
     <None Include="TestProgram\CSharpSystemModule.bite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

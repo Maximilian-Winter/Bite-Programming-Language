@@ -7,6 +7,120 @@ import CSharpSystem;
 using CSharpSystem;
 
 
+// Prime Number Example
+function FindPrimeNumber(n)
+{
+    var count=0;
+    var a = 2;
+    while(count<n)
+    {
+        var b = 2;
+        var prime = 1;
+        while(b * b <= a )
+        {
+            if(a % b == 0)
+            {
+                prime = 0;
+                break;
+            }
+            b++;
+        }
+        if(prime > 0)
+        {
+            count++;
+        }
+        a++;
+    }
+    return (--a);
+}
+
+Print(FindPrimeNumber(2));
+Print(FindPrimeNumber(4));
+Print(FindPrimeNumber(8));
+Print(FindPrimeNumber(16));
+Print(FindPrimeNumber(32));
+Print(FindPrimeNumber(64));
+Print(FindPrimeNumber(128));
+Print(FindPrimeNumber(256));
+/*
+// Value Type Class Wraper Example
+class TestClass
+{
+    var x = 5;
+}
+
+function TestFunction(n)
+{
+    n.x = 10;
+}
+
+
+
+var a = new TestClass();
+
+Print(a.x);
+
+TestFunction(a);
+
+Print(a.x);
+
+*/
+
+/*
+// Constructor Test
+class TestClass
+{
+    var x = 5;
+    function TestClass(n)
+    {
+        x = n;
+    }
+}
+
+function TestFunction(n)
+{
+    n.x = 10;
+}
+
+
+
+var a = new TestClass(150);
+
+Print(a.x);
+
+TestFunction(a);
+
+Print(a.x);*/
+
+/*
+// Inheritance Example
+class Foo
+{
+    var x = 2;
+    var y = 4;
+    var z = 8;
+
+    function FooFunc()
+    {
+        return x * y * z;
+    }
+}
+
+class Bar : Foo
+{
+}
+
+var a = new Bar();
+Print(a.x);
+Print(a.y);
+Print(a.z);
+Print(a.FooFunc());
+*/
+
+
+/*
+// Fibonacci Example
+
 function FindFibonacciNumber(n)
 {
     var count= 2;
@@ -40,10 +154,15 @@ while(count3 < 1000)
     }
     count3++;
 }
+
 Print(temp);
+
+*/
+
+
 /*
 
-
+// Prime Number Example
 function FindPrimeNumber(n)
 {
     var count=0;
@@ -76,6 +195,11 @@ Print(FindPrimeNumber(8));
 Print(FindPrimeNumber(16));
 Print(FindPrimeNumber(32));
 Print(FindPrimeNumber(64));
+
+*/
+
+/*
+// Fibonacci in Class Example
 
 class Fibo
 {
@@ -117,8 +241,13 @@ while(count3 < 1000)
 
             
 Console.WriteLine(temp);
+*/
 
 
+/*
+// Dynamic Array Example
+var c = new Object();
+var f = 0;
 for(var x = 0; x < 10; x++)
 {
     for(var y = 0; y < 10; y++)
@@ -142,6 +271,14 @@ for(var x = 0; x < 10; x++)
     }
 }
 
+
+*/
+
+
+
+
+/*
+// Binary Operation Chaining Test
 var a = 1 * 2 + 3 * 4;
 var b = 2 * 5 - 4 / 2 + 6;
 var c = 2 * 5 - (4 / 2 + 6);
@@ -151,6 +288,12 @@ Console.WriteLine(a);
 Console.WriteLine(b);
 Console.WriteLine(c);
 Console.WriteLine(d);
+
+*/
+
+
+/*
+// Branching Test
 
 if(!true)
 {
@@ -202,4 +345,5 @@ else
 {
     Console.WriteLine("4");
 }
+
 */

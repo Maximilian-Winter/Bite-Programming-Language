@@ -121,6 +121,15 @@ namespace Bite.Runtime.Memory
                     biteVariable.DynamicType = DynamicVariableType.Array;
 
                     break;
+                
+                case FastMemorySpace fastMemorySpace:
+                    biteVariable.NumberData = 0;
+                    biteVariable.StringData = null;
+                    biteVariable.ArrayData = null;
+                    biteVariable.ObjectData = fastMemorySpace;
+                    biteVariable.DynamicType = DynamicVariableType.Object;
+                    break;
+                
                 default:
                     biteVariable.NumberData = 0;
                     biteVariable.StringData = null;

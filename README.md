@@ -18,7 +18,6 @@ My idea was it to have a dynamically interpreted language in C# to support moddi
 I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
 
 ToDo:
-* Finish implementation of class inheritance.
 * Finish implementation of private and public access modifiers
 * Finish implementation of static and abstract modifiers
 * More Testing
@@ -61,9 +60,31 @@ The main module code is executed after the imported module code is excecuted.
 
 # Example Code
 
-The following code will calculate the first 36 fibonacci numbers 1000 times:
+You can find the following Examples here:
+
+[Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite)
+
+
+The following code will calculate the first 36 fibonacci numbers 1000 times and print the 36-th fibonacci number:
 
 ![CodeBitePic](https://user-images.githubusercontent.com/24946356/161370277-ec838b53-0865-4536-ae74-c4b25d4ac850.PNG)
+
+
+
+
+
+The following code will calculate and print the 2-, 4-, 8-, 16-, 32- and 64-th Prime Number:
+
+![CodeBitePic2](https://user-images.githubusercontent.com/24946356/161400684-5e95861f-e34c-4303-9c2e-285d14ab6f4a.PNG)
+
+
+
+
+
+The following code will create a dynamic array and fill it with strings. Then it will print out the array elements:
+
+![CodeBitePic3](https://user-images.githubusercontent.com/24946356/161400777-68bb5d8b-49ff-4cb1-9d8f-2adb83eaecfb.PNG)
+
 
 
 # Usage

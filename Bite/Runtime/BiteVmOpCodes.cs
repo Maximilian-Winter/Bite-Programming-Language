@@ -70,8 +70,9 @@
         OpCallFunction,
         OpCallMemberFunction,
         OpGetMember,
+        OpGetMemberWithString,
         OpSetMember,
-        OpImportModule,
+        OpSetMemberWithString,
         OpKeepLastItemOnStack,
         OpBreak,
         OpReturn
