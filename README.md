@@ -63,7 +63,7 @@ The main module code is executed after the imported module code is excecuted.
 
 You can find the following Examples here:
 
-[Examples]https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite
+[Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite)
 
 
 The following code will calculate the first 36 fibonacci numbers 1000 times:
