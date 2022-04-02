@@ -33,7 +33,7 @@ namespace Bite.Parser
 
         public override string ToString()
         {
-            return "Input: '" + text + "' Tokentype: " + SrslLexer.tokenNames[type > 0 ? type - 1 : type] + " Line: " + (DebugInfoToken.LineNumber + 1) + " Column: " + (DebugInfoToken.ColumnNumber) + ">";
+            return "Input: '" + text + "' Tokentype: " + BiteLexer.tokenNames[type > 0 ? type - 1 : type] + " Line: " + (DebugInfoToken.LineNumber + 1) + " Column: " + (DebugInfoToken.ColumnNumber) + ">";
         }
 
         #endregion

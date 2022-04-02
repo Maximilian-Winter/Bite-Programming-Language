@@ -121,7 +121,7 @@ namespace Bite.Parser
                 return true;
             }
 
-            var ex = new MismatchedTokenException("expecting " + SrslLexer.tokenNames[x > 0 ? x - 1 : x] + " found ", LT(1));
+            var ex = new MismatchedTokenException("expecting " + BiteLexer.tokenNames[x > 0 ? x - 1 : x] + " found ", LT(1));
             node = Context<TNode>.AsFailed(ex);
             return false;
         }

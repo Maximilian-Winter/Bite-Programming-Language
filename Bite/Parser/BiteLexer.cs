@@ -6,7 +6,7 @@ using System.Text;
 namespace Bite.Parser
 {
 
-    public class SrslLexer : Lexer
+    public class BiteLexer : Lexer
     {
         public static readonly string[] tokenNames =
         {
@@ -91,7 +91,7 @@ namespace Bite.Parser
 
         #region Public
 
-        public SrslLexer(string input) : base(input)
+        public BiteLexer(string input) : base(input)
         {
         }
 
