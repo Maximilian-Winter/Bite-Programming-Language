@@ -10,6 +10,8 @@ The idea was to have a dynamically interpreted language in C# to support modding
 
 The following code will calculate the first 37 fibonacci numbers 1000 times:
 
+![CodeBitePic](https://user-images.githubusercontent.com/24946356/161369614-029d160b-3997-4d12-8651-5b1507c4e995.PNG)
+
 ```
 module MainModule;
 
