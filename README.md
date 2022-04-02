@@ -70,9 +70,15 @@ The following code will calculate the first 36 fibonacci numbers 1000 times and 
 ![CodeBitePic](https://user-images.githubusercontent.com/24946356/161370277-ec838b53-0865-4536-ae74-c4b25d4ac850.PNG)
 
 
+
+
+
 The following code will calculate and print the 2-, 4-, 8-, 16-, 32- and 64-th Prime Number:
 
 ![CodeBitePic2](https://user-images.githubusercontent.com/24946356/161400684-5e95861f-e34c-4303-9c2e-285d14ab6f4a.PNG)
+
+
+
 
 
 The following code will create a dynamic array and fill it with strings. Then it will print out the array elements:
