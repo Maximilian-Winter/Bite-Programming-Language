@@ -30,11 +30,9 @@
         OpGreaterEqual,
         OpAnd,
         OpOr,
-        OpBitwiseAnd,
         OpBitwiseOr,
+        OpBitwiseAnd,
         OpBitwiseXor,
-        OpBitwiseLeftShift,
-        OpBitwiseRightShift,
         OpPostfixIncrement,
         OpPostfixDecrement,
         OpPrefixIncrement,
@@ -58,6 +56,7 @@
         OpGetLocalInstance,
         OpJumpIfFalse,
         OpJump,
+        OpTernary,
         OpEnterBlock,
         OpExitBlock,
         OpForLoopHeader,
@@ -72,6 +71,7 @@
         OpSetMember,
         OpImportModule,
         OpKeepLastItemOnStack,
+        OpBreak,
         OpReturn
     }
 

@@ -25,6 +25,8 @@ namespace Bite.Runtime.CodeGen
         private SrslVmOpCodes m_CallNodeTypeForAssignment = SrslVmOpCodes.OpNone;
 
         private int m_MaxStackDepth = 0;
+
+        private int PreviousLoopBlockCount = 0;
         private SrslVmOpCodes m_ConstructingOpCode;
         private List<int> m_ConstructingOpCodeData;
         private int m_ConstructingLine;
@@ -1011,9 +1013,9 @@ namespace Bite.Runtime.CodeGen
         public override object Visit(IfStatementNode node)
         {
             Compile(node.Expression);
-            int thenJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
+            int thenJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             Compile(node.ThenBlock);
-            int overElseJump = EmitByteCode(SrslVmOpCodes.OpJump, 0, 0);
+            int overElseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
             m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
 
             foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
@@ -1026,7 +1028,7 @@ namespace Bite.Runtime.CodeGen
                 if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
                 {
                     Compile( nodeIfStatementEntry.ExpressionElseIf );
-                    int elseJump = EmitByteCode(SrslVmOpCodes.OpJumpIfFalse, 0, 0);
+                    int elseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
                     Compile( nodeIfStatementEntry.ElseBlock );
                     m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                     m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
@@ -1038,9 +1040,10 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(ForStatementNode node)
         {
+           
             EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             m_CurrentEnterBlockCount++;
-            
+            PreviousLoopBlockCount = m_CurrentEnterBlockCount;
             if (node.VariableDeclaration != null)
             {
                 Compile(node.VariableDeclaration);
@@ -1073,6 +1076,8 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(WhileStatementNode node)
         {
+            PreviousLoopBlockCount = m_CurrentEnterBlockCount;
+            
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
             int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
@@ -1098,8 +1103,12 @@ namespace Bite.Runtime.CodeGen
         
         public override object Visit(BreakStatementNode node)
         {
-            EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            for ( int i = 0; i < (m_CurrentEnterBlockCount - PreviousLoopBlockCount); i++ )
+            {
+                EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            }
 
+            EmitByteCode( SrslVmOpCodes.OpBreak );
             return null;
         }
 
@@ -1168,6 +1177,19 @@ namespace Bite.Runtime.CodeGen
                 case BinaryOperationNode.BinaryOperatorType.Or:
                     EmitByteCode(SrslVmOpCodes.OpOr);
                     break;
+                
+                case BinaryOperationNode.BinaryOperatorType.BitwiseOr:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseOr);
+                    break;
+                
+                case BinaryOperationNode.BinaryOperatorType.BitwiseAnd:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseAnd);
+                    break;
+                
+                case BinaryOperationNode.BinaryOperatorType.BitwiseXor:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseXor);
+                    break;
+                
 
                 case BinaryOperationNode.BinaryOperatorType.BitwiseAnd:
                     EmitByteCode(SrslVmOpCodes.OpBitwiseAnd);
@@ -1199,6 +1221,10 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(TernaryOperationNode node)
         {
+            Compile( node.RightOperand );
+            Compile( node.MidOperand );
+            Compile( node.LeftOperand );
+            EmitByteCode( SrslVmOpCodes.OpTernary );
             return null;
         }
 
@@ -1375,6 +1401,9 @@ namespace Bite.Runtime.CodeGen
                     return Visit(ifStatementNode);
 
                 case ReturnStatementNode returnStatement:
+                    return Visit(returnStatement);
+                
+                case BreakStatementNode returnStatement:
                     return Visit(returnStatement);
 
                 case BlockStatementNode blockStatementNode:

@@ -34,7 +34,7 @@ namespace Bite.Runtime
         }
     }
 
-public class DynamicSrslVariableStack
+public class DynamicBiteVariableStack
 {
     private DynamicBiteVariable[] m_DynamicVariables = new DynamicBiteVariable[1024];
     private int m_DynamicVariablePointer = 0;

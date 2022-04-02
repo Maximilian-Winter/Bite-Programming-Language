@@ -569,6 +569,7 @@ namespace Bite.Runtime.SymbolTable
             }
 
             m_CurrentFunction = FunctionType.FUNCTION;
+            int depth = 0;
 
             FunctionSymbol f = new FunctionSymbol(
                 node.FunctionId.Id,
@@ -597,13 +598,18 @@ namespace Bite.Runtime.SymbolTable
                 }
             }
 
-            if (node.FunctionBlock.Declarations != null)
+            if (node.FunctionBlock != null && node.FunctionBlock.Declarations != null)
             {
                 ResolveDeclarations(node.FunctionBlock.Declarations);
             }
 
             popScope();
-            CurrentScope.define(f);
+
+            if ( node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref depth ) == null )
+            {
+                CurrentScope.define(f);
+            }
+            
 
             m_CurrentFunction = FunctionType.NONE;
 
@@ -937,7 +943,6 @@ namespace Bite.Runtime.SymbolTable
             node.AstScopeNode = CurrentScope;
             Resolve(node.Expression);
             Resolve(node.WhileBlock);
-
             return null;
         }
 
