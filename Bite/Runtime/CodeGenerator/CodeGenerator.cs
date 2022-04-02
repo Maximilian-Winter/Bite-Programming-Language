@@ -1169,6 +1169,27 @@ namespace Bite.Runtime.CodeGen
                     EmitByteCode(SrslVmOpCodes.OpOr);
                     break;
 
+                case BinaryOperationNode.BinaryOperatorType.BitwiseAnd:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseAnd);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.BitwiseOr:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseOr);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.BitwiseXor:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseXor);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.ShiftLeft:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseLeftShift);
+                    break;
+
+                case BinaryOperationNode.BinaryOperatorType.ShiftRight:
+                    EmitByteCode(SrslVmOpCodes.OpBitwiseRightShift);
+
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
