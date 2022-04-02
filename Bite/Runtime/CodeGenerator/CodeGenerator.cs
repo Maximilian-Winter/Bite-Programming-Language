@@ -271,7 +271,7 @@ namespace Bite.Runtime.CodeGen
             m_BiteProgram.PushChunk();
 
             int d = 0;
-            ModuleSymbol mod = m_BiteProgram.SymbolTableBuilder.CurrentScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
+            ModuleSymbol mod = m_BiteProgram.BaseScope.resolve(m_CurrentModuleName, out int moduleId, ref d) as ModuleSymbol;
             if (m_BiteProgram.HasChunk(m_CurrentModuleName))
             {
                 //m_CompilingChunk = CompilingChunks[m_CurrentModuleName];

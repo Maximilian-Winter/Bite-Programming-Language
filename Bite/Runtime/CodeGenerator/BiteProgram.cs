@@ -2,6 +2,7 @@
 using Bite.Ast;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.SymbolTable;
+using Bite.SymbolTable;
 
 namespace Bite.Runtime.CodeGen
 {
@@ -11,7 +12,7 @@ namespace Bite.Runtime.CodeGen
         private Chunk m_CompilingChunk;
         private Stack<Chunk> _savedChunks = new Stack<Chunk>();
 
-        internal SymbolTableBuilder SymbolTableBuilder { get; }
+        internal BaseScope BaseScope { get; }
         internal IEnumerable<KeyValuePair<string, Chunk>> CompilingChunks => m_CompilingChunks;
         internal Dictionary<string, BinaryChunk> CompiledChunks { get; }
         internal Chunk MainChunk { get;  }
@@ -20,9 +21,9 @@ namespace Bite.Runtime.CodeGen
 
         public BiteProgram(ModuleNode module)
         {
-            SymbolTableBuilder = new SymbolTableBuilder();
-            SymbolTableBuilder.BuildModuleSymbolTable(module);
-            //SymbolTableBuilder.BuildStatementsSymbolTable(statements);
+            var symbolTableBuilder = new SymbolTableBuilder();
+            symbolTableBuilder.BuildModuleSymbolTable(module);
+            BaseScope = symbolTableBuilder.CurrentScope as BaseScope;
             m_CompilingChunks = new Dictionary<string, Chunk>();
             MainChunk = new Chunk();
             m_CompilingChunk = MainChunk;
@@ -31,8 +32,9 @@ namespace Bite.Runtime.CodeGen
 
         public BiteProgram(ProgramNode programNode)
         {
-            SymbolTableBuilder = new SymbolTableBuilder();
-            SymbolTableBuilder.BuildProgramSymbolTable(programNode);
+            var symbolTableBuilder = new SymbolTableBuilder();
+            symbolTableBuilder.BuildProgramSymbolTable(programNode);
+            BaseScope = symbolTableBuilder.CurrentScope as BaseScope;
             m_CompilingChunks = new Dictionary<string, Chunk>();
             MainChunk = new Chunk();
             m_CompilingChunk = MainChunk;

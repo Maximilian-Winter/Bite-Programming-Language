@@ -114,12 +114,12 @@ namespace Bite.Runtime
             m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
 
             m_GlobalMemorySpace =
-                new FastGlobalMemorySpace((context.SymbolTableBuilder.CurrentScope as BaseScope).NumberOfSymbols);
+                new FastGlobalMemorySpace(context.BaseScope.NumberOfSymbols);
 
             m_CurrentChunk = context.CompiledMainChunk;
             m_CompiledChunks = context.CompiledChunks;
             m_CurrentInstructionPointer = 0;
-            m_CurrentScope = context.SymbolTableBuilder.CurrentScope;
+            m_CurrentScope = context.BaseScope;
 
             InitMemorySpaces();
 
