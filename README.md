@@ -1,5 +1,53 @@
 # Bite Programming Language
-Bite is a dynamic programming language.
+Bite is a dynamic programming language. 
+
+
+It uses Modules, Classes and Functions to separate the code.
+
+
+# Features
+
+* Module system
+* Dynamically typed
+* Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
+
+# Modules
+Bite modules encapsulate code, classes and functions similar to namespaces in C#. You can import one module into another to access its declarations.
+
+Modules are the basic foundation of a program in Bite. Each program consist of at least one module. The so called main module. Modules are defined like this:
+```
+module ModuleName;
+```
+
+
+Modules can contain classes, functions and code.
+
+You can import other modules through the "import" keyword, like this:
+```
+import ModuleName;
+```
+
+
+You can use imported functions and variables, like this:
+```
+ModuleName.FunctioName();
+ModuleName.VariableName;
+```
+
+
+Through the use of the "using" keyword, you can omit the module names, like this:
+```
+import ModuleName;
+using ModuleName;
+
+FunctioName();       // ModuleName Function
+VariableName;        // ModuleName Variable
+```
+
+The main module code is executed after the imported module code is excecuted.
+
+
+# Overall Status
 
 I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
 
@@ -55,12 +103,6 @@ while(count3 < 1000)
 }
 ```
 
-# Features
-
-* Module system
-* Dynamically typed
-* Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
-
 # Usage
 
 The easiest way to get up and running is to create an instance of the `Compiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
@@ -99,9 +141,7 @@ The following command will compile the bite modules in `.\TestProgram` and start
   bitevm -m MainModule -p .\TestProgram
 ```
 
-# Modules
 
-Bite modules encapsulate code and classes similar to namespaces in C#. You can import one module into another to access its declarations.
 
 
 
