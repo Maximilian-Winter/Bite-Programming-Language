@@ -17,7 +17,7 @@ My idea was it to have a dynamically interpreted language in C# to support moddi
 I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
 
 ToDo:
-* Finish implementation of cLass inheritance.
+* Finish implementation of class inheritance.
 * Finish implementation of private and public access modifiers
 * Finish implementation of static and abstract modifiers
 * More Testing
