@@ -20,7 +20,7 @@ namespace UnitTests
         #region Arithmetic Tests
 
         [Fact]
-        public void AddNumbers()
+        public void ArithmeticAddNumbers()
         {
             var result = ExecExpression("1 + 1");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -28,7 +28,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void SubtractNumbers()
+        public void ArithmeticSubtractNumbers()
         {
             var result = ExecExpression("6 - 3");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -36,7 +36,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void MultiplyNumbers()
+        public void ArithmeticMultiplyNumbers()
         {
             var result = ExecExpression("4 * 4");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -44,7 +44,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void DivideNumbers()
+        public void ArithmeticDivideNumbers()
         {
             var result = ExecExpression("1 / 2");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -52,7 +52,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void MultipleAddition()
+        public void ArithmeticMultipleAddition()
         {
             var result = ExecExpression("1 + 2 + 3");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -60,7 +60,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void OperatorPrecedenceMultiplyBeforeAdd()
+        public void ArithmeticOperatorPrecedenceMultiplyBeforeAdd()
         {
             var result = ExecExpression("1 + 2 * 3");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -68,7 +68,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void OperatorPrecedenceMultiplyBeforeAddOuterFirst()
+        public void ArithmeticOperatorPrecedenceMultiplyBeforeAddOuterFirst()
         {
             var result = ExecExpression("1 * 2 + 3 * 4");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -76,7 +76,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void OperatorPrecedenceDivideBeforeSubtract()
+        public void ArithmeticOperatorPrecedenceDivideBeforeSubtract()
         {
             var result = ExecExpression("1 - 3 / 3");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -84,7 +84,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void OperatorPrecedence()
+        public void ArithmeticOperatorPrecedence()
         {
             var result = ExecExpression("2 * 5 - 4 / 2 + 6");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -92,7 +92,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void ParenthesesPrecedenceGroupByAdditionSubtraction()
+        public void ArithmeticParenthesesPrecedenceGroupByAdditionSubtraction()
         {
             var result = ExecExpression("2 * (5 - 4) / (2 + 6)");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
@@ -100,7 +100,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void ParenthesesPrecedenceGroupByMultiplicationDivision()
+        public void ArithmeticParenthesesPrecedenceGroupByMultiplicationDivision()
         {
             var result = ExecExpression("(2 * 5) - (4 / 2) + 6");
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);

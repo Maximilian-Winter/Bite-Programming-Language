@@ -115,11 +115,11 @@ namespace Bite.Runtime.Memory
                 {
                     if (classId >= 0)
                     {
-                        FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                        FastMemorySpace fms = fastGlobalMemorySpace.GetModule(moduleId).Properties[classId].ObjectData as FastMemorySpace;
                         return fms.Properties[id];
                     }
 
-                    return fastGlobalMemorySpace.Modules[moduleId].Properties[id];
+                    return fastGlobalMemorySpace.GetModule(moduleId).Properties[id];
                 }
 
                 return DynamicVariableExtension.ToDynamicVariable();
@@ -153,11 +153,11 @@ namespace Bite.Runtime.Memory
                 {
                     if (classId >= 0)
                     {
-                        FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                        FastMemorySpace fms = fastGlobalMemorySpace.GetModule(moduleId).Properties[classId].ObjectData as FastMemorySpace;
 
                         return fms.currentMemoryPointer > id;
                     }
-                    return fastGlobalMemorySpace.Modules[moduleId].currentMemoryPointer > id;
+                    return fastGlobalMemorySpace.GetModule(moduleId).currentMemoryPointer > id;
                 }
                 return false;
             }
@@ -195,10 +195,10 @@ namespace Bite.Runtime.Memory
                 {
                     if (classId >= 0)
                     {
-                        FastMemorySpace fms = fastGlobalMemorySpace.Modules[moduleId].Properties[classId].ObjectData as FastMemorySpace;
+                        FastMemorySpace fms = fastGlobalMemorySpace.GetModule(moduleId).Properties[classId].ObjectData as FastMemorySpace;
                         fms.Properties[id] = value;
                     }
-                    fastGlobalMemorySpace.Modules[moduleId].Properties[id] = value;
+                    fastGlobalMemorySpace.GetModule(moduleId).Properties[id] = value;
                 }
                 return;
             }

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Bite.Ast
 {
-
+    [DebuggerDisplay("{ModuleIdent.ModuleId.Id}")]
     public class ModuleNode : HeteroAstNode
     {
         public ModuleIdentifier ModuleIdent;

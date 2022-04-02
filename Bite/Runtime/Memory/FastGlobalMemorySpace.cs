@@ -11,10 +11,20 @@ namespace Bite.Runtime.Memory
         {
         }
 
-        public List<FastMemorySpace> Modules
+        //public List<FastMemorySpace> Modules
+        //{
+        //    get => m_Modules;
+        //    set => m_Modules = value;
+        //}
+
+        public void AddModule(FastMemorySpace memorySpace)
         {
-            get => m_Modules;
-            set => m_Modules = value;
+            m_Modules.Add(memorySpace);
+        }
+
+        public FastMemorySpace GetModule(int index)
+        {
+            return m_Modules[index];
         }
 
         public override DynamicBiteVariable Get(string idStr, bool calledFromGlobalMemorySpace = false)

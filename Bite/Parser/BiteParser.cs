@@ -32,6 +32,7 @@ namespace Bite.Parser
             return program;
         }
 
+
         /// <summary>
         /// Parses a set of modules and returns a <see cref="ProgramNode"/>
         /// </summary>
@@ -47,6 +48,7 @@ namespace Bite.Parser
                 ModuleNode module = ParseModule(biteModule);
                 program.AddModule(module);
             }
+
 
             return program;
         }
