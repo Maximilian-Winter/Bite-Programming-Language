@@ -9,6 +9,7 @@ My idea was it to have a dynamically interpreted language in C# to support moddi
 
 * Module system
 * Dynamically typed
+* Importing  and using C# Types and Objects
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
 
 # Overall Status
@@ -144,9 +145,9 @@ The following command will compile the bite modules in `.\TestProgram` and start
 
 
 
-# Importing C# System Types.
+# Importing and using C# Types and Objects.
 
-You can import c# system types into a module. For example, to write to the console you can use the `CSharpInterface` object like so:
+You can import c# types into a module. For example, to write to the console you can use the `CSharpInterface` object like so:
 
 ```
 module CSharpSystem;
@@ -160,6 +161,9 @@ CSharpInterfaceObject.Type = "System.Console";
 
 var Console = CSharpInterfaceCall(CSharpInterfaceObject);
 ```
+Now you can use the variable Console like the static Class Console in C#.
+
+
 
 For .NET Core to .NET 6.0, you need to specify an Assembly Qualified Name if the type it is not in mscorlib. You don't need the full name, but you need to specify the assembly.
 
