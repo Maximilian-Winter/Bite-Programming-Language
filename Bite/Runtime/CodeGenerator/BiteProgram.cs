@@ -80,11 +80,19 @@ namespace Bite.Runtime.CodeGen
             CompiledMainChunk = new BinaryChunk(MainChunk.SerializeToBytes(), MainChunk.Constants, MainChunk.Lines);
         }
 
-        public BiteVm Run()
+        /// <summary>
+        /// Creates a new <see cref="BiteVm"/> and executes the <see cref="BiteProgram"/>
+        /// </summary>
+        /// <returns></returns>
+        public BiteResult Run()
         {
             var srslVm = new BiteVm();
-            srslVm.Interpret(this);
-            return srslVm;
+            var result = srslVm.Interpret(this);
+            return new BiteResult()
+            {
+                InterpretResult = result,
+                ReturnValue = srslVm.ReturnValue
+            };
         }
     }
 }

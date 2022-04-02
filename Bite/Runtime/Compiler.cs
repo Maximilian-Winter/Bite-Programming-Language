@@ -46,6 +46,21 @@ namespace Bite.Runtime
             return generator.CompileExpression(expressionNode);
         }
 
+        public BiteProgram CompileStatements(string statements)
+        {
+            m_Parser = new BiteParser
+            {
+                ThrowOnRecognitionException = m_ThrowOnRecognitionException
+            };
+
+            var statementNodes = m_Parser.ParseStatements(statements);
+
+            CodeGenerator generator = new CodeGenerator();
+
+            return generator.CompileStatements(statementNodes);
+        }
+
+
         public BiteProgram Compile(IReadOnlyCollection<Module> modules)
         {
             m_Parser = new BiteParser

@@ -78,7 +78,7 @@ Console.WriteLine(greeting);"
 
             var result = biteVm.Interpret(context);
 
-            Console.WriteLine(biteVm.RetVal.StringData);
+            Console.WriteLine(biteVm.ReturnValue.StringData);
         }
 
         public static void TestExpression()
@@ -95,7 +95,7 @@ Console.WriteLine(greeting);"
 
             var result = biteVm.Interpret(context);
 
-            Console.WriteLine(biteVm.RetVal.NumberData);
+            Console.WriteLine(biteVm.ReturnValue.NumberData);
         }
 
         public static void TestStatements()
@@ -112,7 +112,7 @@ Console.WriteLine(greeting);"
 
             var result = biteVm.Interpret(context);
 
-            Console.WriteLine(biteVm.RetVal.NumberData);
+            Console.WriteLine(biteVm.ReturnValue.NumberData);
         }
 
 
@@ -152,7 +152,7 @@ Console.WriteLine(greeting);"
                 stopwatch2.Start();
                 biteVm.Interpret(context);
 
-                Console.WriteLine(biteVm.RetVal.ToString());
+                Console.WriteLine(biteVm.ReturnValue.ToString());
 
                 stopwatch2.Stop();
                 Console.WriteLine("--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds);
