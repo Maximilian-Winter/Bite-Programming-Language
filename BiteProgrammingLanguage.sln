@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAppNet6", "TestAppNet6\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bite.Cli", "Bite.Cli\Bite.Cli.csproj", "{51F0A8D3-EAE2-477E-A7B9-5E52146AA53A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{F6AF1417-0199-4315-82CF-4A7F33A7320E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CD99924-9A63-4B54-A44F-9B93F3CFAB34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6AF1417-0199-4315-82CF-4A7F33A7320E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6AF1417-0199-4315-82CF-4A7F33A7320E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6AF1417-0199-4315-82CF-4A7F33A7320E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6AF1417-0199-4315-82CF-4A7F33A7320E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
