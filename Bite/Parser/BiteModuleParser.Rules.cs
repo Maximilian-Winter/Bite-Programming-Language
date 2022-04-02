@@ -6,7 +6,7 @@ using Bite.Ast;
 
 namespace Bite.Parser
 {
-    public partial class SrslModuleParser
+    public partial class BiteModuleParser
     {
         #region Public
 

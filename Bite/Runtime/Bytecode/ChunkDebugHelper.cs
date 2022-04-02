@@ -29,95 +29,11 @@ namespace Bite.Runtime.Bytecode
         {
             Console.Write(offset + " ");
 
-            SrslVmOpCodes instruction = (SrslVmOpCodes)chunk.Code[offset];
+            BiteVmOpCodes instruction = (BiteVmOpCodes)chunk.Code[offset];
             offset++;
             switch (instruction)
             {
-                /*  case SrslVmOpCodes.OpConstant:
-                      return ConstantInstruction( "OpConstant", chunk, offset );
-
-                  case SrslVmOpCodes.OpNegate:
-                      return SimpleInstruction( "OpNegate", offset );
-
-                  case SrslVmOpCodes.OpAdd:
-                      return SimpleInstruction( "OpAdd", offset );
-
-                  case SrslVmOpCodes.OpSubtract:
-                      return SimpleInstruction( "OpSubtract", offset );
-
-                  case SrslVmOpCodes.OpMultiply:
-                      return SimpleInstruction( "OpMultiply", offset );
-
-                  case SrslVmOpCodes.OpDivide:
-                      return SimpleInstruction( "OpDivide", offset );
-
-                 case SrslVmOpCodes.OpDefineLocalVar:
-                     return SimpleInstruction( "OpDefineLocalVar", offset );
-
-                  case SrslVmOpCodes.OpDefineModule:
-                  {
-                      string moduleName = ReadConstant(chunk, ref offset).StringConstantValue;
-                      int numberOfMembers = chunk.Code[offset] | (chunk.Code[offset+1] << 8) | (chunk.Code[offset+2] << 16) | (chunk.Code[offset+3] << 24);offset += 4;
-                      Console.WriteLine("OpDefineModule, '{0}' Number of Symbols'{1}'", moduleName, numberOfMembers);
-                      return offset;
-                  }
-
-                  case SrslVmOpCodes.OpDefineClass:
-                  {
-                      string moduleName = ReadConstant(chunk, ref offset).StringConstantValue;
-                      Console.WriteLine("OpDefineClass, '{0}'", moduleName);
-                      return offset;
-                  }
-
-                  case SrslVmOpCodes.OpDefineMethod:
-                  {
-                      string moduleName = ReadConstant(chunk, ref offset).StringConstantValue;
-                      Console.WriteLine("OpDefineMethod, '{0}'", moduleName);
-                      return offset;
-                  }
-
-                 case SrslVmOpCodes.OpBindToFunction:
-                  {
-                      int numberOfArgs = chunk.Code[offset] | (chunk.Code[offset+1] << 8) | (chunk.Code[offset+2] << 16) | (chunk.Code[offset+3] << 24);offset += 4;
-                      Console.WriteLine("OpBindToFunction, '{0}'", numberOfArgs);
-                      return offset;
-                  }
-                 case SrslVmOpCodes.OpCallFunction:
-                 {
-                     string moduleName = ReadConstant(chunk, ref offset).StringConstantValue;
-                     Console.WriteLine("OpCallFunction, '{0}'", moduleName);
-                     return offset;
-                 }
-
-                  case SrslVmOpCodes.OpCallMemberFunction:
-                  {
-                      string moduleName = ReadConstant(chunk, ref offset).StringConstantValue;
-                      Console.WriteLine("OpCallFunction, '{0}'", moduleName);
-                      return offset;
-                  }
-
-                 case SrslVmOpCodes.OpReturn:
-                 {
-                     //object value = srslStack.Peek();
-                     Console.WriteLine("OpReturn");
-                     return offset + 1;
-                 }
-
-
-                  case SrslVmOpCodes.OpEnterBlock:
-                  {
-                      int numberOfMembers = chunk.Code[offset] | (chunk.Code[offset+1] << 8) | (chunk.Code[offset+2] << 16) | (chunk.Code[offset+3] << 24);offset += 4;
-
-                      Console.WriteLine("OpEnterBlock {0}", numberOfMembers);
-                      return offset + 1;
-                  }
-
-                  case SrslVmOpCodes.OpExitBlock:
-                  {
-                      Console.WriteLine("OpExitBlock");
-                      return offset + 1;
-                  }
-                  */
+                
                 default:
                     string inst = instruction.ToString();
 

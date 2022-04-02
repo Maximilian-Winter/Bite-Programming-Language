@@ -130,7 +130,7 @@ Console.WriteLine(greeting);"
 
             BiteParser parser = new BiteParser();
 
-            var files = Directory.EnumerateFiles(".\\TestProgram", "*.srsl", SearchOption.AllDirectories);
+            var files = Directory.EnumerateFiles(".\\TestProgram", "*.bite", SearchOption.AllDirectories);
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();

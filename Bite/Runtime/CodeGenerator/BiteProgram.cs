@@ -86,12 +86,12 @@ namespace Bite.Runtime.CodeGen
         /// <returns></returns>
         public BiteResult Run()
         {
-            var srslVm = new BiteVm();
-            var result = srslVm.Interpret(this);
+            var biteVm = new BiteVm();
+            var result = biteVm.Interpret(this);
             return new BiteResult()
             {
                 InterpretResult = result,
-                ReturnValue = srslVm.ReturnValue
+                ReturnValue = biteVm.ReturnValue
             };
         }
     }

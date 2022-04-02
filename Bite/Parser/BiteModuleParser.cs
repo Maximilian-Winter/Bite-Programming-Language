@@ -5,7 +5,7 @@ using Bite.Ast;
 
 namespace Bite.Parser
 {
-    public partial class SrslModuleParser : Parser
+    public partial class BiteModuleParser : Parser
     {
         public readonly IDictionary<int, IDictionary<string, int>> MemoizingDictionary =
             new Dictionary<int, IDictionary<string, int>>();
@@ -13,7 +13,7 @@ namespace Bite.Parser
         private bool MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
         #region Public
 
-        public SrslModuleParser(Lexer input) : base(input)
+        public BiteModuleParser(Lexer input) : base(input)
         {
         }
 

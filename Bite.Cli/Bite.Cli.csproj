@@ -14,6 +14,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="TestProgram\AModule.bite">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="TestProgram\CSharpSystemModule.bite">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>

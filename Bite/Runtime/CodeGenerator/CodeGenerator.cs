@@ -22,18 +22,18 @@ namespace Bite.Runtime.CodeGen
 
         private bool m_IsCompilingAssignmentLhs = false;
 
-        private SrslVmOpCodes m_CallNodeTypeForAssignment = SrslVmOpCodes.OpNone;
+        private BiteVmOpCodes m_CallNodeTypeForAssignment = BiteVmOpCodes.OpNone;
 
         private int m_MaxStackDepth = 0;
 
         private int PreviousLoopBlockCount = 0;
-        private SrslVmOpCodes m_ConstructingOpCode;
+        private BiteVmOpCodes m_ConstructingOpCode;
         private List<int> m_ConstructingOpCodeData;
         private int m_ConstructingLine;
 
         private BiteProgram m_BiteProgram;
 
-        private void BeginConstuctingByteCodeInstruction(SrslVmOpCodes byteCode, int line = 0)
+        private void BeginConstuctingByteCodeInstruction(BiteVmOpCodes byteCode, int line = 0)
         {
             m_ConstructingOpCode = byteCode;
             m_ConstructingOpCodeData = new List<int>();
@@ -51,21 +51,21 @@ namespace Bite.Runtime.CodeGen
             byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
             m_BiteProgram.CurrentChunk.WriteToChunk(byCode, m_ConstructingLine);
             m_ConstructingOpCodeData = null;
-            m_ConstructingOpCode = SrslVmOpCodes.OpNone;
+            m_ConstructingOpCode = BiteVmOpCodes.OpNone;
         }
 
-        private int EmitByteCode(SrslVmOpCodes byteCode, int line = 0)
+        private int EmitByteCode(BiteVmOpCodes byteCode, int line = 0)
         {
             return m_BiteProgram.CurrentChunk.WriteToChunk(byteCode, line);
         }
 
-        private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int line)
+        private int EmitByteCode(BiteVmOpCodes byteCode, int opCodeData, int line)
         {
             ByteCode byCode = new ByteCode(byteCode, opCodeData);
             return m_BiteProgram.CurrentChunk.WriteToChunk(byCode, line);
         }
 
-        private int EmitByteCode(SrslVmOpCodes byteCode, int opCodeData, int opCodeData2, int line)
+        private int EmitByteCode(BiteVmOpCodes byteCode, int opCodeData, int opCodeData2, int line)
         {
             ByteCode byCode = new ByteCode(byteCode, opCodeData, opCodeData2);
             return m_BiteProgram.CurrentChunk.WriteToChunk(byCode, line);
@@ -76,19 +76,19 @@ namespace Bite.Runtime.CodeGen
             return m_BiteProgram.CurrentChunk.WriteToChunk(byteCode, line);
         }
 
-        private int EmitByteCode(SrslVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
+        private int EmitByteCode(BiteVmOpCodes byteCode, ConstantValue constantValue, int line = 0)
         {
             return m_BiteProgram.CurrentChunk.WriteToChunk(byteCode, constantValue, line);
         }
 
         private int EmitReturn(int line = 0)
         {
-            return EmitByteCode(SrslVmOpCodes.OpReturn, line);
+            return EmitByteCode(BiteVmOpCodes.OpReturn, line);
         }
 
         private int EmitConstant(ConstantValue value, int line = 0)
         {
-            return EmitByteCode(SrslVmOpCodes.OpConstant, value, line);
+            return EmitByteCode(BiteVmOpCodes.OpConstant, value, line);
         }
 
         private object Compile(HeteroAstNode astNode)
@@ -186,7 +186,7 @@ namespace Bite.Runtime.CodeGen
 
             /*int d = 0;
             ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
-            EmitByteCode( SrslVmOpCodes.OpDefineModule,  new ConstantValue("System"));
+            EmitByteCode( BiteVmOpCodes.OpDefineModule,  new ConstantValue("System"));
             //EmitByteCode( mod.InsertionOrderNumber);
             m_CompilingChunk = new Chunk();
             CompilingChunks.Add( "System", m_CompilingChunk);
@@ -194,7 +194,7 @@ namespace Bite.Runtime.CodeGen
 
             int d2 = 0;
             ClassSymbol c = m.resolve( "Object", out int moduleId2, ref d2 ) as ClassSymbol;
-            EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue("System.Object") );
+            EmitByteCode( BiteVmOpCodes.OpDefineClass, new ConstantValue("System.Object") );
             //EmitByteCode( symbol.InsertionOrderNumber );
             m_CompilingChunk = new Chunk();
             CompilingChunks.Add( "System.Object", m_CompilingChunk);
@@ -202,7 +202,7 @@ namespace Bite.Runtime.CodeGen
 
             int d4 = 0;
             MethodSymbol method = m.resolve( "Print", out int moduleId4, ref d4 ) as MethodSymbol;
-            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue("System.Print") );
+            EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue("System.Print") );
             //EmitByteCode( symbol.InsertionOrderNumber );
             m_CompilingChunk = new Chunk();
             CompilingChunks.Add( "System.Print", m_CompilingChunk);
@@ -210,7 +210,7 @@ namespace Bite.Runtime.CodeGen
 
             int d5 = 0;
             MethodSymbol method2 = m.resolve( "CSharpInterfaceCall", out int moduleId5, ref d5 ) as MethodSymbol;
-            EmitByteCode( SrslVmOpCodes.OpDefineMethod, new ConstantValue("System.CSharpInterfaceCall") );
+            EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue("System.CSharpInterfaceCall") );
             //EmitByteCode( symbol.InsertionOrderNumber );
             m_CompilingChunk = new Chunk();
             CompilingChunks.Add( "System.CSharpInterfaceCall", m_CompilingChunk);
@@ -218,7 +218,7 @@ namespace Bite.Runtime.CodeGen
 
             int d3 = 0;
             ClassSymbol c2 = m.resolve( "CSharpInterface", out int moduleId3, ref d3 ) as ClassSymbol;
-            EmitByteCode( SrslVmOpCodes.OpDefineClass, new ConstantValue("System.CSharpInterface") );*/
+            EmitByteCode( BiteVmOpCodes.OpDefineClass, new ConstantValue("System.CSharpInterface") );*/
             //EmitByteCode( symbol.InsertionOrderNumber );
             int d = 0;
             ModuleSymbol m = node.AstScopeNode.resolve("System", out int moduleId, ref d) as ModuleSymbol;
@@ -230,7 +230,7 @@ namespace Bite.Runtime.CodeGen
 
             m_BiteProgram.NewChunk();
 
-            ByteCode byteCode = new ByteCode(SrslVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber);
+            ByteCode byteCode = new ByteCode(BiteVmOpCodes.OpDefineLocalInstance, moduleId2, d2, c.InsertionOrderNumber);
             EmitByteCode(byteCode);
             EmitByteCode(byteCode);
             EmitByteCode(byteCode);
@@ -281,7 +281,7 @@ namespace Bite.Runtime.CodeGen
             {
                 m_BiteProgram.CurrentChunk.
                     WriteToChunk(
-                        SrslVmOpCodes.OpDefineModule,
+                        BiteVmOpCodes.OpDefineModule,
                         new ConstantValue(m_CurrentModuleName),
                         mod.NumberOfSymbols,
                         0);
@@ -293,7 +293,7 @@ namespace Bite.Runtime.CodeGen
 
             /*foreach ( ModuleIdentifier importedModule in node.ImportedModules )
             {
-                EmitByteCode( SrslVmOpCodes.OpImportModule, importedModule.ToString(), importedModule.DebugInfoAstNode.LineNumber );
+                EmitByteCode( BiteVmOpCodes.OpImportModule, importedModule.ToString(), importedModule.DebugInfoAstNode.LineNumber );
             }*/
 
             foreach (StatementNode statement in node.Statements)
@@ -338,18 +338,18 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(UsingStatementNode node)
         {
-            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
+            EmitByteCode(BiteVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             Compile(node.UsingNode);
-            EmitByteCode(SrslVmOpCodes.OpUsingStatmentHead);
+            EmitByteCode(BiteVmOpCodes.OpUsingStatmentHead);
             Compile(node.UsingBlock);
-            EmitByteCode(SrslVmOpCodes.OpUsingStatmentEnd);
-            EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            EmitByteCode(BiteVmOpCodes.OpUsingStatmentEnd);
+            EmitByteCode(BiteVmOpCodes.OpExitBlock);
             return null;
         }
 
         public override object Visit(DeclarationsNode node)
         {
-            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
+            EmitByteCode(BiteVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
 
             m_CurrentEnterBlockCount++;
 
@@ -401,7 +401,7 @@ namespace Bite.Runtime.CodeGen
                 }
             }
 
-            EmitByteCode(SrslVmOpCodes.OpExitBlock);
+            EmitByteCode(BiteVmOpCodes.OpExitBlock);
             m_CurrentEnterBlockCount--;
 
             return null;
@@ -423,7 +423,7 @@ namespace Bite.Runtime.CodeGen
             }
             else
             {
-                EmitByteCode(SrslVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
+                EmitByteCode(BiteVmOpCodes.OpDefineClass, new ConstantValue(m_CurrentClassName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
                 m_BiteProgram.NewChunk(); //m_CompilingChunk = new Chunk();
                                           // CompilingChunks.Add(m_CurrentClassName, m_CompilingChunk);
@@ -443,7 +443,7 @@ namespace Bite.Runtime.CodeGen
                 else
                 {
 
-                    EmitByteCode(SrslVmOpCodes.OpDefineLocalVar);
+                    EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
 
                     //EmitByteCode( field.Type );
                 }
@@ -457,7 +457,7 @@ namespace Bite.Runtime.CodeGen
                 }
                 else
                 {
-                    EmitByteCode(SrslVmOpCodes.OpDefineMethod, new ConstantValue(method.QualifiedName));
+                    EmitByteCode(BiteVmOpCodes.OpDefineMethod, new ConstantValue(method.QualifiedName));
                     //EmitByteCode( method.InsertionOrderNumber );
                 }
             }
@@ -477,7 +477,7 @@ namespace Bite.Runtime.CodeGen
             }
             else
             {
-                EmitByteCode(SrslVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
+                EmitByteCode(BiteVmOpCodes.OpDefineMethod, new ConstantValue(symbol.QualifiedName));
                 //EmitByteCode( symbol.InsertionOrderNumber );
                 //m_CompilingChunk = new Chunk();
                 m_BiteProgram.NewChunk();
@@ -488,7 +488,7 @@ namespace Bite.Runtime.CodeGen
             {
                 foreach ( Identifier parametersIdentifier in node.Parameters.Identifiers )
                 {
-                    EmitByteCode( SrslVmOpCodes.OpDefineLocalVar, parametersIdentifier.Id );
+                    EmitByteCode( BiteVmOpCodes.OpDefineLocalVar, parametersIdentifier.Id );
                 }
             }*/
 
@@ -509,12 +509,12 @@ namespace Bite.Runtime.CodeGen
             if (node.Initializer != null)
             {
                 Compile(node.Initializer);
-                EmitByteCode(SrslVmOpCodes.OpDefineLocalVar);
+                EmitByteCode(BiteVmOpCodes.OpDefineLocalVar);
 
             }
             else
             {
-                EmitByteCode(SrslVmOpCodes.OpDeclareLocalVar);
+                EmitByteCode(BiteVmOpCodes.OpDeclareLocalVar);
             }
             return null;
         }
@@ -528,7 +528,7 @@ namespace Bite.Runtime.CodeGen
             if (node.IsVariableRedeclaration)
             {
                 ByteCode byteCode = new ByteCode(
-                    SrslVmOpCodes.OpSetLocalInstance,
+                    BiteVmOpCodes.OpSetLocalInstance,
                     moduleId,
                     d,
                     variableSymbol.InsertionOrderNumber,
@@ -542,7 +542,7 @@ namespace Bite.Runtime.CodeGen
             else
             {
                 ByteCode byteCode = new ByteCode(
-                    SrslVmOpCodes.OpDefineLocalInstance,
+                    BiteVmOpCodes.OpDefineLocalInstance,
                     moduleId2,
                     d2,
                     classSymbol.InsertionOrderNumber,
@@ -551,6 +551,20 @@ namespace Bite.Runtime.CodeGen
                 EmitByteCode(byteCode);
             }
 
+            /*foreach ( var methodSymbol in classSymbol.Methods )
+            {
+                if ( methodSymbol.IsConstructor )
+                {
+                    ByteCode byteCode = new ByteCode(
+                        BiteVmOpCodes.OpGetLocalInstance,
+                        moduleId,
+                        d,
+                        variableSymbol.InsertionOrderNumber);
+                    
+                    EmitByteCode(byteCode);
+                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
+                }
+            }*/
             return null;
         }
 
@@ -563,7 +577,7 @@ namespace Bite.Runtime.CodeGen
                     Compile(argumentsExpression);
                 }
                 ByteCode byteCode = new ByteCode(
-                    SrslVmOpCodes.OpBindToFunction,
+                    BiteVmOpCodes.OpBindToFunction,
                     node.Arguments.Expressions.Count);
 
                 EmitByteCode(byteCode);
@@ -571,10 +585,10 @@ namespace Bite.Runtime.CodeGen
 
             if (node.IsFunctionCall)
             {
-                //EmitByteCode( SrslVmOpCodes.OpCallFunction );
+                //EmitByteCode( BiteVmOpCodes.OpCallFunction );
                 int d = 0;
                 FunctionSymbol functionSymbol = node.AstScopeNode.resolve(node.Primary.PrimaryId.Id, out int moduleId, ref d) as FunctionSymbol;
-                EmitByteCode(SrslVmOpCodes.OpCallFunction, new ConstantValue(functionSymbol.QualifiedName));
+                EmitByteCode(BiteVmOpCodes.OpCallFunction, new ConstantValue(functionSymbol.QualifiedName));
             }
             else
             {
@@ -582,7 +596,7 @@ namespace Bite.Runtime.CodeGen
                 {
                     if (m_IsCompilingAssignmentLhs && (node.CallEntries == null || node.CallEntries.Count == 0))
                     {
-                        BeginConstuctingByteCodeInstruction(SrslVmOpCodes.OpSetLocalVar);
+                        BeginConstuctingByteCodeInstruction(BiteVmOpCodes.OpSetLocalVar);
                         Compile(node.Primary);
                     }
                     else
@@ -591,13 +605,13 @@ namespace Bite.Runtime.CodeGen
                         Symbol var = node.AstScopeNode.resolve(node.Primary.PrimaryId.Id, out int moduleId, ref d);
                         if (var is ModuleSymbol m)
                         {
-                            BeginConstuctingByteCodeInstruction(SrslVmOpCodes.OpGetModule);
+                            BeginConstuctingByteCodeInstruction(BiteVmOpCodes.OpGetModule);
                             AddToConstuctingByteCodeInstruction(m.InsertionOrderNumber);
                             EndConstuctingByteCodeInstruction();
                         }
                         else
                         {
-                            BeginConstuctingByteCodeInstruction(SrslVmOpCodes.OpGetLocalVar);
+                            BeginConstuctingByteCodeInstruction(BiteVmOpCodes.OpGetLocalVar);
                             Compile(node.Primary);
                         }
 
@@ -626,14 +640,14 @@ namespace Bite.Runtime.CodeGen
                 if (m_IsCompilingAssignmentLhs && (node.CallEntries == null || node.CallEntries.Count == 0))
                 {
                     ByteCode byteCode = new ByteCode(
-                        SrslVmOpCodes.OpSetElement,
+                        BiteVmOpCodes.OpSetElement,
                         node.ElementAccess.Count);
                     EmitByteCode(byteCode);
                 }
                 else
                 {
                     ByteCode byteCode = new ByteCode(
-                        SrslVmOpCodes.OpGetElement,
+                        BiteVmOpCodes.OpGetElement,
                         node.ElementAccess.Count);
                     EmitByteCode(byteCode);
                 }
@@ -672,7 +686,7 @@ namespace Bite.Runtime.CodeGen
                             Compile(argumentsExpression);
                         }
                         ByteCode byteCode = new ByteCode(
-                            SrslVmOpCodes.OpBindToFunction,
+                            BiteVmOpCodes.OpBindToFunction,
                             terminalNode.Arguments.Expressions.Count);
 
                         EmitByteCode(byteCode);
@@ -695,7 +709,7 @@ namespace Bite.Runtime.CodeGen
                         if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1)
                         {
                             ByteCode byteCode = new ByteCode(
-                                SrslVmOpCodes.OpSetElement,
+                                BiteVmOpCodes.OpSetElement,
                                 terminalNode.ElementAccess.Count);
 
                             EmitByteCode(byteCode);
@@ -703,7 +717,7 @@ namespace Bite.Runtime.CodeGen
                         else
                         {
                             ByteCode byteCode = new ByteCode(
-                                SrslVmOpCodes.OpGetElement,
+                                BiteVmOpCodes.OpGetElement,
                                 terminalNode.ElementAccess.Count);
 
                             EmitByteCode(byteCode);
@@ -725,11 +739,11 @@ namespace Bite.Runtime.CodeGen
 
                             if (memberSymbol == null)
                             {
-                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                                EmitByteCode(BiteVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                             }
                             else
                             {
-                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
+                                EmitByteCode(BiteVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
                             }
 
                         }
@@ -743,11 +757,11 @@ namespace Bite.Runtime.CodeGen
 
                             if (memberSymbol == null)
                             {
-                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                                EmitByteCode(BiteVmOpCodes.OpCallMemberFunction, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
                             }
                             else
                             {
-                                EmitByteCode(SrslVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
+                                EmitByteCode(BiteVmOpCodes.OpCallMemberFunction, new ConstantValue(memberSymbol.QualifiedName));
                             }
 
                         }
@@ -769,7 +783,7 @@ namespace Bite.Runtime.CodeGen
                                         ref d4);
 
                                     ByteCode byteCode = new ByteCode(
-                                        SrslVmOpCodes.OpSetMember,
+                                        BiteVmOpCodes.OpSetMember,
                                         memberSymbol.InsertionOrderNumber);
                                     EmitByteCode(byteCode);
 
@@ -784,7 +798,7 @@ namespace Bite.Runtime.CodeGen
                                         ref d4);
 
                                     ByteCode byteCode = new ByteCode(
-                                        SrslVmOpCodes.OpSetMember,
+                                        BiteVmOpCodes.OpSetMember,
                                         memberSymbol.InsertionOrderNumber);
                                     EmitByteCode(byteCode);
                                 }
@@ -801,7 +815,7 @@ namespace Bite.Runtime.CodeGen
                                         ref d4);
 
                                     ByteCode byteCode = new ByteCode(
-                                        SrslVmOpCodes.OpGetMember,
+                                        BiteVmOpCodes.OpGetMember,
                                         memberSymbol.InsertionOrderNumber);
                                     EmitByteCode(byteCode);
 
@@ -816,7 +830,7 @@ namespace Bite.Runtime.CodeGen
                                         ref d4);
 
                                     ByteCode byteCode = new ByteCode(
-                                        SrslVmOpCodes.OpGetMember,
+                                        BiteVmOpCodes.OpGetMember,
                                         memberSymbol.InsertionOrderNumber);
                                     EmitByteCode(byteCode);
                                 }
@@ -854,47 +868,47 @@ namespace Bite.Runtime.CodeGen
                     switch (node.OperatorType)
                     {
                         case AssignmentOperatorTypes.Assign:
-                            EmitByteCode(SrslVmOpCodes.OpAssign);
+                            EmitByteCode(BiteVmOpCodes.OpAssign);
                             break;
 
                         case AssignmentOperatorTypes.DivAssign:
-                            EmitByteCode(SrslVmOpCodes.OpDivideAssign);
+                            EmitByteCode(BiteVmOpCodes.OpDivideAssign);
                             break;
 
                         case AssignmentOperatorTypes.MultAssign:
-                            EmitByteCode(SrslVmOpCodes.OpMultiplyAssign);
+                            EmitByteCode(BiteVmOpCodes.OpMultiplyAssign);
                             break;
 
                         case AssignmentOperatorTypes.PlusAssign:
-                            EmitByteCode(SrslVmOpCodes.OpPlusAssign);
+                            EmitByteCode(BiteVmOpCodes.OpPlusAssign);
                             break;
 
                         case AssignmentOperatorTypes.MinusAssign:
-                            EmitByteCode(SrslVmOpCodes.OpMinusAssign);
+                            EmitByteCode(BiteVmOpCodes.OpMinusAssign);
                             break;
 
                         case AssignmentOperatorTypes.ModuloAssignOperator:
-                            EmitByteCode(SrslVmOpCodes.OpModuloAssign);
+                            EmitByteCode(BiteVmOpCodes.OpModuloAssign);
                             break;
 
                         case AssignmentOperatorTypes.BitwiseAndAssignOperator:
-                            EmitByteCode(SrslVmOpCodes.OpBitwiseAndAssign);
+                            EmitByteCode(BiteVmOpCodes.OpBitwiseAndAssign);
                             break;
 
                         case AssignmentOperatorTypes.BitwiseOrAssignOperator:
-                            EmitByteCode(SrslVmOpCodes.OpBitwiseOrAssign);
+                            EmitByteCode(BiteVmOpCodes.OpBitwiseOrAssign);
                             break;
 
                         case AssignmentOperatorTypes.BitwiseXorAssignOperator:
-                            EmitByteCode(SrslVmOpCodes.OpBitwiseXorAssign);
+                            EmitByteCode(BiteVmOpCodes.OpBitwiseXorAssign);
                             break;
 
                         case AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator:
-                            EmitByteCode(SrslVmOpCodes.OpBitwiseLeftShiftAssign);
+                            EmitByteCode(BiteVmOpCodes.OpBitwiseLeftShiftAssign);
                             break;
 
                         case AssignmentOperatorTypes.BitwiseRightShiftAssignOperator:
-                            EmitByteCode(SrslVmOpCodes.OpBitwiseRightShiftAssign);
+                            EmitByteCode(BiteVmOpCodes.OpBitwiseRightShiftAssign);
                             break;
 
                         default:
@@ -1011,25 +1025,25 @@ namespace Bite.Runtime.CodeGen
         public override object Visit(IfStatementNode node)
         {
             Compile(node.Expression);
-            int thenJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
+            int thenJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
             Compile(node.ThenBlock);
-            int overElseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
-            m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+            int overElseJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
+            m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(BiteVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
 
             foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
             {
                 if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else)
                 {
                     Compile(nodeIfStatementEntry.ElseBlock);
-                    m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                    m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
                 if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf)
                 {
                     Compile(nodeIfStatementEntry.ExpressionElseIf);
-                    int elseJump = EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
+                    int elseJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
                     Compile(nodeIfStatementEntry.ElseBlock);
-                    m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(SrslVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-                    m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(SrslVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                    m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(BiteVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                    m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
             }
 
@@ -1039,7 +1053,7 @@ namespace Bite.Runtime.CodeGen
         public override object Visit(ForStatementNode node)
         {
 
-            EmitByteCode(SrslVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
+            EmitByteCode(BiteVmOpCodes.OpEnterBlock, (node.AstScopeNode as BaseScope).NestedSymbolCount, 0);
             m_CurrentEnterBlockCount++;
             PreviousLoopBlockCount = m_CurrentEnterBlockCount;
             if (node.VariableDeclaration != null)
@@ -1058,16 +1072,16 @@ namespace Bite.Runtime.CodeGen
             }
 
 
-            int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
+            int toFix = EmitByteCode(BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
             Compile(node.Block);
             if (node.Expression2 != null)
             {
                 Compile(node.Expression2);
             }
-            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-            EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
-            EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
-            EmitByteCode(SrslVmOpCodes.OpExitBlock, 0);
+            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+            EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
+            EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
+            EmitByteCode(BiteVmOpCodes.OpExitBlock, 0);
             m_CurrentEnterBlockCount--;
             return null;
         }
@@ -1078,21 +1092,21 @@ namespace Bite.Runtime.CodeGen
 
             int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
             Compile(node.Expression);
-            int toFix = EmitByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
+            int toFix = EmitByteCode(BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
             Compile(node.WhileBlock);
-            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(SrslVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-            EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
-            EmitByteCode(SrslVmOpCodes.OpNone, 0, 0);
+            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+            EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
+            EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
             return null;
         }
 
         public override object Visit(ReturnStatementNode node)
         {
             Compile(node.ExpressionStatement);
-            EmitByteCode(SrslVmOpCodes.OpKeepLastItemOnStack);
+            EmitByteCode(BiteVmOpCodes.OpKeepLastItemOnStack);
             for (int i = 0; i < m_CurrentEnterBlockCount; i++)
             {
-                EmitByteCode(SrslVmOpCodes.OpExitBlock);
+                EmitByteCode(BiteVmOpCodes.OpExitBlock);
             }
             EmitReturn();
 
@@ -1103,10 +1117,10 @@ namespace Bite.Runtime.CodeGen
         {
             for (int i = 0; i < (m_CurrentEnterBlockCount - PreviousLoopBlockCount); i++)
             {
-                EmitByteCode(SrslVmOpCodes.OpExitBlock);
+                EmitByteCode(BiteVmOpCodes.OpExitBlock);
             }
 
-            EmitByteCode(SrslVmOpCodes.OpBreak);
+            EmitByteCode( BiteVmOpCodes.OpBreak );
             return null;
         }
 
@@ -1125,75 +1139,75 @@ namespace Bite.Runtime.CodeGen
             switch (node.Operator)
             {
                 case BinaryOperationNode.BinaryOperatorType.Plus:
-                    EmitByteCode(SrslVmOpCodes.OpAdd);
+                    EmitByteCode(BiteVmOpCodes.OpAdd);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Minus:
-                    EmitByteCode(SrslVmOpCodes.OpSubtract);
+                    EmitByteCode(BiteVmOpCodes.OpSubtract);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Mult:
-                    EmitByteCode(SrslVmOpCodes.OpMultiply);
+                    EmitByteCode(BiteVmOpCodes.OpMultiply);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Div:
-                    EmitByteCode(SrslVmOpCodes.OpDivide);
+                    EmitByteCode(BiteVmOpCodes.OpDivide);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Modulo:
-                    EmitByteCode(SrslVmOpCodes.OpModulo);
+                    EmitByteCode(BiteVmOpCodes.OpModulo);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Equal:
-                    EmitByteCode(SrslVmOpCodes.OpEqual);
+                    EmitByteCode(BiteVmOpCodes.OpEqual);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.NotEqual:
-                    EmitByteCode(SrslVmOpCodes.OpNotEqual);
+                    EmitByteCode(BiteVmOpCodes.OpNotEqual);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Less:
-                    EmitByteCode(SrslVmOpCodes.OpSmaller);
+                    EmitByteCode(BiteVmOpCodes.OpSmaller);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.LessOrEqual:
-                    EmitByteCode(SrslVmOpCodes.OpSmallerEqual);
+                    EmitByteCode(BiteVmOpCodes.OpSmallerEqual);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Greater:
-                    EmitByteCode(SrslVmOpCodes.OpGreater);
+                    EmitByteCode(BiteVmOpCodes.OpGreater);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.GreaterOrEqual:
-                    EmitByteCode(SrslVmOpCodes.OpGreaterEqual);
+                    EmitByteCode(BiteVmOpCodes.OpGreaterEqual);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.And:
-                    EmitByteCode(SrslVmOpCodes.OpAnd);
+                    EmitByteCode(BiteVmOpCodes.OpAnd);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.Or:
-                    EmitByteCode(SrslVmOpCodes.OpOr);
+                    EmitByteCode(BiteVmOpCodes.OpOr);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.BitwiseOr:
-                    EmitByteCode(SrslVmOpCodes.OpBitwiseOr);
+                    EmitByteCode(BiteVmOpCodes.OpBitwiseOr);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.BitwiseAnd:
-                    EmitByteCode(SrslVmOpCodes.OpBitwiseAnd);
+                    EmitByteCode(BiteVmOpCodes.OpBitwiseAnd);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.BitwiseXor:
-                    EmitByteCode(SrslVmOpCodes.OpBitwiseXor);
+                    EmitByteCode(BiteVmOpCodes.OpBitwiseXor);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.ShiftLeft:
-                    EmitByteCode(SrslVmOpCodes.OpBitwiseLeftShift);
+                    EmitByteCode(BiteVmOpCodes.OpBitwiseLeftShift);
                     break;
 
                 case BinaryOperationNode.BinaryOperatorType.ShiftRight:
-                    EmitByteCode(SrslVmOpCodes.OpBitwiseRightShift);
+                    EmitByteCode(BiteVmOpCodes.OpBitwiseRightShift);
 
                     break;
 
@@ -1206,10 +1220,10 @@ namespace Bite.Runtime.CodeGen
 
         public override object Visit(TernaryOperationNode node)
         {
-            Compile(node.RightOperand);
-            Compile(node.MidOperand);
-            Compile(node.LeftOperand);
-            EmitByteCode(SrslVmOpCodes.OpTernary);
+            Compile( node.RightOperand );
+            Compile( node.MidOperand );
+            Compile( node.LeftOperand );
+            EmitByteCode( BiteVmOpCodes.OpTernary );
             return null;
         }
 
@@ -1296,11 +1310,11 @@ namespace Bite.Runtime.CodeGen
             switch (node.Operator)
             {
                 case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
-                    EmitByteCode(SrslVmOpCodes.OpPostfixIncrement);
+                    EmitByteCode(BiteVmOpCodes.OpPostfixIncrement);
                     break;
 
                 case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
-                    EmitByteCode(SrslVmOpCodes.OpPostfixDecrement);
+                    EmitByteCode(BiteVmOpCodes.OpPostfixDecrement);
                     break;
 
                 default:
@@ -1316,27 +1330,27 @@ namespace Bite.Runtime.CodeGen
             switch (node.Operator)
             {
                 case UnaryPrefixOperation.UnaryPrefixOperatorType.Plus:
-                    EmitByteCode(SrslVmOpCodes.OpAffirm);
+                    EmitByteCode(BiteVmOpCodes.OpAffirm);
                     break;
 
                 case UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment:
-                    EmitByteCode(SrslVmOpCodes.OpCompliment);
+                    EmitByteCode(BiteVmOpCodes.OpCompliment);
                     break;
 
                 case UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus:
-                    EmitByteCode(SrslVmOpCodes.OpPrefixIncrement);
+                    EmitByteCode(BiteVmOpCodes.OpPrefixIncrement);
                     break;
 
                 case UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus:
-                    EmitByteCode(SrslVmOpCodes.OpPrefixDecrement);
+                    EmitByteCode(BiteVmOpCodes.OpPrefixDecrement);
                     break;
 
                 case UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot:
-                    EmitByteCode(SrslVmOpCodes.OpNot);
+                    EmitByteCode(BiteVmOpCodes.OpNot);
                     break;
 
                 case UnaryPrefixOperation.UnaryPrefixOperatorType.Negate:
-                    EmitByteCode(SrslVmOpCodes.OpNegate);
+                    EmitByteCode(BiteVmOpCodes.OpNegate);
                     break;
 
                 default:

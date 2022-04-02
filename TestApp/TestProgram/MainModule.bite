@@ -6,6 +6,7 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
+
 function FindFibonacciNumber(n)
 {
     var count= 2;
@@ -39,7 +40,6 @@ while(count3 < 1000)
     }
     count3++;
 }
-
 Print(temp);
 /*
 
@@ -77,27 +77,31 @@ Print(FindPrimeNumber(16));
 Print(FindPrimeNumber(32));
 Print(FindPrimeNumber(64));
 
-function FindFibonacciNumber(n)
+class Fibo
 {
-    var count= 2;
-    var a = 1;
-    var b = 1;
-    var c = 1;
-    if(n == 0)
+    function FindFibonacciNumber(n)
     {
-        return 0;
+        var count= 2;
+        var a = 1;
+        var b = 1;
+        var c = 1;
+        if(n == 0)
+        {
+            return 0;
+        }
+        while(count<n)
+        {
+            c = a + b;
+            a = b;
+            b = c; 
+            count++;
+        }
+    
+        return c;
     }
-    while(count<n)
-    {
-        c = a + b;
-        a = b;
-        b = c; 
-        count++;
-    }
-
-    return c;
 }
 
+var fibo = new Fibo();
 var temp = 0;
 var count3 = 0;
 while(count3 < 1000)
@@ -105,7 +109,7 @@ while(count3 < 1000)
     var count2 = 0;
     while(count2 < 37)
     {
-        temp = FindFibonacciNumber(count2);
+        temp = fibo.FindFibonacciNumber(count2);
         count2++;
     }
     count3++;

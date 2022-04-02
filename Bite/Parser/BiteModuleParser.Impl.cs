@@ -6,7 +6,7 @@ using Bite.Ast;
 namespace Bite.Parser
 {
 
-public partial class SrslModuleParser
+public partial class BiteModuleParser
 {
     #region Public
 
@@ -19,7 +19,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return context;
 
-            while ( LA( 1 ) == SrslLexer.MinusOperator || LA( 1 ) == SrslLexer.PlusOperator )
+            while ( LA( 1 ) == BiteLexer.MinusOperator || LA( 1 ) == BiteLexer.PlusOperator )
             {
                 consume();
                 context = multiplicative();
@@ -41,9 +41,9 @@ public partial class SrslModuleParser
 
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.MinusOperator || LA( 1 ) == SrslLexer.PlusOperator )
+            while ( LA( 1 ) == BiteLexer.MinusOperator || LA( 1 ) == BiteLexer.PlusOperator )
             {
-                if ( LA( 1 ) == SrslLexer.PlusOperator )
+                if ( LA( 1 ) == BiteLexer.PlusOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Plus;
                 }
@@ -62,7 +62,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.MinusOperator || LA( 1 ) == SrslLexer.PlusOperator )
+                if ( LA( 1 ) == BiteLexer.MinusOperator || LA( 1 ) == BiteLexer.PlusOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -89,11 +89,11 @@ public partial class SrslModuleParser
     {
         if ( Speculating )
         {
-            if ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+            if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
-                while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
-                    if ( LA( 1 ) == SrslLexer.ReferenceOperator )
+                    if ( LA( 1 ) == BiteLexer.ReferenceOperator )
                     {
                         consume();
                     }
@@ -103,7 +103,7 @@ public partial class SrslModuleParser
                     if ( context.Failed )
                         return Context < ArgumentsNode >.AsFailed( context.Exception );
 
-                    if ( LA( 1 ) == SrslLexer.CommaSeperator )
+                    if ( LA( 1 ) == BiteLexer.CommaSeperator )
                     {
                         consume();
                     }
@@ -112,12 +112,12 @@ public partial class SrslModuleParser
         }
         else
         {
-            if ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+            if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
                 ArgumentsNode argumentsNode = null;
                 int counter = 0;
 
-                while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
                     if ( counter == 0 )
                     {
@@ -126,7 +126,7 @@ public partial class SrslModuleParser
                         argumentsNode.IsReference = new List < bool >();
                     }
 
-                    if ( LA( 1 ) == SrslLexer.ReferenceOperator )
+                    if ( LA( 1 ) == BiteLexer.ReferenceOperator )
                     {
                         argumentsNode.IsReference.Add( true );
                         consume();
@@ -145,7 +145,7 @@ public partial class SrslModuleParser
 
                     argumentsNode.Expressions.Add( expressionNode );
 
-                    if ( LA( 1 ) == SrslLexer.CommaSeperator )
+                    if ( LA( 1 ) == BiteLexer.CommaSeperator )
                     {
                         consume();
                     }
@@ -246,18 +246,18 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < AssignmentNode >.AsFailed( context.Exception );
 
-            if ( LA( 1 ) == SrslLexer.AssignOperator ||
-                 LA( 1 ) == SrslLexer.MultiplyAssignOperator ||
-                 LA( 1 ) == SrslLexer.DivideAssignOperator ||
-                 LA( 1 ) == SrslLexer.MinusAssignOperator ||
-                 LA( 1 ) == SrslLexer.PlusAssignOperator ||
-                 LA( 1 ) == SrslLexer.MinusAssignOperator ||
-                 LA( 1 ) == SrslLexer.ModuloAssignOperator ||
-                 LA( 1 ) == SrslLexer.BitwiseAndAssignOperator ||
-                 LA( 1 ) == SrslLexer.BitwiseOrAssignOperator ||
-                 LA( 1 ) == SrslLexer.BitwiseXorAssignOperator ||
-                 LA( 1 ) == SrslLexer.BitwiseLeftShiftAssignOperator ||
-                 LA( 1 ) == SrslLexer.BitwiseRightShiftAssignOperator )
+            if ( LA( 1 ) == BiteLexer.AssignOperator ||
+                 LA( 1 ) == BiteLexer.MultiplyAssignOperator ||
+                 LA( 1 ) == BiteLexer.DivideAssignOperator ||
+                 LA( 1 ) == BiteLexer.MinusAssignOperator ||
+                 LA( 1 ) == BiteLexer.PlusAssignOperator ||
+                 LA( 1 ) == BiteLexer.MinusAssignOperator ||
+                 LA( 1 ) == BiteLexer.ModuloAssignOperator ||
+                 LA( 1 ) == BiteLexer.BitwiseAndAssignOperator ||
+                 LA( 1 ) == BiteLexer.BitwiseOrAssignOperator ||
+                 LA( 1 ) == BiteLexer.BitwiseXorAssignOperator ||
+                 LA( 1 ) == BiteLexer.BitwiseLeftShiftAssignOperator ||
+                 LA( 1 ) == BiteLexer.BitwiseRightShiftAssignOperator )
             {
                 consume();
 
@@ -286,57 +286,57 @@ public partial class SrslModuleParser
 
             switch ( LA( 1 ) )
             {
-                case SrslLexer.AssignOperator:
+                case BiteLexer.AssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.Assign;
 
                     break;
 
-                case SrslLexer.MultiplyAssignOperator:
+                case BiteLexer.MultiplyAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.MultAssign;
 
                     break;
 
-                case SrslLexer.DivideAssignOperator:
+                case BiteLexer.DivideAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.DivAssign;
 
                     break;
 
-                case SrslLexer.MinusAssignOperator:
+                case BiteLexer.MinusAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.MinusAssign;
 
                     break;
 
-                case SrslLexer.PlusAssignOperator:
+                case BiteLexer.PlusAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.PlusAssign;
 
                     break;
 
-                case SrslLexer.ModuloAssignOperator:
+                case BiteLexer.ModuloAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.ModuloAssignOperator;
 
                     break;
 
-                case SrslLexer.BitwiseAndAssignOperator:
+                case BiteLexer.BitwiseAndAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.BitwiseAndAssignOperator;
 
                     break;
 
-                case SrslLexer.BitwiseOrAssignOperator:
+                case BiteLexer.BitwiseOrAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.BitwiseOrAssignOperator;
 
                     break;
 
-                case SrslLexer.BitwiseXorAssignOperator:
+                case BiteLexer.BitwiseXorAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.BitwiseXorAssignOperator;
 
                     break;
 
-                case SrslLexer.BitwiseLeftShiftAssignOperator:
+                case BiteLexer.BitwiseLeftShiftAssignOperator:
                     assignmentNode.OperatorType = AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator;
 
                     break;
 
-                case SrslLexer.BitwiseRightShiftAssignOperator:
+                case BiteLexer.BitwiseRightShiftAssignOperator:
                     assignmentNode.OperatorType =
                         AssignmentOperatorTypes.BitwiseRightShiftAssignOperator;
 
@@ -366,7 +366,7 @@ public partial class SrslModuleParser
     {
         IContext < BlockStatementNode > matchContext = null;
 
-        if ( !match( SrslLexer.OpeningCurlyBracket, out matchContext ) )
+        if ( !match( BiteLexer.OpeningCurlyBracket, out matchContext ) )
             return matchContext;
 
         if ( Speculating == false )
@@ -374,7 +374,7 @@ public partial class SrslModuleParser
             BlockStatementNode blockStatementNode = new BlockStatementNode();
             blockStatementNode.Declarations = new DeclarationsNode();
 
-            while ( LA( 1 ) != SrslLexer.ClosingCurlyBracket )
+            while ( LA( 1 ) != BiteLexer.ClosingCurlyBracket )
             {
                 var context = declaration();
 
@@ -422,13 +422,13 @@ public partial class SrslModuleParser
                 }
             }
 
-            if ( !match( SrslLexer.ClosingCurlyBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingCurlyBracket, out matchContext ) )
                 return matchContext;
 
             return new Context < BlockStatementNode >( blockStatementNode );
         }
 
-        while ( LA( 1 ) != SrslLexer.ClosingCurlyBracket )
+        while ( LA( 1 ) != BiteLexer.ClosingCurlyBracket )
         {
             var context = declaration();
 
@@ -436,7 +436,7 @@ public partial class SrslModuleParser
                 return Context < BlockStatementNode >.AsFailed( context.Exception );
         }
 
-        if ( !match( SrslLexer.ClosingCurlyBracket, out matchContext ) )
+        if ( !match( BiteLexer.ClosingCurlyBracket, out matchContext ) )
             return matchContext;
 
         return new Context < BlockStatementNode >( null );
@@ -453,30 +453,30 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < CallNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.DotOperator ||
-                    LA( 1 ) == SrslLexer.OpeningRoundBracket ||
-                    LA( 1 ) == SrslLexer.SquarebracketLeft )
+            while ( LA( 1 ) == BiteLexer.DotOperator ||
+                    LA( 1 ) == BiteLexer.OpeningRoundBracket ||
+                    LA( 1 ) == BiteLexer.SquarebracketLeft )
             {
-                if ( LA( 1 ) == SrslLexer.DotOperator )
+                if ( LA( 1 ) == BiteLexer.DotOperator )
                 {
-                    while ( LA( 1 ) == SrslLexer.DotOperator )
+                    while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
-                        if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                        if ( !match( BiteLexer.DotOperator, out matchContext ) )
                             return matchContext;
 
-                        if ( !match( SrslLexer.Identifier, out matchContext ) )
+                        if ( !match( BiteLexer.Identifier, out matchContext ) )
                             return matchContext;
                     }
                 }
 
-                else if ( LA( 1 ) == SrslLexer.OpeningRoundBracket )
+                else if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
                 {
-                    if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                         return matchContext;
 
-                    while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                    while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                     {
-                        if ( LA( 1 ) == SrslLexer.ReferenceOperator )
+                        if ( LA( 1 ) == BiteLexer.ReferenceOperator )
                         {
                             consume();
                         }
@@ -486,38 +486,38 @@ public partial class SrslModuleParser
                         if ( contextExpression.Failed )
                             return Context < CallNode >.AsFailed( context.Exception );
 
-                        if ( LA( 1 ) == SrslLexer.CommaSeperator )
+                        if ( LA( 1 ) == BiteLexer.CommaSeperator )
                         {
-                            if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                            if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                                 return matchContext;
                         }
                     }
 
-                    if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                         return matchContext;
                 }
 
-                else if ( LA( 1 ) == SrslLexer.SquarebracketLeft )
+                else if ( LA( 1 ) == BiteLexer.SquarebracketLeft )
                 {
-                    while ( LA( 1 ) == SrslLexer.SquarebracketLeft )
+                    while ( LA( 1 ) == BiteLexer.SquarebracketLeft )
                     {
-                        if ( !match( SrslLexer.SquarebracketLeft, out matchContext ) )
+                        if ( !match( BiteLexer.SquarebracketLeft, out matchContext ) )
                             return matchContext;
 
-                        if ( LA( 1 ) == SrslLexer.StringLiteral ||
-                             LA( 1 ) == SrslLexer.IntegerLiteral ||
-                             LA( 1 ) == SrslLexer.Identifier )
+                        if ( LA( 1 ) == BiteLexer.StringLiteral ||
+                             LA( 1 ) == BiteLexer.IntegerLiteral ||
+                             LA( 1 ) == BiteLexer.Identifier )
                         {
                             consume();
                         }
 
-                        if ( !match( SrslLexer.SquarebracketRight, out matchContext ) )
+                        if ( !match( BiteLexer.SquarebracketRight, out matchContext ) )
                             return matchContext;
                     }
                 }
             }
 
-            if ( LA( 1 ) == SrslLexer.PlusPlusOperator || LA( 1 ) == SrslLexer.MinusMinusOperator )
+            if ( LA( 1 ) == BiteLexer.PlusPlusOperator || LA( 1 ) == BiteLexer.MinusMinusOperator )
             {
                 return Context < CallNode >.AsFailed(
                     new MismatchedTokenException( "Unary Operation! Not Call", LT( 1 ) ) );
@@ -536,11 +536,11 @@ public partial class SrslModuleParser
             callNode.CallType = CallTypes.Primary;
             CallEntry currentCallEntry = null;
 
-            while ( LA( 1 ) == SrslLexer.DotOperator ||
-                    LA( 1 ) == SrslLexer.OpeningRoundBracket ||
-                    LA( 1 ) == SrslLexer.SquarebracketLeft )
+            while ( LA( 1 ) == BiteLexer.DotOperator ||
+                    LA( 1 ) == BiteLexer.OpeningRoundBracket ||
+                    LA( 1 ) == BiteLexer.SquarebracketLeft )
             {
-                if ( LA( 1 ) == SrslLexer.DotOperator )
+                if ( LA( 1 ) == BiteLexer.DotOperator )
                 {
                     if ( callNode.CallEntries == null )
                     {
@@ -549,9 +549,9 @@ public partial class SrslModuleParser
 
                     callNode.CallType = CallTypes.PrimaryCall;
 
-                    while ( LA( 1 ) == SrslLexer.DotOperator )
+                    while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
-                        if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                        if ( !match( BiteLexer.DotOperator, out matchContext ) )
                             return matchContext;
 
                         context = primary();
@@ -567,11 +567,11 @@ public partial class SrslModuleParser
                     }
                 }
 
-                if ( LA( 1 ) == SrslLexer.OpeningRoundBracket )
+                if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
                 {
                     callNode.CallType = CallTypes.PrimaryCall;
 
-                    if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                         return matchContext;
 
                     if ( currentCallEntry != null )
@@ -589,11 +589,11 @@ public partial class SrslModuleParser
                         callNode.Arguments.IsReference = new List < bool >();
                     }
 
-                    while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                    while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                     {
                         if ( currentCallEntry != null )
                         {
-                            if ( LA( 1 ) == SrslLexer.ReferenceOperator )
+                            if ( LA( 1 ) == BiteLexer.ReferenceOperator )
                             {
                                 currentCallEntry.Arguments.IsReference.Add( true );
                                 consume();
@@ -612,7 +612,7 @@ public partial class SrslModuleParser
                         }
                         else
                         {
-                            if ( LA( 1 ) == SrslLexer.ReferenceOperator )
+                            if ( LA( 1 ) == BiteLexer.ReferenceOperator )
                             {
                                 callNode.Arguments.IsReference.Add( true );
                                 consume();
@@ -630,18 +630,18 @@ public partial class SrslModuleParser
                             callNode.Arguments.Expressions.Add( contextExpression.Result );
                         }
 
-                        if ( LA( 1 ) == SrslLexer.CommaSeperator )
+                        if ( LA( 1 ) == BiteLexer.CommaSeperator )
                         {
-                            if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                            if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                                 return matchContext;
                         }
                     }
 
-                    if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                         return matchContext;
                 }
 
-                if ( LA( 1 ) == SrslLexer.SquarebracketLeft )
+                if ( LA( 1 ) == BiteLexer.SquarebracketLeft )
                 {
                     callNode.CallType = CallTypes.PrimaryCall;
 
@@ -654,20 +654,20 @@ public partial class SrslModuleParser
                         callNode.ElementAccess = new List < CallElementEntry >();
                     }
 
-                    while ( LA( 1 ) == SrslLexer.SquarebracketLeft )
+                    while ( LA( 1 ) == BiteLexer.SquarebracketLeft )
                     {
                         CallElementEntry callElementEntry = new CallElementEntry();
 
-                        if ( !match( SrslLexer.SquarebracketLeft, out matchContext ) )
+                        if ( !match( BiteLexer.SquarebracketLeft, out matchContext ) )
                             return matchContext;
 
-                        if ( LA( 1 ) == SrslLexer.StringLiteral )
+                        if ( LA( 1 ) == BiteLexer.StringLiteral )
                         {
                             callElementEntry.Identifier = LT( 1 ).text;
                             callElementEntry.CallElementType = CallElementTypes.StringLiteral;
                             consume();
                         }
-                        else if ( LA( 1 ) == SrslLexer.IntegerLiteral )
+                        else if ( LA( 1 ) == BiteLexer.IntegerLiteral )
                         {
                             callElementEntry.Identifier = LT( 1 ).text;
 
@@ -676,7 +676,7 @@ public partial class SrslModuleParser
 
                             consume();
                         }
-                        else if ( LA( 1 ) == SrslLexer.Identifier )
+                        else if ( LA( 1 ) == BiteLexer.Identifier )
                         {
                             var contextCall = call();
 
@@ -687,7 +687,7 @@ public partial class SrslModuleParser
                             callElementEntry.CallElementType = CallElementTypes.Call;
                         }
 
-                        if ( !match( SrslLexer.SquarebracketRight, out matchContext ) )
+                        if ( !match( BiteLexer.SquarebracketRight, out matchContext ) )
                             return matchContext;
 
                         if ( currentCallEntry != null )
@@ -714,36 +714,36 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareClass, out matchContext ) )
+            if ( !match( BiteLexer.DeclareClass, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.ColonOperator && LA( 2 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
-                if ( !match( SrslLexer.ColonOperator, out matchContext ) )
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
                     return matchContext;
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) == SrslLexer.CommaSeperator && LA( 2 ) == SrslLexer.Identifier )
+                while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
@@ -759,46 +759,46 @@ public partial class SrslModuleParser
             Token staticAbstractMod = null;
             string classIdentifier;
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 staticAbstractMod = LT( 1 );
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareClass, out matchContext ) )
+            if ( !match( BiteLexer.DeclareClass, out matchContext ) )
                 return matchContext;
 
             classIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
             List < string > baseClasses = new List < string >();
 
-            if ( LA( 1 ) == SrslLexer.ColonOperator && LA( 2 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
-                if ( !match( SrslLexer.ColonOperator, out matchContext ) )
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
                     return matchContext;
 
                 baseClasses.Add( LT( 1 ).text );
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) == SrslLexer.CommaSeperator && LA( 2 ) == SrslLexer.Identifier )
+                while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
                     baseClasses.Add( LT( 1 ).text );
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
@@ -836,7 +836,7 @@ public partial class SrslModuleParser
             return new Context < ClassDeclarationNode >( classDeclarationNode );
         }
 
-        return null;
+        return new Context < ClassDeclarationNode >( null );
     }
 
     public virtual IContext < ClassDeclarationNode > _classDeclarationForward()
@@ -845,41 +845,41 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareClass, out matchContext ) )
+            if ( !match( BiteLexer.DeclareClass, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.ColonOperator && LA( 2 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
-                if ( !match( SrslLexer.ColonOperator, out matchContext ) )
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
                     return matchContext;
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) == SrslLexer.CommaSeperator && LA( 2 ) == SrslLexer.Identifier )
+                while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
 
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
         }
         else
@@ -888,46 +888,46 @@ public partial class SrslModuleParser
             Token staticAbstractMod = null;
             string classIdentifier = null;
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 staticAbstractMod = LT( 1 );
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareClass, out matchContext ) )
+            if ( !match( BiteLexer.DeclareClass, out matchContext ) )
                 return matchContext;
 
             classIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
             List < string > baseClasses = new List < string >();
 
-            if ( LA( 1 ) == SrslLexer.ColonOperator && LA( 2 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
-                if ( !match( SrslLexer.ColonOperator, out matchContext ) )
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
                     return matchContext;
 
                 baseClasses.Add( LT( 1 ).text );
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) == SrslLexer.CommaSeperator && LA( 2 ) == SrslLexer.Identifier )
+                while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
                     baseClasses.Add( LT( 1 ).text );
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
@@ -955,13 +955,13 @@ public partial class SrslModuleParser
 
             classDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
 
             return new Context < ClassDeclarationNode >( classDeclarationNode );
         }
 
-        return null;
+        return new Context < ClassDeclarationNode >( null );
     }
 
     public virtual IContext < ClassInstanceDeclarationNode > _classInstanceDeclaration()
@@ -970,47 +970,47 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareVariable )
+            if ( LA( 1 ) == BiteLexer.DeclareVariable )
             {
-                if ( !match( SrslLexer.DeclareVariable, out matchContext ) )
+                if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
                     return matchContext;
             }
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.AssignOperator, out matchContext ) )
+            if ( !match( BiteLexer.AssignOperator, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.DeclareClassInstance, out matchContext ) )
+            if ( !match( BiteLexer.DeclareClassInstance, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            while ( LA( 1 ) == SrslLexer.DotOperator )
+            while ( LA( 1 ) == BiteLexer.DotOperator )
             {
-                if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                if ( !match( BiteLexer.DotOperator, out matchContext ) )
                     return matchContext;
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
             }
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+            if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
                 var context = arguments();
 
@@ -1018,12 +1018,12 @@ public partial class SrslModuleParser
                     return Context < ClassInstanceDeclarationNode >.AsFailed( context.Exception );
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
         }
@@ -1034,13 +1034,13 @@ public partial class SrslModuleParser
             string classIdentifier = null;
             string identifier = null;
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic )
             {
                 staticAbstractMod = LT( 1 );
                 consume();
@@ -1048,11 +1048,11 @@ public partial class SrslModuleParser
 
             bool isRedeclaration = true;
 
-            if ( LA( 1 ) == SrslLexer.DeclareVariable )
+            if ( LA( 1 ) == BiteLexer.DeclareVariable )
             {
                 isRedeclaration = false;
 
-                if ( !match( SrslLexer.DeclareVariable, out matchContext ) )
+                if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
                     return matchContext;
             }
 
@@ -1061,41 +1061,41 @@ public partial class SrslModuleParser
 
             identifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.AssignOperator, out matchContext ) )
+            if ( !match( BiteLexer.AssignOperator, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.DeclareClassInstance, out matchContext ) )
+            if ( !match( BiteLexer.DeclareClassInstance, out matchContext ) )
                 return matchContext;
 
             classIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.DotOperator )
+            if ( LA( 1 ) == BiteLexer.DotOperator )
             {
                 classInstanceDeclarationNode.ClassPath = new List < Identifier >();
             }
 
-            while ( LA( 1 ) == SrslLexer.DotOperator )
+            while ( LA( 1 ) == BiteLexer.DotOperator )
             {
                 classInstanceDeclarationNode.ClassPath.Add( new Identifier( classIdentifier ) );
 
-                if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                if ( !match( BiteLexer.DotOperator, out matchContext ) )
                     return matchContext;
 
                 classIdentifier = LT( 1 ).text;
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
             }
 
             classInstanceDeclarationNode.ClassName = new Identifier( classIdentifier );
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             if ( !string.IsNullOrEmpty( identifier ) )
@@ -1109,7 +1109,7 @@ public partial class SrslModuleParser
 
             classInstanceDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
-            if ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+            if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
                 var context = arguments();
 
@@ -1119,12 +1119,12 @@ public partial class SrslModuleParser
                 classInstanceDeclarationNode.Arguments = context.Result;
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
 
@@ -1214,7 +1214,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.UnequalOperator || LA( 1 ) == SrslLexer.EqualOperator )
+            while ( LA( 1 ) == BiteLexer.UnequalOperator || LA( 1 ) == BiteLexer.EqualOperator )
             {
                 consume();
                 context = relational();
@@ -1236,9 +1236,9 @@ public partial class SrslModuleParser
 
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.UnequalOperator || LA( 1 ) == SrslLexer.EqualOperator )
+            while ( LA( 1 ) == BiteLexer.UnequalOperator || LA( 1 ) == BiteLexer.EqualOperator )
             {
-                if ( LA( 1 ) == SrslLexer.UnequalOperator )
+                if ( LA( 1 ) == BiteLexer.UnequalOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.NotEqual;
                 }
@@ -1257,7 +1257,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.UnequalOperator || LA( 1 ) == SrslLexer.EqualOperator )
+                if ( LA( 1 ) == BiteLexer.UnequalOperator || LA( 1 ) == BiteLexer.EqualOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -1319,7 +1319,7 @@ public partial class SrslModuleParser
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
         }
@@ -1336,7 +1336,7 @@ public partial class SrslModuleParser
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
 
@@ -1352,13 +1352,13 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( !match( SrslLexer.DeclareForLoop, out matchContext ) )
+            if ( !match( BiteLexer.DeclareForLoop, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.DeclareVariable )
+            if ( LA( 1 ) == BiteLexer.DeclareVariable )
             {
                 var context = variableDeclaration();
 
@@ -1367,7 +1367,7 @@ public partial class SrslModuleParser
             }
             else
             {
-                if ( LA( 1 ) != SrslLexer.SemicolonSeperator )
+                if ( LA( 1 ) != BiteLexer.SemicolonSeperator )
                 {
                     var context = expressionStatement();
 
@@ -1376,28 +1376,28 @@ public partial class SrslModuleParser
                 }
                 else
                 {
-                    if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                         return matchContext;
                 }
             }
 
-            if ( LA( 1 ) != SrslLexer.SemicolonSeperator )
+            if ( LA( 1 ) != BiteLexer.SemicolonSeperator )
             {
                 var context = expression();
 
                 if ( context.Failed )
                     return Context < ForStatementNode >.AsFailed( context.Exception );
 
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
             else
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
 
-            if ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+            if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
                 var context = expression();
 
@@ -1405,7 +1405,7 @@ public partial class SrslModuleParser
                     return Context < ForStatementNode >.AsFailed( context.Exception );
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -1417,10 +1417,10 @@ public partial class SrslModuleParser
         {
             ForStatementNode forStatementNode = new ForStatementNode();
 
-            if ( !match( SrslLexer.DeclareForLoop, out matchContext ) )
+            if ( !match( BiteLexer.DeclareForLoop, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             if ( speculate_declaration_variable() )
@@ -1445,7 +1445,7 @@ public partial class SrslModuleParser
             }
             else
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
 
@@ -1459,12 +1459,12 @@ public partial class SrslModuleParser
 
                 forStatementNode.Expression1 = context.Result;
 
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
             else
             {
-                if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                     return matchContext;
             }
 
@@ -1479,7 +1479,7 @@ public partial class SrslModuleParser
                 forStatementNode.Expression2 = context.Result;
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -1501,41 +1501,41 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareFunction, out matchContext ) )
+            if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.Identifier )
             {
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -1550,50 +1550,50 @@ public partial class SrslModuleParser
             string functionIdentifier = null;
             ParametersNode parametersNode = new ParametersNode();
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 staticAbstractMod = LT( 1 );
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareFunction, out matchContext ) )
+            if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
                 return matchContext;
 
             functionIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 parametersNode.Identifiers = new List < Identifier >();
                 parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
                     parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
@@ -1629,44 +1629,44 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareFunction, out matchContext ) )
+            if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.Identifier )
             {
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
         }
         else
@@ -1677,49 +1677,49 @@ public partial class SrslModuleParser
             ParametersNode parametersNode = new ParametersNode();
             parametersNode.Identifiers = new List < Identifier >();
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic || LA( 1 ) == SrslLexer.DeclareAbstract )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic || LA( 1 ) == BiteLexer.DeclareAbstract )
             {
                 staticAbstractMod = LT( 1 );
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareFunction, out matchContext ) )
+            if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
                 return matchContext;
 
             functionIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
 
-                while ( LA( 1 ) != SrslLexer.ClosingRoundBracket )
+                while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
-                    if ( !match( SrslLexer.CommaSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
                         return matchContext;
 
                     parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
                 }
             }
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
@@ -1735,7 +1735,7 @@ public partial class SrslModuleParser
 
             functionDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
 
             return new Context < FunctionDeclarationNode >( functionDeclarationNode );
@@ -1750,10 +1750,10 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( !match( SrslLexer.ControlFlowIf, out matchContext ) )
+            if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             var context = expression();
@@ -1761,7 +1761,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < IfStatementNode >.AsFailed( context.Exception );
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -1769,17 +1769,17 @@ public partial class SrslModuleParser
             if ( contextBlock.Failed )
                 return Context < IfStatementNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.ControlFlowElse )
+            while ( LA( 1 ) == BiteLexer.ControlFlowElse )
             {
-                if ( !match( SrslLexer.ControlFlowElse, out matchContext ) )
+                if ( !match( BiteLexer.ControlFlowElse, out matchContext ) )
                     return matchContext;
 
-                if ( LA( 1 ) == SrslLexer.ControlFlowIf )
+                if ( LA( 1 ) == BiteLexer.ControlFlowIf )
                 {
-                    if ( !match( SrslLexer.ControlFlowIf, out matchContext ) )
+                    if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                         return matchContext;
 
                     context = expression();
@@ -1787,7 +1787,7 @@ public partial class SrslModuleParser
                     if ( context.Failed )
                         return Context < IfStatementNode >.AsFailed( context.Exception );
 
-                    if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                         return matchContext;
 
                     contextBlock = block();
@@ -1806,10 +1806,10 @@ public partial class SrslModuleParser
         }
         else
         {
-            if ( !match( SrslLexer.ControlFlowIf, out matchContext ) )
+            if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             IfStatementNode ifStatement = new IfStatementNode();
@@ -1821,7 +1821,7 @@ public partial class SrslModuleParser
 
             ifStatement.Expression = context.Result;
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -1833,21 +1833,21 @@ public partial class SrslModuleParser
 
             ifStatement.IfStatementEntries = new List < IfStatementEntry >();
 
-            while ( LA( 1 ) == SrslLexer.ControlFlowElse )
+            while ( LA( 1 ) == BiteLexer.ControlFlowElse )
             {
                 IfStatementEntry ifStatementEntry = new IfStatementEntry();
 
-                if ( !match( SrslLexer.ControlFlowElse, out matchContext ) )
+                if ( !match( BiteLexer.ControlFlowElse, out matchContext ) )
                     return matchContext;
 
-                if ( LA( 1 ) == SrslLexer.ControlFlowIf )
+                if ( LA( 1 ) == BiteLexer.ControlFlowIf )
                 {
                     ifStatementEntry.IfStatementType = IfStatementEntryType.ElseIf;
 
-                    if ( !match( SrslLexer.ControlFlowIf, out matchContext ) )
+                    if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                         return matchContext;
 
                     var context2 = expression();
@@ -1857,7 +1857,7 @@ public partial class SrslModuleParser
 
                     ifStatementEntry.ExpressionElseIf = context2.Result;
 
-                    if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+                    if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                         return matchContext;
 
                     var contextBlock2 = block();
@@ -1897,7 +1897,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.LogicalAndOperator )
+            while ( LA( 1 ) == BiteLexer.LogicalAndOperator )
             {
                 consume();
                 context = bitwiseOr();
@@ -1919,7 +1919,7 @@ public partial class SrslModuleParser
 
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.LogicalAndOperator )
+            while ( LA( 1 ) == BiteLexer.LogicalAndOperator )
             {
                 currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.And;
                 consume();
@@ -1932,7 +1932,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.LogicalAndOperator )
+                if ( LA( 1 ) == BiteLexer.LogicalAndOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -1964,7 +1964,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.LogicalOrOperator )
+            while ( LA( 1 ) == BiteLexer.LogicalOrOperator )
             {
                 consume();
                 context = logicAnd();
@@ -1986,7 +1986,7 @@ public partial class SrslModuleParser
 
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.LogicalOrOperator )
+            while ( LA( 1 ) == BiteLexer.LogicalOrOperator )
             {
                 currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Or;
                 consume();
@@ -1999,7 +1999,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.LogicalOrOperator )
+                if ( LA( 1 ) == BiteLexer.LogicalOrOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -2031,9 +2031,9 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.MultiplyOperator ||
-                    LA( 1 ) == SrslLexer.DivideOperator ||
-                    LA( 1 ) == SrslLexer.ModuloOperator )
+            while ( LA( 1 ) == BiteLexer.MultiplyOperator ||
+                    LA( 1 ) == BiteLexer.DivideOperator ||
+                    LA( 1 ) == BiteLexer.ModuloOperator )
             {
                 consume();
                 context = unary();
@@ -2054,15 +2054,15 @@ public partial class SrslModuleParser
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.MultiplyOperator ||
-                    LA( 1 ) == SrslLexer.DivideOperator ||
-                    LA( 1 ) == SrslLexer.ModuloOperator )
+            while ( LA( 1 ) == BiteLexer.MultiplyOperator ||
+                    LA( 1 ) == BiteLexer.DivideOperator ||
+                    LA( 1 ) == BiteLexer.ModuloOperator )
             {
-                if ( LA( 1 ) == SrslLexer.MultiplyOperator )
+                if ( LA( 1 ) == BiteLexer.MultiplyOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Mult;
                 }
-                else if ( LA( 1 ) == SrslLexer.DivideOperator )
+                else if ( LA( 1 ) == BiteLexer.DivideOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Div;
                 }
@@ -2081,9 +2081,9 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.MultiplyOperator ||
-                     LA( 1 ) == SrslLexer.DivideOperator ||
-                     LA( 1 ) == SrslLexer.ModuloOperator )
+                if ( LA( 1 ) == BiteLexer.MultiplyOperator ||
+                     LA( 1 ) == BiteLexer.DivideOperator ||
+                     LA( 1 ) == BiteLexer.ModuloOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -2112,19 +2112,19 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.BooleanLiteral ||
-                 LA( 1 ) == SrslLexer.NullReference ||
-                 LA( 1 ) == SrslLexer.ThisReference ||
-                 LA( 1 ) == SrslLexer.IntegerLiteral ||
-                 LA( 1 ) == SrslLexer.FloatingLiteral ||
-                 LA( 1 ) == SrslLexer.StringLiteral ||
-                 LA( 1 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.BooleanLiteral ||
+                 LA( 1 ) == BiteLexer.NullReference ||
+                 LA( 1 ) == BiteLexer.ThisReference ||
+                 LA( 1 ) == BiteLexer.IntegerLiteral ||
+                 LA( 1 ) == BiteLexer.FloatingLiteral ||
+                 LA( 1 ) == BiteLexer.StringLiteral ||
+                 LA( 1 ) == BiteLexer.Identifier )
             {
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.OpeningRoundBracket )
+            else if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
             {
-                if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+                if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                     return matchContext;
 
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
@@ -2136,7 +2136,7 @@ public partial class SrslModuleParser
 
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
 
-                if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+                if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                     return matchContext;
             }
         }
@@ -2144,49 +2144,49 @@ public partial class SrslModuleParser
         {
             PrimaryNode primaryNode = new PrimaryNode();
 
-            if ( LA( 1 ) == SrslLexer.BooleanLiteral )
+            if ( LA( 1 ) == BiteLexer.BooleanLiteral )
             {
                 primaryNode.BooleanLiteral = bool.Parse( LT( 1 ).text );
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.BooleanLiteral;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.NullReference )
+            else if ( LA( 1 ) == BiteLexer.NullReference )
             {
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.NullReference;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.ThisReference )
+            else if ( LA( 1 ) == BiteLexer.ThisReference )
             {
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.ThisReference;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.IntegerLiteral )
+            else if ( LA( 1 ) == BiteLexer.IntegerLiteral )
             {
                 primaryNode.IntegerLiteral = int.Parse( LT( 1 ).text );
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.IntegerLiteral;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.FloatingLiteral )
+            else if ( LA( 1 ) == BiteLexer.FloatingLiteral )
             {
                 primaryNode.FloatLiteral = double.Parse( LT( 1 ).text, CultureInfo.InvariantCulture );
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.FloatLiteral;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.StringLiteral )
+            else if ( LA( 1 ) == BiteLexer.StringLiteral )
             {
                 primaryNode.StringLiteral = LT( 1 ).text;
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.StringLiteral;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.Identifier )
+            else if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 primaryNode.PrimaryId = new Identifier( LT( 1 ).text );
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Identifier;
                 consume();
             }
-            else if ( LA( 1 ) == SrslLexer.OpeningRoundBracket )
+            else if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
             {
-                if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+                if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                     return matchContext;
 
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
@@ -2200,7 +2200,7 @@ public partial class SrslModuleParser
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Expression;
 
-                if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+                if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                     return matchContext;
             }
             else
@@ -2226,10 +2226,10 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.GreaterOperator ||
-                    LA( 1 ) == SrslLexer.GreaterEqualOperator ||
-                    LA( 1 ) == SrslLexer.SmallerOperator ||
-                    LA( 1 ) == SrslLexer.SmallerEqualOperator )
+            while ( LA( 1 ) == BiteLexer.GreaterOperator ||
+                    LA( 1 ) == BiteLexer.GreaterEqualOperator ||
+                    LA( 1 ) == BiteLexer.SmallerOperator ||
+                    LA( 1 ) == BiteLexer.SmallerEqualOperator )
             {
                 consume();
                 context = shift();
@@ -2251,20 +2251,20 @@ public partial class SrslModuleParser
 
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.GreaterOperator ||
-                    LA( 1 ) == SrslLexer.GreaterEqualOperator ||
-                    LA( 1 ) == SrslLexer.SmallerOperator ||
-                    LA( 1 ) == SrslLexer.SmallerEqualOperator )
+            while ( LA( 1 ) == BiteLexer.GreaterOperator ||
+                    LA( 1 ) == BiteLexer.GreaterEqualOperator ||
+                    LA( 1 ) == BiteLexer.SmallerOperator ||
+                    LA( 1 ) == BiteLexer.SmallerEqualOperator )
             {
-                if ( LA( 1 ) == SrslLexer.GreaterOperator )
+                if ( LA( 1 ) == BiteLexer.GreaterOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Greater;
                 }
-                else if ( LA( 1 ) == SrslLexer.GreaterEqualOperator )
+                else if ( LA( 1 ) == BiteLexer.GreaterEqualOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.GreaterOrEqual;
                 }
-                else if ( LA( 1 ) == SrslLexer.SmallerOperator )
+                else if ( LA( 1 ) == BiteLexer.SmallerOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Less;
                 }
@@ -2283,10 +2283,10 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.GreaterOperator ||
-                     LA( 1 ) == SrslLexer.GreaterEqualOperator ||
-                     LA( 1 ) == SrslLexer.SmallerOperator ||
-                     LA( 1 ) == SrslLexer.SmallerEqualOperator )
+                if ( LA( 1 ) == BiteLexer.GreaterOperator ||
+                     LA( 1 ) == BiteLexer.GreaterEqualOperator ||
+                     LA( 1 ) == BiteLexer.SmallerOperator ||
+                     LA( 1 ) == BiteLexer.SmallerEqualOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -2315,7 +2315,7 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( !match( SrslLexer.FunctionReturn, out matchContext ) )
+            if ( !match( BiteLexer.FunctionReturn, out matchContext ) )
                 return matchContext;
 
             var context = expressionStatement();
@@ -2325,7 +2325,7 @@ public partial class SrslModuleParser
         }
         else
         {
-            if ( !match( SrslLexer.FunctionReturn, out matchContext ) )
+            if ( !match( BiteLexer.FunctionReturn, out matchContext ) )
                 return matchContext;
 
             ReturnStatementNode returnStatementNode = new ReturnStatementNode();
@@ -2348,18 +2348,18 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( !match( SrslLexer.Break, out matchContext ) )
+            if ( !match( BiteLexer.Break, out matchContext ) )
                 return matchContext;
             
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
         }
         else
         {
-            if ( !match( SrslLexer.Break, out matchContext ) )
+            if ( !match( BiteLexer.Break, out matchContext ) )
                 return matchContext;
     
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
             BreakStatementNode returnStatementNode = new BreakStatementNode();
 
@@ -2438,10 +2438,10 @@ public partial class SrslModuleParser
 
         if ( !Speculating )
         {
-            if ( !match( SrslLexer.UsingDirective, out matchContext ) )
+            if ( !match( BiteLexer.UsingDirective, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             UsingStatementNode usingStatementNode = new UsingStatementNode();
@@ -2456,7 +2456,7 @@ public partial class SrslModuleParser
 
             MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -2469,10 +2469,10 @@ public partial class SrslModuleParser
             return new Context < UsingStatementNode >( usingStatementNode );
         }
 
-        if ( !match( SrslLexer.UsingDirective, out matchContext ) )
+        if ( !match( BiteLexer.UsingDirective, out matchContext ) )
             return matchContext;
 
-        if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+        if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
             return matchContext;
 
         MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
@@ -2484,7 +2484,7 @@ public partial class SrslModuleParser
 
         MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
 
-        if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+        if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
             return matchContext;
 
         var contextBlock2 = block();
@@ -2501,15 +2501,15 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareStruct, out matchContext ) )
+            if ( !match( BiteLexer.DeclareStruct, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
             var context = block();
@@ -2523,18 +2523,18 @@ public partial class SrslModuleParser
             Token staticAbstractMod = null;
             string classIdentifier = null;
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareStruct, out matchContext ) )
+            if ( !match( BiteLexer.DeclareStruct, out matchContext ) )
                 return matchContext;
 
             classIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
             StructDeclarationNode structDeclarationNode = new StructDeclarationNode();
@@ -2597,13 +2597,13 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.Identifier )
+            if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.MinusMinusOperator ||
-                 LA( 1 ) == SrslLexer.PlusPlusOperator )
+            if ( LA( 1 ) == BiteLexer.MinusMinusOperator ||
+                 LA( 1 ) == BiteLexer.PlusPlusOperator )
             {
                 consume();
             }
@@ -2624,19 +2624,19 @@ public partial class SrslModuleParser
 
             unaryPostfix.Primary = context.Result;
 
-            if ( LA( 1 ) == SrslLexer.MinusMinusOperator ||
-                 LA( 1 ) == SrslLexer.PlusPlusOperator )
+            if ( LA( 1 ) == BiteLexer.MinusMinusOperator ||
+                 LA( 1 ) == BiteLexer.PlusPlusOperator )
             {
-                if ( LA( 1 ) == SrslLexer.MinusMinusOperator )
+                if ( LA( 1 ) == BiteLexer.MinusMinusOperator )
                 {
-                    if ( !match( SrslLexer.MinusMinusOperator, out matchContext ) )
+                    if ( !match( BiteLexer.MinusMinusOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPostfix.Operator = UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus;
                 }
-                else if ( LA( 1 ) == SrslLexer.PlusPlusOperator )
+                else if ( LA( 1 ) == BiteLexer.PlusPlusOperator )
                 {
-                    if ( !match( SrslLexer.PlusPlusOperator, out matchContext ) )
+                    if ( !match( BiteLexer.PlusPlusOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPostfix.Operator = UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus;
@@ -2655,12 +2655,12 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.MinusMinusOperator ||
-                 LA( 1 ) == SrslLexer.PlusPlusOperator ||
-                 LA( 1 ) == SrslLexer.LogicalNegationOperator ||
-                 LA( 1 ) == SrslLexer.MinusOperator ||
-                 LA( 1 ) == SrslLexer.ComplimentOperator ||
-                 LA( 1 ) == SrslLexer.PlusOperator )
+            if ( LA( 1 ) == BiteLexer.MinusMinusOperator ||
+                 LA( 1 ) == BiteLexer.PlusPlusOperator ||
+                 LA( 1 ) == BiteLexer.LogicalNegationOperator ||
+                 LA( 1 ) == BiteLexer.MinusOperator ||
+                 LA( 1 ) == BiteLexer.ComplimentOperator ||
+                 LA( 1 ) == BiteLexer.PlusOperator )
             {
                 consume();
 
@@ -2680,51 +2680,51 @@ public partial class SrslModuleParser
         {
             UnaryPrefixOperation unaryPrefix = new UnaryPrefixOperation();
 
-            if ( LA( 1 ) == SrslLexer.MinusMinusOperator ||
-                 LA( 1 ) == SrslLexer.PlusPlusOperator ||
-                 LA( 1 ) == SrslLexer.LogicalNegationOperator ||
-                 LA( 1 ) == SrslLexer.MinusOperator ||
-                 LA( 1 ) == SrslLexer.ComplimentOperator ||
-                 LA( 1 ) == SrslLexer.PlusOperator )
+            if ( LA( 1 ) == BiteLexer.MinusMinusOperator ||
+                 LA( 1 ) == BiteLexer.PlusPlusOperator ||
+                 LA( 1 ) == BiteLexer.LogicalNegationOperator ||
+                 LA( 1 ) == BiteLexer.MinusOperator ||
+                 LA( 1 ) == BiteLexer.ComplimentOperator ||
+                 LA( 1 ) == BiteLexer.PlusOperator )
             {
-                if ( LA( 1 ) == SrslLexer.MinusMinusOperator )
+                if ( LA( 1 ) == BiteLexer.MinusMinusOperator )
                 {
-                    if ( !match( SrslLexer.MinusMinusOperator, out matchContext ) )
+                    if ( !match( BiteLexer.MinusMinusOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus;
                 }
-                else if ( LA( 1 ) == SrslLexer.PlusPlusOperator )
+                else if ( LA( 1 ) == BiteLexer.PlusPlusOperator )
                 {
-                    if ( !match( SrslLexer.PlusPlusOperator, out matchContext ) )
+                    if ( !match( BiteLexer.PlusPlusOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus;
                 }
-                else if ( LA( 1 ) == SrslLexer.LogicalNegationOperator )
+                else if ( LA( 1 ) == BiteLexer.LogicalNegationOperator )
                 {
-                    if ( !match( SrslLexer.LogicalNegationOperator, out matchContext ) )
+                    if ( !match( BiteLexer.LogicalNegationOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot;
                 }
-                else if ( LA( 1 ) == SrslLexer.ComplimentOperator )
+                else if ( LA( 1 ) == BiteLexer.ComplimentOperator )
                 {
-                    if ( !match( SrslLexer.ComplimentOperator, out matchContext ) )
+                    if ( !match( BiteLexer.ComplimentOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment;
                 }
-                else if ( LA( 1 ) == SrslLexer.PlusOperator )
+                else if ( LA( 1 ) == BiteLexer.PlusOperator )
                 {
-                    if ( !match( SrslLexer.PlusOperator, out matchContext ) )
+                    if ( !match( BiteLexer.PlusOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Plus;
                 }
                 else
                 {
-                    if ( !match( SrslLexer.MinusOperator, out matchContext ) )
+                    if ( !match( BiteLexer.MinusOperator, out matchContext ) )
                         return matchContext;
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Negate;
@@ -2750,27 +2750,27 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic )
             {
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareVariable, out matchContext ) )
+            if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
-            if ( LA( 1 ) == SrslLexer.AssignOperator )
+            if ( LA( 1 ) == BiteLexer.AssignOperator )
             {
                 consume();
 
-                if ( LA( 1 ) == SrslLexer.DeclareClassInstance )
+                if ( LA( 1 ) == BiteLexer.DeclareClassInstance )
                 {
                     //throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
                     return Context < VariableDeclarationNode >.AsFailed(
@@ -2786,7 +2786,7 @@ public partial class SrslModuleParser
             {
                 if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
                 {
-                    if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                         return matchContext;
                 }
             }
@@ -2797,33 +2797,33 @@ public partial class SrslModuleParser
             Token staticAbstractMod = null;
             string identifier = null;
 
-            if ( LA( 1 ) == SrslLexer.DeclarePrivate || LA( 1 ) == SrslLexer.DeclarePublic )
+            if ( LA( 1 ) == BiteLexer.DeclarePrivate || LA( 1 ) == BiteLexer.DeclarePublic )
             {
                 accessMod = LT( 1 );
                 consume();
             }
 
-            if ( LA( 1 ) == SrslLexer.DeclareStatic )
+            if ( LA( 1 ) == BiteLexer.DeclareStatic )
             {
                 staticAbstractMod = LT( 1 );
                 consume();
             }
 
-            if ( !match( SrslLexer.DeclareVariable, out matchContext ) )
+            if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
                 return matchContext;
 
             identifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
             ExpressionStatementNode init = null;
 
-            if ( LA( 1 ) == SrslLexer.AssignOperator )
+            if ( LA( 1 ) == BiteLexer.AssignOperator )
             {
                 consume();
 
-                if ( LA( 1 ) == SrslLexer.DeclareClassInstance )
+                if ( LA( 1 ) == BiteLexer.DeclareClassInstance )
                 {
                     //throw new MismatchedTokenException("Got " + LA(1) + ". Expected Variable Declaration");
                     return Context < VariableDeclarationNode >.AsFailed(
@@ -2841,7 +2841,7 @@ public partial class SrslModuleParser
             {
                 if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
                 {
-                    if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                         return matchContext;
                 }
             }
@@ -2877,10 +2877,10 @@ public partial class SrslModuleParser
 
         if ( Speculating )
         {
-            if ( !match( SrslLexer.DeclareWhileLoop, out matchContext ) )
+            if ( !match( BiteLexer.DeclareWhileLoop, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             var context = expression();
@@ -2888,7 +2888,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < WhileStatementNode >.AsFailed( context.Exception );
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -2898,10 +2898,10 @@ public partial class SrslModuleParser
         }
         else
         {
-            if ( !match( SrslLexer.DeclareWhileLoop, out matchContext ) )
+            if ( !match( BiteLexer.DeclareWhileLoop, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.OpeningRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
             WhileStatementNode whileStatementNode = new WhileStatementNode();
@@ -2913,7 +2913,7 @@ public partial class SrslModuleParser
 
             whileStatementNode.Expression = context.Result;
 
-            if ( !match( SrslLexer.ClosingRoundBracket, out matchContext ) )
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
                 return matchContext;
 
             var contextBlock = block();
@@ -2940,7 +2940,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.QuestionMarkOperator )
+            while ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
             {
                 consume();
 
@@ -2949,7 +2949,7 @@ public partial class SrslModuleParser
                 if ( context.Failed )
                     return Context < ExpressionNode >.AsFailed( context.Exception );
 
-                if ( !match( SrslLexer.ColonOperator, out matchContext ) )
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
                     return matchContext;
 
                 context = logicOr();
@@ -2971,7 +2971,7 @@ public partial class SrslModuleParser
 
             TernaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.QuestionMarkOperator )
+            while ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
             {
                 consume();
 
@@ -2982,7 +2982,7 @@ public partial class SrslModuleParser
 
                 currentOperationNode.MidOperand = context.Result;
 
-                if ( !match( SrslLexer.ColonOperator, out matchContext ) )
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
                     return matchContext;
 
                 context = logicOr();
@@ -2992,7 +2992,7 @@ public partial class SrslModuleParser
 
                 ExpressionNode right = context.Result;
 
-                if ( LA( 1 ) == SrslLexer.QuestionMarkOperator )
+                if ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
                 {
                     TernaryOperationNode ternaryOperationNode = new TernaryOperationNode();
                     currentOperationNode.RightOperand = ternaryOperationNode;
@@ -3025,7 +3025,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.BitwiseOrOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseOrOperator )
             {
                 consume();
                 context = bitwiseXor();
@@ -3045,7 +3045,7 @@ public partial class SrslModuleParser
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.BitwiseOrOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseOrOperator )
             {
                 currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseOr;
                 consume();
@@ -3057,7 +3057,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.BitwiseOrOperator )
+                if ( LA( 1 ) == BiteLexer.BitwiseOrOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -3089,7 +3089,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.BitwiseXorOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseXorOperator )
             {
                 consume();
                 context = bitwiseAnd();
@@ -3109,7 +3109,7 @@ public partial class SrslModuleParser
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.BitwiseXorOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseXorOperator )
             {
                 currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseXor;
                 consume();
@@ -3122,7 +3122,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.BitwiseXorOperator )
+                if ( LA( 1 ) == BiteLexer.BitwiseXorOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -3154,7 +3154,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.BitwiseAndOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
             {
                 consume();
                 context = equality();
@@ -3174,7 +3174,7 @@ public partial class SrslModuleParser
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.BitwiseAndOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
             {
                 currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseAnd;
                 consume();
@@ -3186,7 +3186,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.BitwiseAndOperator )
+                if ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -3218,7 +3218,7 @@ public partial class SrslModuleParser
             if ( context.Failed )
                 return Context < ExpressionNode >.AsFailed( context.Exception );
 
-            while ( LA( 1 ) == SrslLexer.ShiftLeftOperator || LA( 1 ) == SrslLexer.ShiftRightOperator )
+            while ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
             {
                 consume();
                 context = additive();
@@ -3238,9 +3238,9 @@ public partial class SrslModuleParser
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            while ( LA( 1 ) == SrslLexer.ShiftLeftOperator || LA( 1 ) == SrslLexer.ShiftRightOperator )
+            while ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
             {
-                if ( LA( 1 ) == SrslLexer.ShiftLeftOperator )
+                if ( LA( 1 ) == BiteLexer.ShiftLeftOperator )
                 {
                     currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.ShiftLeft;
                 }
@@ -3259,7 +3259,7 @@ public partial class SrslModuleParser
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
-                if ( LA( 1 ) == SrslLexer.ShiftLeftOperator || LA( 1 ) == SrslLexer.ShiftRightOperator )
+                if ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -3288,12 +3288,12 @@ public partial class SrslModuleParser
 
         if ( !Speculating )
         {
-            if ( !match( SrslLexer.DeclareModule, out matchContext ) )
+            if ( !match( BiteLexer.DeclareModule, out matchContext ) )
                 return matchContext;
 
             string moduleIdentifier = LT( 1 ).text;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
 
             List < string > parentModules = new List < string >();
@@ -3302,84 +3302,84 @@ public partial class SrslModuleParser
 
             ModuleNode moduleNode = new ModuleNode();
 
-            while ( LA( 1 ) == SrslLexer.DotOperator )
+            while ( LA( 1 ) == BiteLexer.DotOperator )
             {
                 parentModules.Add( moduleIdentifier );
 
-                if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                if ( !match( BiteLexer.DotOperator, out matchContext ) )
                     return matchContext;
 
                 moduleIdentifier = LT( 1 ).text;
 
-                if ( !match( SrslLexer.Identifier, out matchContext ) )
+                if ( !match( BiteLexer.Identifier, out matchContext ) )
                     return matchContext;
             }
 
-            if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 return matchContext;
 
             moduleNode.ModuleIdent = new ModuleIdentifier( moduleIdentifier, parentModules );
 
-            if ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective )
+            if ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective )
             {
-                while ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective && LA( 2 ) != SrslLexer.OpeningRoundBracket )
+                while ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective && LA( 2 ) != BiteLexer.OpeningRoundBracket )
                 {
-                    if ( LA( 1 ) == SrslLexer.ImportDirective )
+                    if ( LA( 1 ) == BiteLexer.ImportDirective )
                     {
-                        if ( !match( SrslLexer.ImportDirective, out matchContext ) )
+                        if ( !match( BiteLexer.ImportDirective, out matchContext ) )
                             return matchContext;
 
                         string nextIdentifier = LT( 1 ).text;
 
-                        if ( !match( SrslLexer.Identifier, out matchContext ) )
+                        if ( !match( BiteLexer.Identifier, out matchContext ) )
                             return matchContext;
 
                         List < string > pModules = new List < string >();
 
-                        while ( LA( 1 ) == SrslLexer.DotOperator )
+                        while ( LA( 1 ) == BiteLexer.DotOperator )
                         {
                             pModules.Add( nextIdentifier );
 
-                            if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                            if ( !match( BiteLexer.DotOperator, out matchContext ) )
                                 return matchContext;
 
                             nextIdentifier = LT( 1 ).text;
 
-                            if ( !match( SrslLexer.Identifier, out matchContext ) )
+                            if ( !match( BiteLexer.Identifier, out matchContext ) )
                                 return matchContext;
                         }
 
-                        if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                        if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                             return matchContext;
 
                         importedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
                     }
                     else
                     {
-                        if ( !match( SrslLexer.UsingDirective, out matchContext ) )
+                        if ( !match( BiteLexer.UsingDirective, out matchContext ) )
                             return matchContext;
 
                         string nextIdentifier = LT( 1 ).text;
 
-                        if ( !match( SrslLexer.Identifier, out matchContext ) )
+                        if ( !match( BiteLexer.Identifier, out matchContext ) )
                             return matchContext;
 
                         List < string > pModules = new List < string >();
 
-                        while ( LA( 1 ) == SrslLexer.DotOperator )
+                        while ( LA( 1 ) == BiteLexer.DotOperator )
                         {
                             pModules.Add( nextIdentifier );
 
-                            if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                            if ( !match( BiteLexer.DotOperator, out matchContext ) )
                                 return matchContext;
 
                             nextIdentifier = LT( 1 ).text;
 
-                            if ( !match( SrslLexer.Identifier, out matchContext ) )
+                            if ( !match( BiteLexer.Identifier, out matchContext ) )
                                 return matchContext;
                         }
 
-                        if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                        if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                             return matchContext;
 
                         usedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
@@ -3434,66 +3434,66 @@ public partial class SrslModuleParser
             return new Context < ModuleNode >( moduleNode );
         }
 
-        if ( !match( SrslLexer.DeclareModule, out matchContext ) )
+        if ( !match( BiteLexer.DeclareModule, out matchContext ) )
             return matchContext;
 
-        if ( !match( SrslLexer.Identifier, out matchContext ) )
+        if ( !match( BiteLexer.Identifier, out matchContext ) )
             return matchContext;
 
-        while ( LA( 1 ) == SrslLexer.DotOperator )
+        while ( LA( 1 ) == BiteLexer.DotOperator )
         {
-            if ( !match( SrslLexer.DotOperator, out matchContext ) )
+            if ( !match( BiteLexer.DotOperator, out matchContext ) )
                 return matchContext;
 
-            if ( !match( SrslLexer.Identifier, out matchContext ) )
+            if ( !match( BiteLexer.Identifier, out matchContext ) )
                 return matchContext;
         }
 
-        if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+        if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
             return matchContext;
 
-        if ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective )
+        if ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective )
         {
-            while ( LA( 1 ) == SrslLexer.ImportDirective || LA( 1 ) == SrslLexer.UsingDirective )
+            while ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective )
             {
-                if ( LA( 1 ) == SrslLexer.ImportDirective )
+                if ( LA( 1 ) == BiteLexer.ImportDirective )
                 {
-                    if ( !match( SrslLexer.ImportDirective, out matchContext ) )
+                    if ( !match( BiteLexer.ImportDirective, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
 
-                    while ( LA( 1 ) == SrslLexer.DotOperator )
+                    while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
-                        if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                        if ( !match( BiteLexer.DotOperator, out matchContext ) )
                             return matchContext;
 
-                        if ( !match( SrslLexer.Identifier, out matchContext ) )
+                        if ( !match( BiteLexer.Identifier, out matchContext ) )
                             return matchContext;
                     }
 
-                    if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                         return matchContext;
                 }
                 else
                 {
-                    if ( !match( SrslLexer.UsingDirective, out matchContext ) )
+                    if ( !match( BiteLexer.UsingDirective, out matchContext ) )
                         return matchContext;
 
-                    if ( !match( SrslLexer.Identifier, out matchContext ) )
+                    if ( !match( BiteLexer.Identifier, out matchContext ) )
                         return matchContext;
 
-                    while ( LA( 1 ) == SrslLexer.DotOperator )
+                    while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
-                        if ( !match( SrslLexer.DotOperator, out matchContext ) )
+                        if ( !match( BiteLexer.DotOperator, out matchContext ) )
                             return matchContext;
 
-                        if ( !match( SrslLexer.Identifier, out matchContext ) )
+                        if ( !match( BiteLexer.Identifier, out matchContext ) )
                             return matchContext;
                     }
 
-                    if ( !match( SrslLexer.SemicolonSeperator, out matchContext ) )
+                    if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                         return matchContext;
                 }
             }

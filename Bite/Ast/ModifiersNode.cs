@@ -22,7 +22,7 @@ namespace Bite.Ast
         {
             Modifiers = new List<ModifierTypes>();
 
-            if (accessMod != null && accessMod.type == SrslLexer.DeclarePublic)
+            if (accessMod != null && accessMod.type == BiteLexer.DeclarePublic)
             {
                 Modifiers.Add(ModifierTypes.DeclarePublic);
             }
@@ -31,11 +31,11 @@ namespace Bite.Ast
                 Modifiers.Add(ModifierTypes.DeclarePrivate);
             }
 
-            if (staticAbstractMod != null && staticAbstractMod.type == SrslLexer.DeclareStatic)
+            if (staticAbstractMod != null && staticAbstractMod.type == BiteLexer.DeclareStatic)
             {
                 Modifiers.Add(ModifierTypes.DeclareStatic);
             }
-            else if (staticAbstractMod != null && staticAbstractMod.type == SrslLexer.DeclareAbstract)
+            else if (staticAbstractMod != null && staticAbstractMod.type == BiteLexer.DeclareAbstract)
             {
                 Modifiers.Add(ModifierTypes.DeclareAbstract);
             }

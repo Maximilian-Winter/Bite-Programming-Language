@@ -69,7 +69,7 @@
                                
 */
 
-grammar SRSL;
+grammar BITE;
 
 /** The start rule; begin parsing here. */
 

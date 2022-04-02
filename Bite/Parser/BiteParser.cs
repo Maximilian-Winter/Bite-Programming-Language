@@ -23,9 +23,9 @@ namespace Bite.Parser
         {
             ProgramNode program = new ProgramNode(mainModule);
 
-            foreach (Func<string> srslModule in modules)
+            foreach (Func<string> biteModule in modules)
             {
-                ModuleNode module = ParseModule(srslModule());
+                ModuleNode module = ParseModule(biteModule());
                 program.AddModule(module);
             }
 
@@ -43,17 +43,9 @@ namespace Bite.Parser
         {
             ProgramNode program = new ProgramNode(mainModule);
 
-            var parsedModules = modules.Select(ParseModule).ToList();
-
-            //var root = MakeDependencyTree(parsedModules);
-
-            //foreach (string srslModule in modules)
-            //{
-            //    ModuleNode module = ParseModule(srslModule);
-            //}
-
-            foreach (var module in parsedModules)
+            foreach (string biteModule in modules)
             {
+                ModuleNode module = ParseModule(biteModule);
                 program.AddModule(module);
             }
 
@@ -61,10 +53,10 @@ namespace Bite.Parser
             return program;
         }
 
-        public ModuleNode ParseModule(string srslModule)
+        public ModuleNode ParseModule(string biteModule)
         {
-            SrslLexer lexer = new SrslLexer(srslModule);
-            SrslModuleParser parser = new SrslModuleParser(lexer);
+            BiteLexer lexer = new BiteLexer(biteModule);
+            BiteModuleParser parser = new BiteModuleParser(lexer);
             var context = parser.module();
             Exception = context.Exception;
             Failed = context.Failed;
@@ -77,8 +69,8 @@ namespace Bite.Parser
 
         public IReadOnlyCollection<StatementNode> ParseStatements(string statements)
         {
-            SrslLexer lexer = new SrslLexer(statements);
-            SrslModuleParser parser = new SrslModuleParser(lexer);
+            BiteLexer lexer = new BiteLexer(statements);
+            BiteModuleParser parser = new BiteModuleParser(lexer);
             var contexts = parser.statements();
             Exception = contexts[0].Exception;
             Failed = contexts[0].Failed;
@@ -91,8 +83,8 @@ namespace Bite.Parser
 
         public ExpressionNode ParseExpression(string expression)
         {
-            SrslLexer lexer = new SrslLexer(expression);
-            SrslModuleParser parser = new SrslModuleParser(lexer);
+            BiteLexer lexer = new BiteLexer(expression);
+            BiteModuleParser parser = new BiteModuleParser(lexer);
             var context = parser.expression();
             Exception = context.Exception;
             Failed = context.Failed;
