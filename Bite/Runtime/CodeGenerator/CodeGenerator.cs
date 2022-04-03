@@ -191,13 +191,12 @@ namespace Bite.Runtime.CodeGen
             m_BiteProgram.SaveCurrentChunk("System.CSharpInterface");
 
             m_BiteProgram.PopChunk();
-
-
-
+            
             foreach (var module in node.GetModulesInDepedencyOrder())
             {
                 Compile(module);
             }
+
             return null;
         }
 

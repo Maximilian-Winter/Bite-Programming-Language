@@ -9,21 +9,13 @@ namespace Bite.Runtime.CodeGen
     public class BiteProgram
     {
         private Dictionary<string, Chunk> m_CompilingChunks;
-        private Chunk m_CompilingChunk;
         private Stack<Chunk> _savedChunks = new Stack<Chunk>();
 
         internal BaseScope BaseScope { get; }
         internal Dictionary<string, BinaryChunk> CompiledChunks { get; }
         internal Chunk MainChunk { get;  }
         internal BinaryChunk CompiledMainChunk { get; private set; }
-        internal Chunk CurrentChunk
-        {
-            get => m_CompilingChunk;
-            set
-            {
-                m_CompilingChunk = value;
-            }
-        }
+        internal Chunk CurrentChunk { get; private set; }
 
         public BiteProgram(ModuleNode module)
         {
@@ -47,13 +39,9 @@ namespace Bite.Runtime.CodeGen
             CompiledChunks = new Dictionary<string, BinaryChunk>();
         }
 
-        internal bool HasChunk(string moduleName)
-        {
-            return m_CompilingChunks.ContainsKey(moduleName);
-        }
-
         internal void PushChunk()
         {
+            // TODO: this is only ever one depth pushed so maybe we don't need a stack and Push/Pop API?
             _savedChunks.Push(CurrentChunk);
         }
 
@@ -67,6 +55,11 @@ namespace Bite.Runtime.CodeGen
             CurrentChunk = new Chunk();
         }
 
+        internal bool HasChunk(string moduleName)
+        {
+            return m_CompilingChunks.ContainsKey(moduleName);
+        }
+        
         internal void SaveCurrentChunk(string moduleName)
         {
             m_CompilingChunks.Add(moduleName, CurrentChunk);

@@ -76,7 +76,7 @@ namespace UnitTests
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
             Assert.Equal(3, result.ReturnValue.NumberData);
         }
-        
+
         [Fact]
         public void FunctionCallWith3Arguments()
         {
@@ -349,5 +349,78 @@ namespace UnitTests
         }
 
         #endregion
+
+
+        #region Classes
+
+        [Fact]
+        public void ClassFields()
+        {
+            var statements = @"class TestClass
+            {
+                var x = 5;
+            }
+
+            var a = new TestClass();
+
+            a.x;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(5, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void ClassConstructorArguments()
+        {
+            var statements = @"class TestClass
+            {
+                var x = 5;
+
+                function TestClass(n)
+                {
+                    x = n;
+                }
+            }
+
+            var a = new TestClass(150);
+
+            a.x;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(150, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void ClassInstanceAsArgument()
+        {
+            var statements = @"class TestClass
+            {
+                var x = 5;
+                function TestClass(n)
+                {
+                    x = n;
+                }
+            }
+
+            function TestFunction(n)
+            {
+                n.x = 10;
+            }
+
+            var a = new TestClass(150);
+
+            TestFunction(a);
+
+            a.x;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(10, result.ReturnValue.NumberData);
+        }
+
+        #endregion
+
     }
 }
