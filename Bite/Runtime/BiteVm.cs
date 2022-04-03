@@ -824,7 +824,7 @@ namespace Bite.Runtime
                                 m_CurrentInstructionPointer += 4;
                                 ;
                                 m_LoopEndJumpCode = jumpCodeBodyEnd + 10;
-
+                                
                                 if (m_VmStack.Pop().DynamicType == DynamicVariableType.True)
                                 {
                                     m_CurrentChunk.Code[jumpCodeBodyEnd] = (byte)BiteVmOpCodes.OpJump;

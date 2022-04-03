@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Bite.Ast;
+using Bite.Runtime;
 
 namespace Bite.Parser
 {
@@ -1423,7 +1424,12 @@ public partial class BiteModuleParser
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
                 return matchContext;
 
-            if ( speculate_declaration_variable() )
+            if ( LA( 1 ) == BiteLexer.SemicolonSeperator )
+            {
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    return matchContext;
+            }
+            else if ( speculate_declaration_variable() )
             {
                 // Console.WriteLine( "predict variable declaration" );
                 var context = variableDeclaration();
@@ -1449,7 +1455,12 @@ public partial class BiteModuleParser
                     return matchContext;
             }
 
-            if ( speculate_expression() )
+            if ( LA( 1 ) == BiteLexer.SemicolonSeperator )
+            {
+                if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    return matchContext;
+            }
+            else if ( speculate_expression() )
             {
                 // Console.WriteLine( "predict alternative for expression" );
                 var context = expression();
@@ -1468,7 +1479,12 @@ public partial class BiteModuleParser
                     return matchContext;
             }
 
-            if ( speculate_expression() )
+            if ( LA( 1 ) == BiteLexer.ClosingRoundBracket )
+            {
+                if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                    return matchContext;
+            }
+            else if ( speculate_expression() )
             {
                 // Console.WriteLine( "predict alternative for expression" );
                 var context = expression();
@@ -1479,8 +1495,7 @@ public partial class BiteModuleParser
                 forStatementNode.Expression2 = context.Result;
             }
 
-            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
-                return matchContext;
+
 
             var contextBlock = block();
 

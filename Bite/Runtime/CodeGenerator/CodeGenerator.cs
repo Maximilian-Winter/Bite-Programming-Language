@@ -1116,14 +1116,19 @@ namespace Bite.Runtime.CodeGen
             {
                 Compile(node.Expression1);
             }
-
-
+            else
+            {
+                EmitConstant( new ConstantValue( true ) );
+            }
+            
             int toFix = EmitByteCode(BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0);
             Compile(node.Block);
             if (node.Expression2 != null)
             {
                 Compile(node.Expression2);
             }
+
+            
             m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
             EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
             EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
