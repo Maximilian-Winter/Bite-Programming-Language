@@ -510,6 +510,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                         PrimaryNode primaryNode = new PrimaryNode();
                         primaryNode.PrimaryId = new Identifier();
                         primaryNode.PrimaryId.Id = indentifier.Symbol.Text;
+                        primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Identifier;
                         CallEntry callEntry = new CallEntry();
                         callEntry.Primary = primaryNode;
                         callNode.CallEntries.Add( callEntry );
@@ -584,9 +585,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                                         ( ExpressionNode ) VisitExpression( expressionContext.expression() ) );
                                 }
 
-                                childCounter++;
+                               
                             }
                         }
+                        childCounter++;
                     }
                     else if ( tree is BITEParser.ElementAccessContext elementAccess )
                     {
@@ -1421,13 +1423,13 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
         if ( context.NullReference() != null )
         {
-            primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Identifier;
+            primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.NullReference;
             primaryNode.PrimaryId = new Identifier( context.NullReference().Symbol.Text );
         }
 
         if ( context.ThisReference() != null )
         {
-            primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Identifier;
+            primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.ThisReference;
             primaryNode.PrimaryId = new Identifier( context.ThisReference().Symbol.Text );
         }
 

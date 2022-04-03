@@ -3,25 +3,28 @@ module MainModule;
 import System;
 using System;
 
-class TestClass
+// Inheritance Example
+class Foo
 {
-    var x = 5;
+    var x = 2;
+    var y = 4;
+    var z = 8;
+
+    function FooFunc()
+    {
+        return x * y * z;
+    }
 }
 
-function TestFunction(n)
+class Bar : Foo
 {
-    n.x = 10;
 }
 
-
-
-var a = new TestClass();
-
+var a = new Bar();
 Print(a.x);
-
-TestFunction(a);
-
-Print(a.x);
+Print(a.y);
+Print(a.z);
+Print(a.FooFunc());
 
 
 
