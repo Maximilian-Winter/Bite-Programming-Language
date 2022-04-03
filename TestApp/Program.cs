@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Antlr4.Runtime;
+using AntlrBiteParser;
 using Bite.Ast;
 using Bite.Parser;
 using Bite.Runtime;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
+using MemoizeSharp;
 
 namespace TestApp
 {
@@ -22,8 +25,26 @@ namespace TestApp
 
             var files = Directory.EnumerateFiles(".\\TestProgram", "*.bite", SearchOption.AllDirectories);
 
+            ProgramNode programNode = new ProgramNode( "MainModule" );
+            HeteroAstGenerator gen = new HeteroAstGenerator();
+            
+            foreach ( string file in files )
+            {
+                AntlrInputStream input = new AntlrInputStream( File.OpenRead( file ) );
+                
+                BITELexer lexer = new BITELexer( input );
+                CommonTokenStream tokens = new CommonTokenStream( lexer );
+                BITEParser biteParser = new BITEParser( tokens );
+                BITEParser.ModuleContext tree = biteParser.program().module(0);
+
+                programNode.AddModule((ModuleNode)gen.VisitModule( tree ));
+                
+            }
+            
+            
             var program = parser.ParseModules("MainModule", files.Select<string, Func<string>>(f =>
             {
+                
                 return () => File.ReadAllText(f);
             }));
 
@@ -31,7 +52,7 @@ namespace TestApp
             
             CodeGenerator generator = new CodeGenerator();
 
-            var context= generator.CompileProgram(program);
+            var context= generator.CompileProgram(programNode);
 
             BiteVm biteVm = new BiteVm();
 
