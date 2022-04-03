@@ -12,9 +12,15 @@
 
 
 	<ItemGroup>
+	  <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.3" />
 	  <PackageReference Include="DeepCloner" Version="0.10.3" />
 	  <PackageReference Include="System.Collections.Immutable" Version="1.7.1" />
 	  <PackageReference Include="System.Runtime" Version="4.3.1" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <Folder Include="AntlrGenerated" />
 	</ItemGroup>
 
 </Project>
