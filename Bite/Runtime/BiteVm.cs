@@ -72,7 +72,7 @@ namespace Bite.Runtime
             string moduleName = "System";
 
             FastMemorySpace callSpace = new FastMemorySpace(
-                "",
+                "$root",
                 m_GlobalMemorySpace,
                 0,
                 m_CurrentChunk,
@@ -116,12 +116,12 @@ namespace Bite.Runtime
             m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
 
             m_GlobalMemorySpace =
-                new FastGlobalMemorySpace((context.SymbolTableBuilder.CurrentScope as BaseScope).NumberOfSymbols);
+                new FastGlobalMemorySpace(context.BaseScope.NumberOfSymbols);
 
             m_CurrentChunk = context.CompiledMainChunk;
             m_CompiledChunks = context.CompiledChunks;
             m_CurrentInstructionPointer = 0;
-            m_CurrentScope = context.SymbolTableBuilder.CurrentScope;
+            m_CurrentScope = context.BaseScope;
 
             InitMemorySpaces();
 
@@ -209,7 +209,7 @@ namespace Bite.Runtime
                                 m_CurrentInstructionPointer += 4;
 
                                 FastModuleMemorySpace callSpace = new FastModuleMemorySpace(
-                                    "",
+                                    $"$module_{moduleName}",
                                     m_GlobalMemorySpace,
                                     m_VmStack.Count,
                                     m_CurrentChunk,
@@ -489,7 +489,7 @@ namespace Bite.Runtime
                                     BiteChunkWrapper classWrapper)
                                 {
                                     FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
-                                        "",
+                                        $"$class_{moduleIdClass}",
                                         m_CurrentMemorySpace,
                                         m_VmStack.Count,
                                         m_CurrentChunk,
@@ -582,7 +582,7 @@ namespace Bite.Runtime
                                     BiteChunkWrapper classWrapper)
                                 {
                                     FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
-                                        "",
+                                        $"class_{moduleIdClass}",
                                         m_CurrentMemorySpace,
                                         m_VmStack.Count,
                                         m_CurrentChunk,
@@ -1915,10 +1915,11 @@ namespace Bite.Runtime
 
                         case BiteVmOpCodes.OpPostfixDecrement:
                             {
-                                var currentStack = m_VmStack.Peek();
+                                var currentStack = m_VmStack.Pop();
 
                                 if (currentStack.DynamicType < DynamicVariableType.True)
                                 {
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(currentStack.NumberData));
                                     currentStack.NumberData -= 1;
                                 }
                                 else
@@ -1931,10 +1932,11 @@ namespace Bite.Runtime
 
                         case BiteVmOpCodes.OpPostfixIncrement:
                             {
-                                var currentStack = m_VmStack.Peek();
+                                var currentStack = m_VmStack.Pop();
 
                                 if (currentStack.DynamicType < DynamicVariableType.True)
                                 {
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(currentStack.NumberData));
                                     currentStack.NumberData += 1;
                                 }
                                 else
@@ -1945,7 +1947,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case BiteVmOpCodes.OpSmaller:
+                        case BiteVmOpCodes.OpLess:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();
@@ -1965,7 +1967,7 @@ namespace Bite.Runtime
                                 break;
                             }
 
-                        case BiteVmOpCodes.OpSmallerEqual:
+                        case BiteVmOpCodes.OpLessOrEqual:
                             {
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
                                 DynamicBiteVariable valueLhs = m_VmStack.Pop();

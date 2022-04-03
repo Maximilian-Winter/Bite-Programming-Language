@@ -81,9 +81,11 @@ namespace Bite.Ast
             {
                 foreach (var importedModule in dependencyNode.Module.ImportedModules)
                 {
-                    if(importedModule.ModuleId.Id.StartsWith("System"))
-                        continue;
-                    moduleIdLookup[dependencyNode.Id].AddChild(moduleIdLookup[importedModule.ModuleId.Id]);
+                    // Only set relationships for imports in our modules. Ignore System, for example
+                    if (moduleIdLookup.TryGetValue(importedModule.ModuleId.Id, out var childNode))
+                    {
+                        moduleIdLookup[dependencyNode.Id].AddChild(childNode);
+                    }
                 }
             }
 

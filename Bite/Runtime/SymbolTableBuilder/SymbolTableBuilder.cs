@@ -26,7 +26,7 @@ namespace Bite.Runtime.SymbolTable
         private FunctionType m_CurrentFunction = FunctionType.NONE;
         private ClassType m_CurrentClass = ClassType.NONE;
 
-        public Scope CurrentScope { get; set; }
+        public Scope CurrentScope { get; private set; }
 
         #region Public
 
@@ -185,6 +185,7 @@ namespace Bite.Runtime.SymbolTable
             popScope();
             CurrentScope.define(m);
         }
+
         private void ResolveDeclarations(DeclarationsNode declarationsNode)
         {
             Resolve(declarationsNode);

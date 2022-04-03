@@ -30,27 +30,30 @@ namespace Bite.SymbolTable
                 Symbol symbol = parent.resolve(name, out moduleid, ref depth);
                 if (symbol == null)
                 {
-                    foreach (ModuleIdentifier importedModule in UsedModules)
+                    if (UsedModules != null)
                     {
-                        if (!m_SearchedModules.Contains(importedModule.ToString()))
+                        foreach (ModuleIdentifier importedModule in UsedModules)
                         {
-                            int i;
-                            int d = 0;
-                            SymbolWithScope module = parent.resolve(importedModule.ToString(), out i, ref d) as SymbolWithScope;
-
-                            if (module == null)
+                            if (!m_SearchedModules.Contains(importedModule.ToString()))
                             {
-                                throw new Exception("Module: " + importedModule + " not found in Scope: " + parent.Name);
-                            }
-                            m_SearchedModules.Add(importedModule.ToString());
-                            symbol = module.resolve(name, out moduleid, ref d);
+                                int i;
+                                int d = 0;
+                                SymbolWithScope module = parent.resolve(importedModule.ToString(), out i, ref d) as SymbolWithScope;
 
-                            if (symbol != null)
-                            {
-                                m_SearchedModules.Clear();
-                                return symbol;
+                                if (module == null)
+                                {
+                                    throw new Exception("Module: " + importedModule + " not found in Scope: " + parent.Name);
+                                }
+                                m_SearchedModules.Add(importedModule.ToString());
+                                symbol = module.resolve(name, out moduleid, ref d);
+
+                                if (symbol != null)
+                                {
+                                    m_SearchedModules.Clear();
+                                    return symbol;
+                                }
+                                depth++;
                             }
-                            depth++;
                         }
                     }
                 }
@@ -70,6 +73,13 @@ namespace Bite.SymbolTable
             m_ModuleName = moduleIdentifier;
             m_ImportedModules = importedModules;
             m_UsedModules = usedModules;
+        }
+
+        public ModuleSymbol(string moduleIdentifier) : base(moduleIdentifier)
+        {
+            m_ModuleName = moduleIdentifier;
+            m_ImportedModules = new List<ModuleIdentifier>();
+            m_UsedModules = new List<ModuleIdentifier>();
         }
 
         #endregion
