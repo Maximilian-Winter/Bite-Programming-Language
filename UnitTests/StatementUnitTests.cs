@@ -422,5 +422,56 @@ namespace UnitTests
 
         #endregion
 
+        #region Assignment
+        [Fact]
+        public void ArithmeticAssignment()
+        {
+            var statements = @"var a = 1;
+            a += 2;
+            a;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(3, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void ArithmeticAssignmentAssignment()
+        {
+            var statements = @"var a = 1;
+            var b = a += 2;
+            b;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(3, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void PostFixAssignment()
+        {
+            var statements = @"var a = 1;
+            var b = a++;
+            b;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(1, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void PostFixInBinaryOperationAssignment()
+        {
+            var statements = @"var a = 1;
+            var b = a++ + 2;
+            b;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(3, result.ReturnValue.NumberData);
+        }
+
+        #endregion
+
     }
 }
