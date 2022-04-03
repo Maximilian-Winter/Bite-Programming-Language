@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Bite.Runtime.Memory;
 
@@ -15,11 +16,11 @@ namespace Bite.Runtime.Functions.ForeignInterface
             {
                 if (arguments[0].ObjectData is FastMemorySpace fliObject)
                 {
-                    string typeString = fliObject.Get(-1, 0, -1, 0).StringData;
+                    string typeString = fliObject.Get("Type").StringData;
                     if (!string.IsNullOrEmpty(typeString))
                     {
                         System.Type type = System.Type.GetType(typeString);
-                        DynamicBiteVariable methodString = fliObject.Get(-1, 0, -1, 1);
+                        DynamicBiteVariable methodString = fliObject.Get("Method");
                         if (methodString.DynamicType == DynamicVariableType.String && !string.IsNullOrEmpty(methodString.StringData))
                         {
                             List<System.Type> argTypes = new List<System.Type>();
@@ -179,23 +180,45 @@ namespace Bite.Runtime.Functions.ForeignInterface
                             {
                                 List<System.Type> constructorArgTypes = new List<System.Type>();
 
-                                if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstanceTypes)
+                                FastMemorySpace constructorArguments =
+                                    ( FastMemorySpace ) fliObject.Get( "ConstructorArguments" ).ObjectData;
+                                
+                                FastMemorySpace constructorArgumentsTypes =
+                                    ( FastMemorySpace ) fliObject.Get( "ConstructorArgumentsTypes" ).ObjectData;
+                                
+                                if (constructorArguments != null  && constructorArguments.CurrentMemoryPointer > 0 )
                                 {
-                                    foreach (DynamicBiteVariable instanceProperty in constructorInstanceTypes.
-                                                 Properties)
+                                    for ( int i = 0; i < constructorArguments.CurrentMemoryPointer; i++ )
                                     {
-                                        constructorArgTypes.Add(instanceProperty.GetType());
+                                        constructorArgTypes.Add(System.Type.GetType(constructorArgumentsTypes.Properties[i].StringData));
+                                    }
+                                }
+                                else if(constructorArguments != null && constructorArguments.NamesToProperties.Count > 0)
+                                {
+                                    foreach ( KeyValuePair<string,DynamicBiteVariable> constructorArgumentsNamesToProperty in constructorArgumentsTypes.NamesToProperties )
+                                    {
+                                        constructorArgTypes.Add(System.Type.GetType(constructorArgumentsNamesToProperty.Value.StringData));
                                     }
                                 }
 
                                 List<object> constructorArgs = new List<object>();
 
-                                if (fliObject.Get("ConstructorArguments").ObjectData is FastMemorySpace constructorInstance)
+                                if (constructorArguments != null  && constructorArguments.CurrentMemoryPointer > 0 )
                                 {
-                                    foreach (DynamicBiteVariable instanceProperty in constructorInstance.
-                                                 Properties)
+                                    for ( int i = 0; i < constructorArguments.CurrentMemoryPointer; i++ )
                                     {
-                                        constructorArgs.Add(instanceProperty.ToObject());
+                                        constructorArgs.Add(Convert.ChangeType(
+                                                                constructorArguments.Properties[i].ToObject(),
+                                                                constructorArgTypes[i] ));
+                                    }
+                                }
+                                else if(constructorArguments != null && constructorArguments.NamesToProperties.Count > 0)
+                                {
+                                    int i = 0;
+                                    foreach ( KeyValuePair<string,DynamicBiteVariable> constructorArgumentsNamesToProperty in constructorArguments.NamesToProperties )
+                                    {
+                                        constructorArgs.Add( Convert.ChangeType( constructorArgumentsNamesToProperty.Value.ToObject(), constructorArgTypes[i] ));
+                                        i++;
                                     }
                                 }
 
@@ -210,6 +233,7 @@ namespace Bite.Runtime.Functions.ForeignInterface
                                 else
                                 {
                                     ConstructorInfo constructor = type.GetConstructor(constructorArgTypes.ToArray());
+                                    
                                     object classObject = constructor.Invoke(constructorArgs.ToArray());
                                     fliObject.Put("ObjectInstance", DynamicVariableExtension.ToDynamicVariable(classObject));
 

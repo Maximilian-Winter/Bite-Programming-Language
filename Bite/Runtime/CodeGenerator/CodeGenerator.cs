@@ -186,6 +186,8 @@ namespace Bite.Runtime.CodeGen
             EmitByteCode(byteCode);
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ConstructorArguments" ) );
             EmitByteCode(byteCode);
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ConstructorArgumentsTypes" ) );
+            EmitByteCode(byteCode);
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ObjectInstance" ) );
 
             m_BiteProgram.SaveCurrentChunk("System.CSharpInterface");
@@ -681,7 +683,7 @@ namespace Bite.Runtime.CodeGen
                 foreach (CallEntry terminalNode in node.CallEntries)
                 {
 
-                    if (terminalNode.Arguments != null && terminalNode.Arguments.Expressions != null)
+                    if (terminalNode.Arguments != null && terminalNode.Arguments.Expressions != null )
                     {
                         foreach (ExpressionNode argumentsExpression in terminalNode.Arguments.Expressions)
                         {
@@ -692,38 +694,6 @@ namespace Bite.Runtime.CodeGen
                             terminalNode.Arguments.Expressions.Count);
 
                         EmitByteCode(byteCode);
-                    }
-
-                    if (terminalNode.ElementAccess != null)
-                    {
-                        foreach (CallElementEntry callElementEntry in terminalNode.ElementAccess)
-                        {
-                            if (callElementEntry.CallElementType == CallElementTypes.Call)
-                            {
-                                Compile(callElementEntry.Call);
-                            }
-                            else
-                            {
-                                EmitConstant(new ConstantValue(callElementEntry.Identifier));
-                            }
-                        }
-
-                        if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1)
-                        {
-                            ByteCode byteCode = new ByteCode(
-                                BiteVmOpCodes.OpSetElement,
-                                terminalNode.ElementAccess.Count);
-
-                            EmitByteCode(byteCode);
-                        }
-                        else
-                        {
-                            ByteCode byteCode = new ByteCode(
-                                BiteVmOpCodes.OpGetElement,
-                                terminalNode.ElementAccess.Count);
-
-                            EmitByteCode(byteCode);
-                        }
                     }
 
                     if (terminalNode.IsFunctionCall)
@@ -774,7 +744,7 @@ namespace Bite.Runtime.CodeGen
                     {
                         if (terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier)
                         {
-                            if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1)
+                            if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1 )
                             {
                                 if (isModuleSymbol)
                                 {
@@ -799,11 +769,19 @@ namespace Bite.Runtime.CodeGen
                                         terminalNode.Primary.PrimaryId.Id,
                                         out int moduleId4,
                                         ref d4);
-
-                                    ByteCode byteCode = new ByteCode(
-                                        BiteVmOpCodes.OpSetMember,
-                                        memberSymbol.InsertionOrderNumber);
-                                    EmitByteCode(byteCode);
+    
+                                    if(memberSymbol == null)
+                                    {
+                                        EmitByteCode(BiteVmOpCodes.OpSetMemberWithString, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                                    }
+                                    else
+                                    {
+                                        ByteCode byteCode = new ByteCode(
+                                            BiteVmOpCodes.OpSetMember,
+                                            memberSymbol.InsertionOrderNumber);
+                                        EmitByteCode(byteCode);
+                                    }
+                                   
                                 }
                                 else
                                 {
@@ -836,10 +814,18 @@ namespace Bite.Runtime.CodeGen
                                         out int moduleId4,
                                         ref d4);
 
-                                    ByteCode byteCode = new ByteCode(
-                                        BiteVmOpCodes.OpGetMember,
-                                        memberSymbol.InsertionOrderNumber);
-                                    EmitByteCode(byteCode);
+                                    if(memberSymbol == null)
+                                    {
+                                        EmitByteCode(BiteVmOpCodes.OpGetMemberWithString, new ConstantValue(terminalNode.Primary.PrimaryId.Id));
+                                    }
+                                    else
+                                    {
+                                        ByteCode byteCode = new ByteCode(
+                                            BiteVmOpCodes.OpGetMember,
+                                            memberSymbol.InsertionOrderNumber);
+                                        EmitByteCode(byteCode);
+                                    }
+                                    
                                 }
                                 else
                                 {
@@ -849,6 +835,39 @@ namespace Bite.Runtime.CodeGen
                             }
                         }
                     }
+                    
+                    if (terminalNode.ElementAccess != null)
+                    {
+                        foreach (CallElementEntry callElementEntry in terminalNode.ElementAccess)
+                        {
+                            if (callElementEntry.CallElementType == CallElementTypes.Call)
+                            {
+                                Compile(callElementEntry.Call);
+                            }
+                            else
+                            {
+                                EmitConstant(new ConstantValue(callElementEntry.Identifier));
+                            }
+                        }
+
+                        if (m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1)
+                        {
+                            ByteCode byteCode = new ByteCode(
+                                BiteVmOpCodes.OpSetElement,
+                                terminalNode.ElementAccess.Count);
+
+                            EmitByteCode(byteCode);
+                        }
+                        else
+                        {
+                            ByteCode byteCode = new ByteCode(
+                                BiteVmOpCodes.OpGetElement,
+                                terminalNode.ElementAccess.Count);
+
+                            EmitByteCode(byteCode);
+                        }
+                    }
+                    
                     i++;
                 }
             }

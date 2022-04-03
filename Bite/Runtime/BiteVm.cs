@@ -679,6 +679,36 @@ namespace Bite.Runtime
 
                                 break;
                             }
+                        
+                        case BiteVmOpCodes.OpGetMemberWithString:
+                        {
+                            string member = ReadConstant().StringConstantValue;
+
+                            if ( m_VmStack.Peek().ObjectData is FastMemorySpace )
+                            {
+                                FastMemorySpace obj = (FastMemorySpace)m_VmStack.Pop().ObjectData;
+                                m_VmStack.Push(obj.Get(member));
+                            }
+                            else
+                            {
+                                object obj = m_VmStack.Pop().ObjectData;
+
+                                FieldInfo field = obj.GetType().GetField( member );
+
+                                if ( field != null )
+                                {
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(field.GetValue( obj )));
+                                }
+                                else
+                                {
+                                    PropertyInfo propertyInfo = obj.GetType().GetProperty( member );
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(propertyInfo.GetValue( obj )));
+                                }
+                                
+                            }
+
+                            break;
+                        }
 
                         case BiteVmOpCodes.OpSetMember:
                             {
@@ -839,7 +869,7 @@ namespace Bite.Runtime
 
                         case BiteVmOpCodes.OpAssign:
                             {
-                                if (m_SetMember)
+                                if (m_SetMember && !m_SetElement)
                                 {
                                     FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
 
@@ -856,32 +886,97 @@ namespace Bite.Runtime
                                 }
                                 else if (m_SetElement)
                                 {
-                                    FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
-
-                                    if (fastMemorySpace.NamesToProperties.ContainsKey(m_LastElement))
+                                    if ( m_SetMember )
                                     {
-                                        fastMemorySpace.Put(m_LastElement, m_VmStack.Pop());
+                                        FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
+
+                                        FastMemorySpace m = (FastMemorySpace)fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).ObjectData;
+                                        
+                                        if (m.NamesToProperties.ContainsKey(m_LastElement))
+                                        {
+                                            m.Put(m_LastElement, m_VmStack.Pop());
+                                        }
+                                        else
+                                        {
+                                            m.Define(m_VmStack.Pop(), m_LastElement, false);
+                                        }
                                     }
                                     else
                                     {
-                                        fastMemorySpace.Define(m_VmStack.Pop(), m_LastElement, false);
-                                    }
+                                        FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
 
+                                        if (fastMemorySpace.NamesToProperties.ContainsKey(m_LastElement))
+                                        {
+                                            fastMemorySpace.Put(m_LastElement, m_VmStack.Pop());
+                                        }
+                                        else
+                                        {
+                                            fastMemorySpace.Define(m_VmStack.Pop(), m_LastElement, false);
+                                        }
+
+                                    }
+                                    m_SetMember = false;
                                     m_SetElement = false;
                                 }
                                 else if (m_SetMemberWithString)
                                 {
-                                    FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
-
-                                    if (fastMemorySpace.NamesToProperties.ContainsKey(m_MemberWithStringToSet))
+                                    if ( m_VmStack.Peek().ObjectData is FastMemorySpace )
                                     {
-                                        fastMemorySpace.Put(m_MemberWithStringToSet, m_VmStack.Pop());
+                                        FastMemorySpace fastMemorySpace = (FastMemorySpace)m_VmStack.Pop().ObjectData;
+
+                                        if (fastMemorySpace.NamesToProperties.ContainsKey(m_MemberWithStringToSet))
+                                        {
+                                            fastMemorySpace.Put(m_MemberWithStringToSet, m_VmStack.Pop());
+                                        }
+                                        else
+                                        {
+                                            fastMemorySpace.Define(m_VmStack.Pop(), m_MemberWithStringToSet);
+                                        }
                                     }
                                     else
                                     {
-                                        fastMemorySpace.Define(m_VmStack.Pop(), m_MemberWithStringToSet);
-                                    }
+                                        object obj = m_VmStack.Pop().ObjectData;
 
+                                        FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
+
+                                        if ( field != null )
+                                        {
+                                            if ( field.FieldType == typeof(Double) )
+                                            {
+                                                field.SetValue( obj, m_VmStack.Pop().NumberData );
+                                            }
+                                            else if ( field.FieldType == typeof(Single) )
+                                            {
+                                                field.SetValue( obj, (float)m_VmStack.Pop().NumberData );
+                                            }
+                                            else if ( field.FieldType == typeof(int) )
+                                            {
+                                                field.SetValue( obj, (int)m_VmStack.Pop().NumberData );
+                                            }
+                                            else if ( field.FieldType == typeof(string) )
+                                            {
+                                                field.SetValue( obj, m_VmStack.Pop().StringData );
+                                            }
+                                            else if ( field.FieldType == typeof(bool) )
+                                            {
+                                                if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
+                                                {
+                                                    field.SetValue( obj, true );
+                                                }
+                                                if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
+                                                {
+                                                    field.SetValue( obj, false );
+                                                }
+                                                
+                                            }
+                                            else
+                                            {
+                                                field.SetValue( obj, m_VmStack.Pop().ObjectData );
+                                            }
+                                            
+                                        }
+                                    }
+                                   
                                     m_SetMemberWithString = false;
                                 }
                                 else
@@ -1634,7 +1729,6 @@ namespace Bite.Runtime
                                 }
 
                                 m_SetElement = true;
-
                                 //FastMemorySpace fastMemorySpace = m_VmStack.Pop().ObjectData as FastMemorySpace;
                                 //m_VmStack.Push(fastMemorySpace.Get( element ));
                                 break;

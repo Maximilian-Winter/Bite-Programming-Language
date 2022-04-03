@@ -134,7 +134,7 @@ namespace Bite.Runtime.Memory
                     biteVariable.NumberData = 0;
                     biteVariable.StringData = null;
                     biteVariable.ArrayData = null;
-                    biteVariable.ObjectData = data.ShallowClone();
+                    biteVariable.ObjectData = data;
                     biteVariable.DynamicType = DynamicVariableType.Object;
 
                     break;

@@ -44,7 +44,7 @@ namespace Bite.SymbolTable
 
                 if (superClassScope != null)
                 {
-                    return ImmutableList.Create<ClassSymbol>().AddRange(superClassScope);
+                    return superClassScope;
                 }
 
                 return null;

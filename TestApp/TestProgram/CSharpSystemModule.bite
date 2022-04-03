@@ -8,8 +8,18 @@ CSharpInterfaceObject.Type = "System.Console";
 
 var Console = CSharpInterfaceCall(CSharpInterfaceObject);
 
-CSharpInterfaceObject.Type = "System.IO.File";
 
-var File = CSharpInterfaceCall(CSharpInterfaceObject);
+/*
+CSharpInterfaceObject.Type = "TestApp.TestClassCSharp, TestApp";
+
+CSharpInterfaceObject.ConstructorArguments[0] = 42;
+CSharpInterfaceObject.ConstructorArgumentsTypes[0] = "System.Int32";
 
 
+var TestCSharp = CSharpInterfaceCall(CSharpInterfaceObject);
+
+
+TestCSharp.PrintVar();
+TestCSharp.testfield.i = 42;
+Print(TestCSharp.testfield.i);
+*/

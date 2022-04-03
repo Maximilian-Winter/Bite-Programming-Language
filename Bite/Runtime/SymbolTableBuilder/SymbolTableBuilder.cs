@@ -156,12 +156,6 @@ namespace Bite.Runtime.SymbolTable
             fieldSymbol.DefinitionNode = null;
             CurrentScope.define(fieldSymbol);
 
-            fieldSymbol = new FieldSymbol("ObjectInstance", AccesModifierType.Public, ClassAndMemberModifiers.None);
-
-            fieldSymbol.Type = new BiteClassType("Object");
-            fieldSymbol.DefinitionNode = null;
-            CurrentScope.define(fieldSymbol);
-
             fieldSymbol = new FieldSymbol("Arguments", AccesModifierType.Public, ClassAndMemberModifiers.None);
 
             ClassInstanceDeclarationNode typeDecl = new ClassInstanceDeclarationNode();
@@ -179,7 +173,22 @@ namespace Bite.Runtime.SymbolTable
             fieldSymbol.Type = new BiteClassType("Object");
             fieldSymbol.DefinitionNode = typeDecl;
             CurrentScope.define(fieldSymbol);
+            
+            fieldSymbol = new FieldSymbol(
+                "ConstructorArgumentsTypes",
+                AccesModifierType.Public,
+                ClassAndMemberModifiers.None);
 
+            fieldSymbol.Type = new BiteClassType("Object");
+            fieldSymbol.DefinitionNode = typeDecl;
+            CurrentScope.define(fieldSymbol);
+
+            fieldSymbol = new FieldSymbol("ObjectInstance", AccesModifierType.Public, ClassAndMemberModifiers.None);
+
+            fieldSymbol.Type = new BiteClassType("Object");
+            fieldSymbol.DefinitionNode = null;
+            CurrentScope.define(fieldSymbol);
+            
             popScope();
             CurrentScope.define(classSymbolFli);
             popScope();

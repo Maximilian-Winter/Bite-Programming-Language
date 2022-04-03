@@ -28,29 +28,35 @@ namespace Bite.Runtime.Memory
             Properties = new DynamicBiteVariable[memberCount];
         }
 
+        public int CurrentMemoryPointer
+        {
+            get => currentMemoryPointer;
+            set => currentMemoryPointer = value;
+        }
+
         public void ResetPropertiesArray(int memberCount)
         {
             Properties = new DynamicBiteVariable[memberCount];
-            currentMemoryPointer = 0;
+            CurrentMemoryPointer = 0;
         }
 
         public virtual void Define(DynamicBiteVariable value)
         {
-            Properties[currentMemoryPointer] = value;
+            Properties[CurrentMemoryPointer] = value;
 
-            currentMemoryPointer++;
+            CurrentMemoryPointer++;
         }
 
         public virtual void Define(DynamicBiteVariable value, string idStr, bool addToProperties = true)
         {
             if ( addToProperties )
             {
-                Properties[currentMemoryPointer] = value;
+                Properties[CurrentMemoryPointer] = value;
                 if (!string.IsNullOrEmpty(idStr))
                 {
-                    NamesToProperties.Add(idStr,  Properties[currentMemoryPointer]);
+                    NamesToProperties.Add(idStr,  Properties[CurrentMemoryPointer]);
                 }
-                currentMemoryPointer++;
+                CurrentMemoryPointer++;
             }
             else
             {
@@ -157,9 +163,9 @@ namespace Bite.Runtime.Memory
                     {
                         FastMemorySpace fms = fastGlobalMemorySpace.GetModule(moduleId).Properties[classId].ObjectData as FastMemorySpace;
 
-                        return fms.currentMemoryPointer > id;
+                        return fms.CurrentMemoryPointer > id;
                     }
-                    return fastGlobalMemorySpace.GetModule(moduleId).currentMemoryPointer > id;
+                    return fastGlobalMemorySpace.GetModule(moduleId).CurrentMemoryPointer > id;
                 }
                 return false;
             }
@@ -175,9 +181,9 @@ namespace Bite.Runtime.Memory
                 if (classId >= 0)
                 {
                     FastMemorySpace fms = memorySpace.Properties[classId].ObjectData as FastMemorySpace;
-                    return fms.currentMemoryPointer > id;
+                    return fms.CurrentMemoryPointer > id;
                 }
-                return memorySpace.currentMemoryPointer > id;
+                return memorySpace.CurrentMemoryPointer > id;
             }
 
             return false;
@@ -212,7 +218,7 @@ namespace Bite.Runtime.Memory
                 memorySpace = memorySpace.m_EnclosingSpace;
             }
 
-            if (memorySpace != null && id < memorySpace.currentMemoryPointer)
+            if (memorySpace != null && id < memorySpace.CurrentMemoryPointer)
             {
                 memorySpace.Properties[id].Change( value );
             }
