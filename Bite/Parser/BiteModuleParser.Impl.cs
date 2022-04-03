@@ -1439,10 +1439,10 @@ public partial class BiteModuleParser
 
                 forStatementNode.VariableDeclaration = context.Result;
             }
-            else if ( speculate_expression_statement() )
+            else if ( speculate_expression() )
             {
                 // Console.WriteLine( "predict alternative for expression statement" );
-                var context = expressionStatement();
+                var context = expression();
 
                 if ( context.Failed )
                     return Context < ForStatementNode >.AsFailed( context.Exception );

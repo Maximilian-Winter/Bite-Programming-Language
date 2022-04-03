@@ -4,7 +4,7 @@ namespace Bite.Ast
     public class ForStatementNode : StatementNode
     {
         public VariableDeclarationNode VariableDeclaration;
-        public ExpressionStatementNode ExpressionStatement;
+        public ExpressionNode ExpressionStatement;
         public ExpressionNode Expression1;
         public ExpressionNode Expression2;
 

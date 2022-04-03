@@ -120,7 +120,7 @@ forStatement        :DeclareForLoop OpeningRoundBracket (expression | variableDe
                      ClosingRoundBracket block ;
                      
 ifStatement         :ControlFlowIf OpeningRoundBracket expression ClosingRoundBracket block
-                     ( (ControlFlowElse ControlFlowIf|ControlFlowElse) block )* ;
+                     ( (ControlFlowElse ControlFlowIf expression|ControlFlowElse) block )* ;
                      
 returnStatement     :FunctionReturn expression? SemicolonSeperator ;
 breakStatement      :Break SemicolonSeperator;
