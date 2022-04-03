@@ -14,8 +14,7 @@ My idea was it to have a dynamically interpreted language in C# to support moddi
 * [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
 # Overall Status
-
-I'm still in the progress of developing the language itself. After that I will integrate it in Unity!
+Most of Language Features are implemented.
 
 ToDo:
 * Finish implementation of private and public access modifiers
