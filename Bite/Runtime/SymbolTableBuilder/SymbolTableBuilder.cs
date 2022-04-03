@@ -918,15 +918,19 @@ namespace Bite.Runtime.SymbolTable
             Resolve(node.Expression);
             Resolve(node.ThenBlock);
 
-            foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
+            if ( node.IfStatementEntries != null )
             {
-                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
+                foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
                 {
-                    Resolve( nodeIfStatementEntry.ExpressionElseIf );
-                }
+                    if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
+                    {
+                        Resolve( nodeIfStatementEntry.ExpressionElseIf );
+                    }
                
-                Resolve(nodeIfStatementEntry.ElseBlock);
+                    Resolve(nodeIfStatementEntry.ElseBlock);
+                }
             }
+            
 
             return null;
         }

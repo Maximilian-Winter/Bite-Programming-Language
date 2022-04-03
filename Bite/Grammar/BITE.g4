@@ -113,10 +113,15 @@ statement   :exprStatement
             |block ;  
             
 exprStatement       :expression SemicolonSeperator ;
-forStatement        :DeclareForLoop OpeningRoundBracket ( variableDeclaration | exprStatement | SemicolonSeperator ) 
-                     expression? SemicolonSeperator expression? ClosingRoundBracket block ;
+
+forStatement        :DeclareForLoop OpeningRoundBracket (expression | variableDeclaration( CommaSeperator expression| variableDeclaration)*)?  
+                     SemicolonSeperator (expression( CommaSeperator expression)*)?  
+                     SemicolonSeperator (expression( CommaSeperator expression)*)? 
+                     ClosingRoundBracket block ;
+                     
 ifStatement         :ControlFlowIf OpeningRoundBracket expression ClosingRoundBracket block
                      ( (ControlFlowElse ControlFlowIf|ControlFlowElse) block )* ;
+                     
 returnStatement     :FunctionReturn expression? SemicolonSeperator ;
 breakStatement      :Break SemicolonSeperator;
 usingStatement      :UsingDirective OpeningRoundBracket expression ClosingRoundBracket block;

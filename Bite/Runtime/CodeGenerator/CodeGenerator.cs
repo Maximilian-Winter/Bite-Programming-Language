@@ -1060,32 +1060,37 @@ namespace Bite.Runtime.CodeGen
             int overElseJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
             m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(BiteVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
             Stack < int > endJumpStack = new Stack < int >();
-            foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
+
+            if ( node.IfStatementEntries != null )
             {
-                if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else)
+                foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
                 {
-                    Compile(nodeIfStatementEntry.ElseBlock);
-
-                    int endJumpCount = endJumpStack.Count;
-                    for ( int i = 0; i < endJumpCount; i++ )
+                    if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else)
                     {
-                        int endJump = endJumpStack.Pop();
-                        m_BiteProgram.CurrentChunk.Code[endJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-                    }
-                    
-                }
-                if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf)
-                {
-                    Compile(nodeIfStatementEntry.ExpressionElseIf);
-                    int elseJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
-                    Compile(nodeIfStatementEntry.ElseBlock);
-                    int endJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
-                    endJumpStack.Push( endJump );
-                    m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(BiteVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-                    //m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-                }
-            }
+                        Compile(nodeIfStatementEntry.ElseBlock);
 
+                        int endJumpCount = endJumpStack.Count;
+                        for ( int i = 0; i < endJumpCount; i++ )
+                        {
+                            int endJump = endJumpStack.Pop();
+                            m_BiteProgram.CurrentChunk.Code[endJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                        }
+                    
+                    }
+                    if (nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf)
+                    {
+                        Compile(nodeIfStatementEntry.ExpressionElseIf);
+                        int elseJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
+                        Compile(nodeIfStatementEntry.ElseBlock);
+                        int endJump = EmitByteCode(BiteVmOpCodes.OpNone, 0, 0);
+                        endJumpStack.Push( endJump );
+                        m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(BiteVmOpCodes.OpJumpIfFalse, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                        //m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
+                    }
+                }
+
+            }
+          
             int endJumpStackCount = endJumpStack.Count;
             for ( int i = 0; i < endJumpStackCount; i++ )
             {

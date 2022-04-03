@@ -3,43 +3,26 @@ module MainModule;
 import System;
 using System;
 
-import CSharpSystem;
-using CSharpSystem;
-
-
-// Prime Number Example
-function FindPrimeNumber(n)
+class TestClass
 {
-    var count=0;
-    var a = 2;
-    while(count<n)
-    {
-        var b = 2;
-        var prime = 1;
-        while(b * b <= a )
-        {
-            if(a % b == 0)
-            {
-                prime = 0;
-                break;
-            }
-            b++;
-        }
-        if(prime > 0)
-        {
-            count++;
-        }
-        a++;
-    }
-    return (--a);
+    var x = 5;
 }
 
-Print(FindPrimeNumber(2));
-Print(FindPrimeNumber(4));
-Print(FindPrimeNumber(8));
-Print(FindPrimeNumber(16));
-Print(FindPrimeNumber(32));
-Print(FindPrimeNumber(64));
+function TestFunction(n)
+{
+    n.x = 10;
+}
+
+
+
+var a = new TestClass();
+
+Print(a.x);
+
+TestFunction(a);
+
+Print(a.x);
+
 
 
 /*
