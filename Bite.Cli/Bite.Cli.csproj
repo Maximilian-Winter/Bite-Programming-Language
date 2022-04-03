@@ -1,28 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetName>bitevm</TargetName>
-		<AssemblyName>Bite.Cli</AssemblyName>
-		<OutputType>Exe</OutputType>
-		<TargetFramework>net462</TargetFramework>
-		<StartupObject>Bite.Cli.Program</StartupObject>
-		<PlatformTarget>AnyCPU</PlatformTarget>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetName>bitevm</TargetName>
+        <AssemblyName>Bite.Cli</AssemblyName>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net462</TargetFramework>
+        <StartupObject>Bite.Cli.Program</StartupObject>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Bite\Bite.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Bite\Bite.csproj"/>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <None Update="TestProgram\AModule.bite">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="TestProgram\CSharpSystemModule.bite">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="TestProgram\MainModule.bite">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
+    <ItemGroup>
+        <None Update="TestProgram\AModule.bite">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestProgram\CSharpSystemModule.bite">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="TestProgram\MainModule.bite">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
 </Project>

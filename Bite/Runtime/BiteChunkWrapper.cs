@@ -3,25 +3,23 @@
 namespace Bite.Runtime
 {
 
-    public class BiteChunkWrapper
+public class BiteChunkWrapper
+{
+    public BinaryChunk ChunkToWrap { get; set; }
+
+    #region Public
+
+    public BiteChunkWrapper()
     {
-        private BinaryChunk m_ChunkToWrap;
-
-        public BiteChunkWrapper()
-        {
-            m_ChunkToWrap = null;
-        }
-
-        public BiteChunkWrapper(BinaryChunk chunkToWrap)
-        {
-            m_ChunkToWrap = chunkToWrap;
-        }
-
-        public BinaryChunk ChunkToWrap
-        {
-            get => m_ChunkToWrap;
-            set => m_ChunkToWrap = value;
-        }
+        ChunkToWrap = null;
     }
+
+    public BiteChunkWrapper( BinaryChunk chunkToWrap )
+    {
+        ChunkToWrap = chunkToWrap;
+    }
+
+    #endregion
+}
 
 }

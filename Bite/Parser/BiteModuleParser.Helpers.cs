@@ -1,46 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using Bite.Ast;
 
 namespace Bite.Parser
 {
 
+public partial class BiteModuleParser
+{
+    #region Private
 
-    public partial class BiteModuleParser 
+    private IContext < TNode > ProcessRule < TNode >( string ruleName, Func < IContext < TNode > > ruleImpl )
+        where TNode : HeteroAstNode
     {
-        #region Private
+        int startTokenIndex = index();
 
-        private IContext<TNode> ProcessRule<TNode>(string ruleName, Func<IContext<TNode>> ruleImpl) where TNode : HeteroAstNode
+        if ( Speculating )
         {
-            int startTokenIndex = index();
+            AlreadyParsedRuleResult alreadyParsed = alreadyParsedRule( MemoizingDictionary, ruleName );
 
-            if (Speculating)
+            if ( alreadyParsed.Failed )
             {
-                var alreadyParsed = alreadyParsedRule(MemoizingDictionary, ruleName);
-
-                if (alreadyParsed.Failed)
-                {
-                    return Context<TNode>.AsFailed(new AlreadyParsedFailedException());
-                }
-
-                if (alreadyParsed.Result)
-                {
-                    return new Context<TNode>(null);
-                }
+                return Context < TNode >.AsFailed( new AlreadyParsedFailedException() );
             }
 
-            var context = ruleImpl();
-
-            if (Speculating)
+            if ( alreadyParsed.Result )
             {
-                memoize(MemoizingDictionary, ruleName, startTokenIndex, context.Failed);
+                return new Context < TNode >( null );
             }
-
-            return context;
         }
 
-        #endregion
+        IContext < TNode > context = ruleImpl();
+
+        if ( Speculating )
+        {
+            memoize( MemoizingDictionary, ruleName, startTokenIndex, context.Failed );
+        }
+
+        return context;
     }
+
+    #endregion
+}
 
 }

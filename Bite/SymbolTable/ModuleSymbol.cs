@@ -4,85 +4,102 @@ using Bite.Ast;
 
 namespace Bite.SymbolTable
 {
-    public class ModuleSymbol : SymbolWithScope
+
+public class ModuleSymbol : SymbolWithScope
+{
+    private readonly string m_ModuleName;
+    private readonly List < string > m_SearchedModules = new List < string >();
+
+    public string ScopeName => m_ModuleName + "ModuleSymbol";
+
+    public IEnumerable < ModuleIdentifier > ImportedModules { get; }
+
+    public IEnumerable < ModuleIdentifier > UsedModules { get; }
+
+    #region Public
+
+    public ModuleSymbol(
+        string moduleIdentifier,
+        IEnumerable < ModuleIdentifier > importedModules,
+        IEnumerable < ModuleIdentifier > usedModules ) : base( moduleIdentifier )
     {
-        private string m_ModuleName;
-        private IEnumerable<ModuleIdentifier> m_ImportedModules;
-        private IEnumerable<ModuleIdentifier> m_UsedModules;
-        private List<string> m_SearchedModules = new List<string>();
+        m_ModuleName = moduleIdentifier;
+        ImportedModules = importedModules;
+        UsedModules = usedModules;
+    }
 
-        public string ScopeName => m_ModuleName + "ModuleSymbol";
-        public IEnumerable<ModuleIdentifier> ImportedModules => m_ImportedModules;
-        public IEnumerable<ModuleIdentifier> UsedModules => m_UsedModules;
+    public ModuleSymbol( string moduleIdentifier ) : base( moduleIdentifier )
+    {
+        m_ModuleName = moduleIdentifier;
+        ImportedModules = new List < ModuleIdentifier >();
+        UsedModules = new List < ModuleIdentifier >();
+    }
 
-        public override Symbol resolve(string name, out int moduleid, ref int depth)
+    public override Symbol resolve( string name, out int moduleid, ref int depth )
+    {
+        if ( symbols.ContainsKey( name ) )
         {
-            if (symbols.ContainsKey(name))
-            {
-                moduleid = InsertionOrderNumber;
-                return symbols[name];
-            }
+            moduleid = InsertionOrderNumber;
 
-            Scope parent = EnclosingScope;
-            depth++;
-            if (parent != null)
+            return symbols[name];
+        }
+
+        Scope parent = EnclosingScope;
+        depth++;
+
+        if ( parent != null )
+        {
+            Symbol symbol = parent.resolve( name, out moduleid, ref depth );
+
+            if ( symbol == null )
             {
-                Symbol symbol = parent.resolve(name, out moduleid, ref depth);
-                if (symbol == null)
+                if ( UsedModules != null )
                 {
-                    if (UsedModules != null)
+                    foreach ( ModuleIdentifier importedModule in UsedModules )
                     {
-                        foreach (ModuleIdentifier importedModule in UsedModules)
+                        if ( !m_SearchedModules.Contains( importedModule.ToString() ) )
                         {
-                            if (!m_SearchedModules.Contains(importedModule.ToString()))
+                            int i;
+                            int d = 0;
+
+                            SymbolWithScope module =
+                                parent.resolve( importedModule.ToString(), out i, ref d ) as SymbolWithScope;
+
+                            if ( module == null )
                             {
-                                int i;
-                                int d = 0;
-                                SymbolWithScope module = parent.resolve(importedModule.ToString(), out i, ref d) as SymbolWithScope;
-
-                                if (module == null)
-                                {
-                                    throw new Exception("Module: " + importedModule + " not found in Scope: " + parent.Name);
-                                }
-                                m_SearchedModules.Add(importedModule.ToString());
-                                symbol = module.resolve(name, out moduleid, ref d);
-
-                                if (symbol != null)
-                                {
-                                    m_SearchedModules.Clear();
-                                    return symbol;
-                                }
-                                depth++;
+                                throw new Exception(
+                                    "Module: " + importedModule + " not found in Scope: " + parent.Name );
                             }
+
+                            m_SearchedModules.Add( importedModule.ToString() );
+                            symbol = module.resolve( name, out moduleid, ref d );
+
+                            if ( symbol != null )
+                            {
+                                m_SearchedModules.Clear();
+
+                                return symbol;
+                            }
+
+                            depth++;
                         }
                     }
                 }
-                depth++;
-                m_SearchedModules.Clear();
-                return symbol;
             }
+
+            depth++;
             m_SearchedModules.Clear();
-            moduleid = -2;
-            return null;
+
+            return symbol;
         }
 
-        #region Public
+        m_SearchedModules.Clear();
+        moduleid = -2;
 
-        public ModuleSymbol(string moduleIdentifier, IEnumerable<ModuleIdentifier> importedModules, IEnumerable<ModuleIdentifier> usedModules) : base(moduleIdentifier)
-        {
-            m_ModuleName = moduleIdentifier;
-            m_ImportedModules = importedModules;
-            m_UsedModules = usedModules;
-        }
-
-        public ModuleSymbol(string moduleIdentifier) : base(moduleIdentifier)
-        {
-            m_ModuleName = moduleIdentifier;
-            m_ImportedModules = new List<ModuleIdentifier>();
-            m_UsedModules = new List<ModuleIdentifier>();
-        }
-
-        #endregion
+        return null;
     }
+
+    #endregion
+}
 
 }

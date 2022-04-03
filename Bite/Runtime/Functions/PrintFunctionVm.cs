@@ -5,25 +5,25 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime.Functions
 {
 
-    public class PrintFunctionVm : IBiteVmCallable
+public class PrintFunctionVm : IBiteVmCallable
+{
+    #region Public
+
+    public object Call( List < DynamicBiteVariable > arguments )
     {
-        #region Public
-
-        public object Call(List<DynamicBiteVariable> arguments)
+        if ( arguments[0].DynamicType != DynamicVariableType.Null )
         {
-            if (arguments[0].DynamicType != DynamicVariableType.Null)
-            {
-                Console.WriteLine(arguments[0].ToString());
-            }
-            else
-            {
-                System.Console.WriteLine("Error: Passed Null Reference to Function!");
-            }
-
-            return null;
+            Console.WriteLine( arguments[0].ToString() );
+        }
+        else
+        {
+            Console.WriteLine( "Error: Passed Null Reference to Function!" );
         }
 
-        #endregion
+        return null;
     }
+
+    #endregion
+}
 
 }

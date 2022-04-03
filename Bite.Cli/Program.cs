@@ -1,29 +1,38 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-
 using Bite.Cli.CommandLine;
 using Bite.Runtime;
-
-
+using Bite.Runtime.CodeGen;
 
 namespace Bite.Cli
 {
-    internal class Program
+
+internal class Program
+{
+    #region Private
+
+    private static void Main( string[] args )
     {
-        static void Main(string[] args)
-        {
-            var commandLine = new CommandLineArgs(args);
+        CommandLineArgs commandLine = new CommandLineArgs( args );
 
-            commandLine.Parse<Options>(o =>
+        commandLine.Parse < Options >(
+            o =>
             {
-                var files = Directory.EnumerateFiles(o.Path, "*.bite", SearchOption.AllDirectories);
+                IEnumerable < string > files = Directory.EnumerateFiles(
+                    o.Path,
+                    "*.bite",
+                    SearchOption.AllDirectories );
 
-                var compiler = new Compiler(true);
+                Compiler compiler = new Compiler( true );
 
-                var program = compiler.Compile(o.MainModule, files.Select(File.ReadAllText));
+                BiteProgram program = compiler.Compile( o.MainModule, files.Select( File.ReadAllText ) );
 
                 program.Run();
-            });
-        }
+            } );
     }
+
+    #endregion
+}
+
 }

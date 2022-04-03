@@ -4,9 +4,9 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime.Functions
 {
 
-    public interface IBiteVmCallable
-    {
-        object Call(List<DynamicBiteVariable> arguments);
-    }
+public interface IBiteVmCallable
+{
+    object Call( List < DynamicBiteVariable > arguments );
+}
 
 }

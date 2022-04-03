@@ -1,11 +1,11 @@
 ﻿namespace Bite.Runtime
 {
 
-    public enum BiteVmInterpretResult
-    {
-        InterpretOk,
-        InterpretCompileError,
-        InterpretRuntimeError
-    }
+public enum BiteVmInterpretResult
+{
+    InterpretOk,
+    InterpretCompileError,
+    InterpretRuntimeError
+}
 
 }

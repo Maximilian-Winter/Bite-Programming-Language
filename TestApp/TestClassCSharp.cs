@@ -2,6 +2,7 @@
 
 namespace TestApp
 {
+
 public class Foo
 {
     public int i = 5;
@@ -9,26 +10,23 @@ public class Foo
 
 public class TestClassCSharp
 {
-    private int i = 5;
+    private readonly int i = 5;
 
-    private Foo field = new Foo();
-    
-    
-    public TestClassCSharp(int n)
+    public Foo testfield { get; set; } = new Foo();
+
+    #region Public
+
+    public TestClassCSharp( int n )
     {
         i = n;
     }
 
-    public Foo testfield
-    {
-        get => field;
-        set => field = value;
-    }
-
     public void PrintVar()
     {
-      Console.WriteLine(i);  
+        Console.WriteLine( i );
     }
+
+    #endregion
 }
 
 }

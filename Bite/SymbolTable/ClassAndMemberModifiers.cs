@@ -1,11 +1,11 @@
 ﻿namespace Bite.SymbolTable
 {
 
-    public enum ClassAndMemberModifiers
-    {
-        Abstract,
-        Static,
-        None
-    }
+public enum ClassAndMemberModifiers
+{
+    Abstract,
+    Static,
+    None
+}
 
 }

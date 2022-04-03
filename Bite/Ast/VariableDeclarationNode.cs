@@ -1,20 +1,20 @@
 namespace Bite.Ast
 {
 
-    public class VariableDeclarationNode : DeclarationNode
+public class VariableDeclarationNode : DeclarationNode
+{
+    public ModifiersNode Modifiers;
+    public Identifier VarId;
+    public InitializerNode Initializer;
+
+    #region Public
+
+    public override object Accept( IAstVisitor visitor )
     {
-        public ModifiersNode Modifiers;
-        public Identifier VarId;
-        public InitializerNode Initializer;
-
-        #region Public
-
-        public override object Accept(IAstVisitor visitor)
-        {
-            return visitor.Visit(this);
-        }
-
-        #endregion
+        return visitor.Visit( this );
     }
+
+    #endregion
+}
 
 }

@@ -2,11 +2,16 @@
 
 namespace Bite.Runtime.CodeGen
 {
-    public class CompilerException : Exception
-    {
-        public CompilerException(string message) : base(message)
-        {
 
-        }
+public class CompilerException : Exception
+{
+    #region Public
+
+    public CompilerException( string message ) : base( message )
+    {
     }
+
+    #endregion
+}
+
 }

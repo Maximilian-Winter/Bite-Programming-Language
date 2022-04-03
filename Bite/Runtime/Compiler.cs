@@ -2,94 +2,92 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Bite.Ast;
 using Bite.Parser;
 using Bite.Runtime.CodeGen;
 
 namespace Bite.Runtime
 {
-    public class Compiler
+
+public class Compiler
+{
+    private readonly bool m_ThrowOnRecognitionException;
+    private BiteParser m_Parser;
+
+    public Exception Exception => m_Parser.Exception;
+
+    public bool Failed => m_Parser.Failed;
+
+    #region Public
+
+    public Compiler( bool throwOnRecognitionException )
     {
-        private readonly bool m_ThrowOnRecognitionException;
-        private BiteParser m_Parser;
+        m_ThrowOnRecognitionException = throwOnRecognitionException;
+    }
 
-        public Exception Exception => m_Parser.Exception;
-        public bool Failed => m_Parser.Failed;
+    public BiteProgram Compile( string mainModule, IEnumerable < string > modules )
+    {
+        m_Parser = new BiteParser { ThrowOnRecognitionException = m_ThrowOnRecognitionException };
+        ProgramNode program = m_Parser.ParseModules( mainModule, modules );
 
-        public Compiler(bool throwOnRecognitionException)
+        CodeGenerator generator = new CodeGenerator();
+
+        return generator.CompileProgram( program );
+    }
+
+    public BiteProgram Compile( IReadOnlyCollection < Module > modules )
+    {
+        m_Parser = new BiteParser { ThrowOnRecognitionException = m_ThrowOnRecognitionException };
+
+        List < string > moduleStrings = new List < string >();
+
+        foreach ( Module module in modules )
         {
-            m_ThrowOnRecognitionException = throwOnRecognitionException;
-        }
+            StringBuilder moduleBuilder = new StringBuilder();
+            moduleBuilder.AppendLine( $"module {module.Name};\r\n" );
 
-        public BiteProgram Compile(string mainModule, IEnumerable<string> modules)
-        {
-            m_Parser = new BiteParser
+            foreach ( string import in module.Imports )
             {
-                ThrowOnRecognitionException = m_ThrowOnRecognitionException
-            };
-            var program = m_Parser.ParseModules(mainModule, modules);
-
-            CodeGenerator generator = new CodeGenerator();
-            return generator.CompileProgram(program);
-        }
-
-        public BiteProgram CompileExpression(string expression)
-        {
-            m_Parser = new BiteParser
-            {
-                ThrowOnRecognitionException = m_ThrowOnRecognitionException
-            };
-
-            var expressionNode = m_Parser.ParseExpression(expression);
-
-            CodeGenerator generator = new CodeGenerator();
-
-            return generator.CompileExpression(expressionNode);
-        }
-
-        public BiteProgram CompileStatements(string statements)
-        {
-            m_Parser = new BiteParser
-            {
-                ThrowOnRecognitionException = m_ThrowOnRecognitionException
-            };
-
-            var statementNodes = m_Parser.ParseStatements(statements);
-
-            CodeGenerator generator = new CodeGenerator();
-
-            return generator.CompileStatements(statementNodes);
-        }
-
-
-        public BiteProgram Compile(IReadOnlyCollection<Module> modules)
-        {
-            m_Parser = new BiteParser
-            {
-                ThrowOnRecognitionException = m_ThrowOnRecognitionException
-            };
-
-            var moduleStrings = new List<string>();
-
-            foreach (var module in modules)
-            {
-                var moduleBuilder = new StringBuilder();
-                moduleBuilder.AppendLine($"module {module.Name};\r\n");
-                foreach (var import in module.Imports)
-                {
-                    moduleBuilder.AppendLine($"import {import};");
-                    moduleBuilder.AppendLine($"using {import};");
-                }
-                moduleBuilder.AppendLine();
-                moduleBuilder.AppendLine(module.Code);
-
-                moduleStrings.Add(moduleBuilder.ToString());
+                moduleBuilder.AppendLine( $"import {import};" );
+                moduleBuilder.AppendLine( $"using {import};" );
             }
 
-            var program = m_Parser.ParseModules(modules.Single(m => m.MainModule).Name, moduleStrings);
+            moduleBuilder.AppendLine();
+            moduleBuilder.AppendLine( module.Code );
 
-            CodeGenerator generator = new CodeGenerator();
-
-            return generator.CompileProgram(program);
+            moduleStrings.Add( moduleBuilder.ToString() );
         }
+
+        ProgramNode program = m_Parser.ParseModules( modules.Single( m => m.MainModule ).Name, moduleStrings );
+
+        CodeGenerator generator = new CodeGenerator();
+
+        return generator.CompileProgram( program );
     }
+
+    public BiteProgram CompileExpression( string expression )
+    {
+        m_Parser = new BiteParser { ThrowOnRecognitionException = m_ThrowOnRecognitionException };
+
+        ExpressionNode expressionNode = m_Parser.ParseExpression( expression );
+
+        CodeGenerator generator = new CodeGenerator();
+
+        return generator.CompileExpression( expressionNode );
+    }
+
+    public BiteProgram CompileStatements( string statements )
+    {
+        m_Parser = new BiteParser { ThrowOnRecognitionException = m_ThrowOnRecognitionException };
+
+        IReadOnlyCollection < StatementNode > statementNodes = m_Parser.ParseStatements( statements );
+
+        CodeGenerator generator = new CodeGenerator();
+
+        return generator.CompileStatements( statementNodes );
+    }
+
+    #endregion
+}
+
 }

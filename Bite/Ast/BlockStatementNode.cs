@@ -1,18 +1,18 @@
 namespace Bite.Ast
 {
 
-    public class BlockStatementNode : StatementNode
+public class BlockStatementNode : StatementNode
+{
+    public DeclarationsNode Declarations;
+
+    #region Public
+
+    public override object Accept( IAstVisitor visitor )
     {
-        public DeclarationsNode Declarations;
-
-        #region Public
-
-        public override object Accept(IAstVisitor visitor)
-        {
-            return visitor.Visit(this);
-        }
-
-        #endregion
+        return visitor.Visit( this );
     }
+
+    #endregion
+}
 
 }

@@ -1,10 +1,10 @@
 ﻿namespace Bite.Ast
 {
 
-    public enum CallTypes
-    {
-        Primary,
-        PrimaryCall
-    }
+public enum CallTypes
+{
+    Primary,
+    PrimaryCall
+}
 
 }

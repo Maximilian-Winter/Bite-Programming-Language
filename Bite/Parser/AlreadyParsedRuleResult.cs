@@ -1,28 +1,28 @@
-﻿using System;
-
-namespace Bite.Parser
+﻿namespace Bite.Parser
 {
 
-    public class AlreadyParsedFailedException : RecognitionException
+public class AlreadyParsedFailedException : RecognitionException
+{
+    #region Public
+
+    #endregion
+}
+
+public struct AlreadyParsedRuleResult
+{
+    public bool Result { get; private set; }
+
+    public bool Failed { get; private set; }
+
+    public static AlreadyParsedRuleResult FromResult( bool result )
     {
-        public AlreadyParsedFailedException() : base()
-        {
-        }
+        return new AlreadyParsedRuleResult { Result = result };
     }
 
-    public struct AlreadyParsedRuleResult
+    public static AlreadyParsedRuleResult AsFailed()
     {
-        public bool Result { get; private set; }
-        public bool Failed { get; private set; }
-
-        public static AlreadyParsedRuleResult FromResult(bool result)
-        {
-            return new AlreadyParsedRuleResult() { Result = result };
-        }
-
-        public static AlreadyParsedRuleResult AsFailed()
-        {
-            return new AlreadyParsedRuleResult() { Failed = true };
-        }
+        return new AlreadyParsedRuleResult { Failed = true };
     }
+}
+
 }

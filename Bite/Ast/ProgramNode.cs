@@ -3,133 +3,155 @@ using System.Linq;
 
 namespace Bite.Ast
 {
-    public class ModuleDependencyNodeFactory
-    {
-        private int m_DependencyId = 0;
 
-        public ModuleDependencyNode Create(ModuleNode module)
+public class ModuleDependencyNodeFactory
+{
+    private int m_DependencyId = 0;
+
+    #region Public
+
+    public ModuleDependencyNode Create( ModuleNode module )
+    {
+        return new ModuleDependencyNode( module, m_DependencyId++ );
+    }
+
+    #endregion
+}
+
+public class ModuleDependencyNode
+{
+    private readonly List < ModuleDependencyNode > _children = new List < ModuleDependencyNode >();
+
+    public int DependencyId { get; internal set; }
+
+    public string Id { get; }
+
+    public ModuleNode Module { get; }
+
+    public ModuleDependencyNode Parent { get; private set; }
+
+    public IReadOnlyCollection < ModuleDependencyNode > Children => _children;
+
+    #region Public
+
+    public ModuleDependencyNode( ModuleNode module, int dependencyId )
+    {
+        DependencyId = dependencyId;
+        Module = module;
+        Id = module.ModuleIdent.ModuleId.Id;
+    }
+
+    public void AddChild( ModuleDependencyNode node )
+    {
+        node.Parent = this;
+        _children.Add( node );
+    }
+
+    #endregion
+}
+
+public class ProgramNode : HeteroAstNode
+{
+    private readonly Dictionary < string, ModuleNode > m_ModuleNodes;
+
+    public string MainModule { get; }
+
+    public IEnumerable < ModuleNode > ModuleNodes => m_ModuleNodes.Values;
+
+    #region Public
+
+    public ProgramNode( string mainModule )
+    {
+        MainModule = mainModule;
+        m_ModuleNodes = new Dictionary < string, ModuleNode >();
+    }
+
+    public override object Accept( IAstVisitor visitor )
+    {
+        return visitor.Visit( this );
+    }
+
+    public void AddModule( ModuleNode module )
+    {
+        string moduleKey = module.ModuleIdent.ToString();
+
+        if ( !m_ModuleNodes.ContainsKey( moduleKey ) )
         {
-            return new ModuleDependencyNode(module, m_DependencyId++);
+            m_ModuleNodes.Add( moduleKey, module );
+        }
+        else
+        {
+            m_ModuleNodes[moduleKey].AddStatements( module.Statements );
         }
     }
 
-    public class ModuleDependencyNode
+    public ModuleNode GetMainModule()
     {
-        private List<ModuleDependencyNode> _children = new List<ModuleDependencyNode>();
-        public int DependencyId { get; internal set; }
-        public string Id { get; }
-        public ModuleNode Module { get; }
-        public ModuleDependencyNode Parent { get; private set; }
-        public IReadOnlyCollection<ModuleDependencyNode> Children => _children;
+        return m_ModuleNodes.Values.FirstOrDefault( m => m.ModuleIdent.ModuleId.Id == MainModule );
+    }
 
-        public ModuleDependencyNode(ModuleNode module, int dependencyId)
-        {
-            DependencyId = dependencyId;
-            Module = module;
-            Id = module.ModuleIdent.ModuleId.Id;
-        }
+    public IEnumerable < ModuleNode > GetModulesInDepedencyOrder()
+    {
+        ModuleDependencyNode root = MakeDependencyTree( m_ModuleNodes.Values );
 
-        public void AddChild(ModuleDependencyNode node)
+        HashSet < int > hashset = new HashSet < int >();
+
+        // Traverse the dependency tree, returning nodes starting at the leaves
+        // The hashset will ensure that we never returnn the same node twice, in case
+        // two modules import the same module
+
+        foreach ( ModuleDependencyNode dependencyNode in Traverse( root ) )
         {
-            node.Parent = this;
-            _children.Add(node);
+            if ( !hashset.Contains( dependencyNode.DependencyId ) )
+            {
+                hashset.Add( dependencyNode.DependencyId );
+
+                yield return dependencyNode.Module;
+            }
         }
     }
 
-    public class ProgramNode : HeteroAstNode
+    #endregion
+
+    #region Private
+
+    private ModuleDependencyNode MakeDependencyTree( IEnumerable < ModuleNode > modules )
     {
-        public string MainModule { get; }
-        private Dictionary<string, ModuleNode> m_ModuleNodes;
+        ModuleDependencyNodeFactory factory = new ModuleDependencyNodeFactory();
 
-        #region Public
+        List < ModuleDependencyNode > dependencyNodes = modules.Select( m => factory.Create( m ) ).ToList();
 
-        public IEnumerable<ModuleNode> ModuleNodes => m_ModuleNodes.Values;
+        Dictionary < string, ModuleDependencyNode > moduleIdLookup = dependencyNodes.ToDictionary( m => m.Id );
 
-        public ProgramNode(string mainModule)
+        foreach ( ModuleDependencyNode dependencyNode in dependencyNodes )
         {
-            MainModule = mainModule;
-            m_ModuleNodes = new Dictionary<string, ModuleNode>();
-        }
-
-        public override object Accept(IAstVisitor visitor)
-        {
-            return visitor.Visit(this);
-        }
-
-        public void AddModule(ModuleNode module)
-        {
-            var moduleKey = module.ModuleIdent.ToString();
-            if (!m_ModuleNodes.ContainsKey(moduleKey))
+            foreach ( ModuleIdentifier importedModule in dependencyNode.Module.ImportedModules )
             {
-                m_ModuleNodes.Add(moduleKey, module);
-            }
-            else
-            {
-                m_ModuleNodes[moduleKey].AddStatements(module.Statements);
-            }
-        }
-
-        private ModuleDependencyNode MakeDependencyTree(IEnumerable<ModuleNode> modules)
-        {
-            var factory = new ModuleDependencyNodeFactory();
-
-            var dependencyNodes = modules.Select(m => factory.Create(m)).ToList();
-
-            var moduleIdLookup = dependencyNodes.ToDictionary(m => m.Id);
-
-            foreach (var dependencyNode in dependencyNodes)
-            {
-                foreach (var importedModule in dependencyNode.Module.ImportedModules)
+                // Only set relationships for imports in our modules. Ignore System, for example
+                if ( moduleIdLookup.TryGetValue( importedModule.ModuleId.Id, out ModuleDependencyNode childNode ) )
                 {
-                    // Only set relationships for imports in our modules. Ignore System, for example
-                    if (moduleIdLookup.TryGetValue(importedModule.ModuleId.Id, out var childNode))
-                    {
-                        moduleIdLookup[dependencyNode.Id].AddChild(childNode);
-                    }
-                }
-            }
-
-            return dependencyNodes.FirstOrDefault(n => n.Parent == null);
-        }
-
-        public ModuleNode GetMainModule()
-        {
-            return m_ModuleNodes.Values.FirstOrDefault(m => m.ModuleIdent.ModuleId.Id == MainModule);
-        }
-
-        public IEnumerable<ModuleNode> GetModulesInDepedencyOrder()
-        {
-            var root = MakeDependencyTree(m_ModuleNodes.Values);
-
-            var hashset = new HashSet<int>();
-
-            // Traverse the dependency tree, returning nodes starting at the leaves
-            // The hashset will ensure that we never returnn the same node twice, in case
-            // two modules import the same module
-
-            foreach (var dependencyNode in Traverse(root))
-            {
-                if (!hashset.Contains(dependencyNode.DependencyId))
-                {
-                    hashset.Add(dependencyNode.DependencyId);
-                    yield return dependencyNode.Module;
+                    moduleIdLookup[dependencyNode.Id].AddChild( childNode );
                 }
             }
         }
 
-        private IEnumerable<ModuleDependencyNode> Traverse(ModuleDependencyNode node)
-        {
-            foreach (var child in node.Children)
-            {
-                foreach (var dependencyNode in Traverse(child))
-                {
-                    yield return dependencyNode;
-                }
-            }
-            yield return node;
-        }
-
-        #endregion
+        return dependencyNodes.FirstOrDefault( n => n.Parent == null );
     }
+
+    private IEnumerable < ModuleDependencyNode > Traverse( ModuleDependencyNode node )
+    {
+        foreach ( ModuleDependencyNode child in node.Children )
+        {
+            foreach ( ModuleDependencyNode dependencyNode in Traverse( child ) )
+            {
+                yield return dependencyNode;
+            }
+        }
+
+        yield return node;
+    }
+
+    #endregion
+}
 
 }

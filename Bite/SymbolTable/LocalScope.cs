@@ -1,17 +1,17 @@
 ﻿namespace Bite.SymbolTable
 {
 
-    public class LocalScope : BaseScope
+public class LocalScope : BaseScope
+{
+    public override string Name => "local";
+
+    #region Public
+
+    public LocalScope( Scope enclosingScope ) : base( enclosingScope )
     {
-        public override string Name => "local";
-
-        #region Public
-
-        public LocalScope(Scope enclosingScope) : base(enclosingScope)
-        {
-        }
-
-        #endregion
     }
+
+    #endregion
+}
 
 }

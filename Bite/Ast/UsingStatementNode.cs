@@ -1,19 +1,19 @@
 namespace Bite.Ast
 {
 
-    public class UsingStatementNode : StatementNode
+public class UsingStatementNode : StatementNode
+{
+    public HeteroAstNode UsingNode;
+    public BlockStatementNode UsingBlock;
+
+    #region Public
+
+    public override object Accept( IAstVisitor visitor )
     {
-        #region Public
-
-        public HeteroAstNode UsingNode;
-        public BlockStatementNode UsingBlock;
-
-        public override object Accept(IAstVisitor visitor)
-        {
-            return visitor.Visit(this);
-        }
-
-        #endregion
+        return visitor.Visit( this );
     }
+
+    #endregion
+}
 
 }

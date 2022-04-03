@@ -1,15 +1,15 @@
 ﻿namespace Bite.Parser
 {
 
-    public class PreviousParseFailedException : RecognitionException
+public class PreviousParseFailedException : RecognitionException
+{
+    #region Public
+
+    public PreviousParseFailedException() : base( null )
     {
-        #region Public
-
-        public PreviousParseFailedException() : base(null)
-        {
-        }
-
-        #endregion
     }
+
+    #endregion
+}
 
 }

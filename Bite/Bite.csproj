@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
-		<AssemblyName>Bite</AssemblyName>
-		<RootNamespace>Bite</RootNamespace>
-		<PackageId>Bite</PackageId>
-		<Authors>Maximilian Winter</Authors>
-		<Company>None</Company>
-		<Product>Bite</Product>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
+        <AssemblyName>Bite</AssemblyName>
+        <RootNamespace>Bite</RootNamespace>
+        <PackageId>Bite</PackageId>
+        <Authors>Maximilian Winter</Authors>
+        <Company>None</Company>
+        <Product>Bite</Product>
+    </PropertyGroup>
 
 
-	<ItemGroup>
-	  <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.3" />
-	  <PackageReference Include="DeepCloner" Version="0.10.3" />
-	  <PackageReference Include="System.Collections.Immutable" Version="1.7.1" />
-	  <PackageReference Include="System.Runtime" Version="4.3.1" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.3"/>
+        <PackageReference Include="DeepCloner" Version="0.10.3"/>
+        <PackageReference Include="System.Collections.Immutable" Version="1.7.1"/>
+        <PackageReference Include="System.Runtime" Version="4.3.1"/>
+    </ItemGroup>
 
 
-	<ItemGroup>
-	  <Folder Include="AntlrGenerated" />
-	</ItemGroup>
+    <ItemGroup>
+        <Folder Include="AntlrGenerated"/>
+    </ItemGroup>
 
 </Project>

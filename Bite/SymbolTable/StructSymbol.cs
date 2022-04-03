@@ -1,16 +1,16 @@
 ﻿namespace Bite.SymbolTable
 {
 
-    public class StructSymbol : DataAggregateSymbol
+public class StructSymbol : DataAggregateSymbol
+{
+    #region Public
+
+    public StructSymbol( string name, AccesModifierType accesModifierType, ClassAndMemberModifiers structModifiers ) :
+        base( name, accesModifierType, structModifiers )
     {
-        #region Public
-
-        public StructSymbol(string name, AccesModifierType accesModifierType, ClassAndMemberModifiers structModifiers) :
-            base(name, accesModifierType, structModifiers)
-        {
-        }
-
-        #endregion
     }
+
+    #endregion
+}
 
 }

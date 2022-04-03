@@ -3,92 +3,93 @@
 namespace Bite.Parser
 {
 
-    public abstract class Lexer
+public abstract class Lexer
+{
+    public static readonly char EOF_MARKER = char.MaxValue;
+    public static int CurrentLineNumber = 0;
+    public static int CurrentColumnNumber = 0;
+    public const int EOF_TYPE = 0;
+    internal string input;
+    internal int i = 0;
+    internal char c;
+
+    #region Public
+
+    public Lexer( string input )
     {
-        public static readonly char EOF_MARKER = char.MaxValue;
-        public static int CurrentLineNumber = 0;
-        public static int CurrentColumnNumber = 0;
-        public const int EOF_TYPE = 0;
-        internal string input;
-        internal int i = 0;
-        internal char c;
+        this.input = input;
+        c = input[i];
+    }
 
-        #region Public
+    public abstract string getTokenName( int x );
 
-        public Lexer(string input)
+    public abstract Token nextToken();
+
+    internal abstract void WS();
+
+    public virtual void consume()
+    {
+        advance();
+    }
+
+    public virtual void match( char x )
+    {
+        if ( c == x )
         {
-            this.input = input;
-            c = input[i];
+            consume();
         }
-
-        public abstract string getTokenName(int x);
-
-        public abstract Token nextToken();
-
-        internal abstract void WS();
-
-        public virtual void consume()
+        else
         {
-            advance();
+            throw new Exception( "expecting " + x + "; found " + c );
         }
+    }
 
-        public virtual void match(char x)
+    public virtual char peek()
+    {
+        return input[i + 1];
+    }
+
+    public virtual char peek( int p )
+    {
+        return input[i + p];
+    }
+
+    #endregion
+
+    #region Private
+
+    private void advance()
+    {
+        i++;
+
+        if ( i >= input.Length )
         {
-            if (c == x)
+            c = EOF_MARKER;
+        }
+        else
+        {
+            if ( c == '\n' )
             {
-                consume();
+                CurrentLineNumber++;
+                CurrentColumnNumber = 0;
             }
             else
             {
-                throw new Exception("expecting " + x + "; found " + c);
-            }
-        }
-
-        public virtual char peek()
-        {
-            return input[i + 1];
-        }
-
-        public virtual char peek(int p)
-        {
-            return input[i + p];
-        }
-
-        #endregion
-
-        #region Private
-
-        private void advance()
-        {
-            i++;
-
-            if (i >= input.Length)
-            {
-                c = EOF_MARKER;
-            }
-            else
-            {
-                if (c == '\n')
+                if ( c == '\t' )
                 {
-                    CurrentLineNumber++;
-                    CurrentColumnNumber = 0;
+                    CurrentColumnNumber += 5;
                 }
                 else
                 {
-                    if (c == '\t')
-                    {
-                        CurrentColumnNumber += 5;
-                    }
-                    else
-                    {
-                        CurrentColumnNumber++;
-                    }
+                    CurrentColumnNumber++;
                 }
-                c = input[i];
             }
-        }
 
-        #endregion
+            c = input[i];
+        }
     }
+
+    #endregion
+}
 
 }

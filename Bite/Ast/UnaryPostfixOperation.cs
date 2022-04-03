@@ -1,25 +1,25 @@
 namespace Bite.Ast
 {
 
-    public class UnaryPostfixOperation : ExpressionNode
+public class UnaryPostfixOperation : ExpressionNode
+{
+    public enum UnaryPostfixOperatorType
     {
-        public enum UnaryPostfixOperatorType
-        {
-            PlusPlus,
-            MinusMinus
-        }
-
-        public ExpressionNode Primary;
-        public UnaryPostfixOperatorType Operator;
-
-        #region Public
-
-        public override object Accept(IAstVisitor visitor)
-        {
-            return visitor.Visit(this);
-        }
-
-        #endregion
+        PlusPlus,
+        MinusMinus
     }
+
+    public ExpressionNode Primary;
+    public UnaryPostfixOperatorType Operator;
+
+    #region Public
+
+    public override object Accept( IAstVisitor visitor )
+    {
+        return visitor.Visit( this );
+    }
+
+    #endregion
+}
 
 }

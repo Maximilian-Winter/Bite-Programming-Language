@@ -3,11 +3,21 @@
 namespace Bite.Runtime.Memory
 {
 
-    public class FastClassMemorySpace : FastMemorySpace
+public class FastClassMemorySpace : FastMemorySpace
+{
+    #region Public
+
+    public FastClassMemorySpace(
+        string name,
+        FastMemorySpace enclosingSpace,
+        int stackCount,
+        BinaryChunk callerChunk,
+        int callerInstructionPointer,
+        int memberCount ) : base( name, enclosingSpace, stackCount, callerChunk, callerInstructionPointer, memberCount )
     {
-        public FastClassMemorySpace(string name, FastMemorySpace enclosingSpace, int stackCount, BinaryChunk callerChunk, int callerInstructionPointer, int memberCount) : base(name, enclosingSpace, stackCount, callerChunk, callerInstructionPointer, memberCount)
-        {
-        }
     }
+
+    #endregion
+}
 
 }

@@ -19,8 +19,9 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
     {
         ProgramNode = new ProgramNode( mainModule );
 
-        return (ProgramNode)VisitProgram( programContext );
+        return ( ProgramNode ) VisitProgram( programContext );
     }
+
     public override HeteroAstNode VisitAbstractModifier( BITEParser.AbstractModifierContext context )
     {
         return base.VisitAbstractModifier( context );
@@ -66,10 +67,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     if ( context.GetChild( counter ) is BITEParser.MultiplicativeContext rhsContext )
                     {
                         currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitMultiplicative( rhsContext );
-                    } 
+                    }
                 }
-              
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina)
+
+                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -85,10 +86,8 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitMultiplicative( context.multiplicative( 0 ) );
-        }
+
+        return VisitMultiplicative( context.multiplicative( 0 ) );
     }
 
     public override HeteroAstNode VisitArgumentExpression( BITEParser.ArgumentExpressionContext context )
@@ -225,7 +224,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
     public override HeteroAstNode VisitBitwiseAnd( BITEParser.BitwiseAndContext context )
     {
-         if ( context.equality().Length > 1 )
+        if ( context.equality().Length > 1 )
         {
             int counter = 0;
             BinaryOperationNode firstBinaryOperationNode = new BinaryOperationNode();
@@ -260,7 +259,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                         currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitEquality( rhsContext );
                     }
                 }
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina && termina.Symbol.Text.Equals("&") )
+
+                if ( counter < context.ChildCount - 2 &&
+                     context.GetChild( counter + 1 ) is TerminalNodeImpl termina &&
+                     termina.Symbol.Text.Equals( "&" ) )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -270,15 +272,14 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
                 }
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitEquality( context.equality( 0 ) );
-        }
+
+        return VisitEquality( context.equality( 0 ) );
     }
 
     public override HeteroAstNode VisitBitwiseOr( BITEParser.BitwiseOrContext context )
@@ -310,7 +311,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     {
                         currentBinaryOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseOr;
                     }
-                } 
+                }
                 else if ( context.GetChild( counter ) is BITEParser.BitwiseXorContext rhsContext )
                 {
                     currentBinaryOperationNode.DebugInfoAstNode.LineNumberStart = rhsContext.Start.Line;
@@ -320,8 +321,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     currentBinaryOperationNode.DebugInfoAstNode.ColumnNumberEnd = rhsContext.Stop.Column;
                     currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitBitwiseXor( rhsContext );
                 }
-                
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina && termina.Symbol.Text.Equals(" |" ) )
+
+                if ( counter < context.ChildCount - 2 &&
+                     context.GetChild( counter + 1 ) is TerminalNodeImpl termina &&
+                     termina.Symbol.Text.Equals( " |" ) )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -330,24 +333,22 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 else
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
-
                 }
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitBitwiseXor( context.bitwiseXor( 0 ) );
-        }
+
+        return VisitBitwiseXor( context.bitwiseXor( 0 ) );
     }
 
     public override HeteroAstNode VisitBitwiseXor( BITEParser.BitwiseXorContext context )
     {
-         if ( context.bitwiseAnd().Length > 1 )
+        if ( context.bitwiseAnd().Length > 1 )
         {
-           int counter = 0;
+            int counter = 0;
             BinaryOperationNode firstBinaryOperationNode = new BinaryOperationNode();
             firstBinaryOperationNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
             firstBinaryOperationNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
@@ -372,7 +373,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     {
                         currentBinaryOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseXor;
                     }
-                } 
+                }
                 else if ( context.GetChild( counter ) is BITEParser.BitwiseAndContext rhsContext )
                 {
                     currentBinaryOperationNode.DebugInfoAstNode.LineNumberStart = rhsContext.Start.Line;
@@ -382,8 +383,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     currentBinaryOperationNode.DebugInfoAstNode.ColumnNumberEnd = rhsContext.Stop.Column;
                     currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitBitwiseAnd( rhsContext );
                 }
-                
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina && termina.Symbol.Text.Equals("^" ) )
+
+                if ( counter < context.ChildCount - 2 &&
+                     context.GetChild( counter + 1 ) is TerminalNodeImpl termina &&
+                     termina.Symbol.Text.Equals( "^" ) )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -392,17 +395,15 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 else
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
-
                 }
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitBitwiseAnd( context.bitwiseAnd( 0 ) );
-        }
+
+        return VisitBitwiseAnd( context.bitwiseAnd( 0 ) );
     }
 
     public override HeteroAstNode VisitBlock( BITEParser.BlockContext context )
@@ -461,6 +462,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
             return breakStatementNode;
         }
+
         return base.VisitBreakStatement( context );
     }
 
@@ -574,10 +576,9 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                                     callNode.Arguments.Expressions.Add(
                                         ( ExpressionNode ) VisitExpression( expressionContext.expression() ) );
                                 }
-
-                               
                             }
                         }
+
                         childCounter++;
                     }
                     else if ( tree is BITEParser.ElementAccessContext elementAccess )
@@ -907,9 +908,8 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                         currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitRelational( rhsContext );
                     }
                 }
-                
-              
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina)
+
+                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -919,15 +919,14 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
                 }
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitRelational( context.relational( 0 ) );
-        }
+
+        return VisitRelational( context.relational( 0 ) );
     }
 
     public override HeteroAstNode VisitExpression( BITEParser.ExpressionContext context )
@@ -966,10 +965,11 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         forStatementNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
 
         int expressionIndex = 0;
+
         if ( context.variableDeclaration() != null )
         {
             forStatementNode.VariableDeclaration =
-                ( VariableDeclarationNode ) VisitVariableDeclaration( context.variableDeclaration(0) );
+                ( VariableDeclarationNode ) VisitVariableDeclaration( context.variableDeclaration( 0 ) );
         }
 
         if ( context.expression() != null )
@@ -980,12 +980,14 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
         if ( context.expression().Length > 0 )
         {
-            forStatementNode.Expression1 = ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
+            forStatementNode.Expression1 =
+                ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
         }
 
         if ( context.expression().Length > 1 )
         {
-            forStatementNode.Expression2 = ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
+            forStatementNode.Expression2 =
+                ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
         }
 
         forStatementNode.Block = ( BlockStatementNode ) VisitBlock( context.block() );
@@ -1048,12 +1050,13 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
     public override HeteroAstNode VisitIfStatement( BITEParser.IfStatementContext context )
     {
         IfStatementNode ifStatementNode = new IfStatementNode();
-        ifStatementNode.Expression = ( ExpressionNode ) VisitExpression( context.expression(0) );
+        ifStatementNode.Expression = ( ExpressionNode ) VisitExpression( context.expression( 0 ) );
         ifStatementNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
         ifStatementNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
 
         ifStatementNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
         ifStatementNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
         if ( context.block() != null )
         {
             ifStatementNode.ThenBlock = ( BlockStatementNode ) VisitBlock( context.block( 0 ) );
@@ -1065,17 +1068,18 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         int i = 0;
         IParseTree contextChildParseTree = context.children[i];
         i++;
-        while ( i < context.children.Count - 1)
+
+        while ( i < context.children.Count - 1 )
         {
             switch ( contextChildParseTree )
             {
                 case TerminalNodeImpl terminalNodeImpl:
                 {
-                    if(terminalNodeImpl.Symbol.Text.Equals( "if" ))
+                    if ( terminalNodeImpl.Symbol.Text.Equals( "if" ) )
                     {
                         if ( context.children[++i] is BITEParser.ExpressionContext expressionContext )
                         {
-                            ifStatementNode.Expression = (ExpressionNode)VisitExpression( expressionContext );
+                            ifStatementNode.Expression = ( ExpressionNode ) VisitExpression( expressionContext );
                         }
                         else
                         {
@@ -1083,54 +1087,60 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                         }
 
                         ++i;
+
                         if ( context.children[++i] is BITEParser.BlockContext blockContext )
                         {
-                            ifStatementNode.ThenBlock = (BlockStatementNode)VisitBlock( blockContext );
+                            ifStatementNode.ThenBlock = ( BlockStatementNode ) VisitBlock( blockContext );
                         }
                         else
                         {
                             i--;
                         }
                     }
-                    else if(terminalNodeImpl.Symbol.Text.Equals( "else" ) && i < context.children.Count-2 &&context.children[++i] is TerminalNodeImpl terminalNode && terminalNode.Symbol.Text.Equals( "if" ))
+                    else if ( terminalNodeImpl.Symbol.Text.Equals( "else" ) &&
+                              i < context.children.Count - 2 &&
+                              context.children[++i] is TerminalNodeImpl terminalNode &&
+                              terminalNode.Symbol.Text.Equals( "if" ) )
                     {
                         IfStatementEntry ifStatementEntry = new IfStatementEntry();
                         ifStatementEntry.IfStatementType = IfStatementEntryType.ElseIf;
 
                         if ( context.children[++i] is BITEParser.ExpressionContext expressionContext )
                         {
-                            ifStatementEntry.ExpressionElseIf = (ExpressionNode)VisitExpression( expressionContext );
+                            ifStatementEntry.ExpressionElseIf = ( ExpressionNode ) VisitExpression( expressionContext );
                         }
                         else
                         {
                             i--;
                         }
-                        
+
                         if ( context.children[++i] is BITEParser.BlockContext blockContext )
                         {
-                            ifStatementEntry.ElseBlock = (BlockStatementNode)VisitBlock( blockContext );
+                            ifStatementEntry.ElseBlock = ( BlockStatementNode ) VisitBlock( blockContext );
                         }
                         else
                         {
                             i--;
                         }
+
                         ifStatementNode.IfStatementEntries.Add( ifStatementEntry );
                     }
                     else
                     {
-                        if(terminalNodeImpl.Symbol.Text.Equals( "else" ))
+                        if ( terminalNodeImpl.Symbol.Text.Equals( "else" ) )
                         {
                             IfStatementEntry ifStatementEntry = new IfStatementEntry();
                             ifStatementEntry.IfStatementType = IfStatementEntryType.Else;
-                            
+
                             if ( context.children[++i] is BITEParser.BlockContext blockContext )
                             {
-                                ifStatementEntry.ElseBlock = (BlockStatementNode)VisitBlock( blockContext );
+                                ifStatementEntry.ElseBlock = ( BlockStatementNode ) VisitBlock( blockContext );
                             }
                             else
                             {
                                 i--;
                             }
+
                             ifStatementNode.IfStatementEntries.Add( ifStatementEntry );
                         }
                         else
@@ -1138,11 +1148,9 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                             i++;
                         }
                     }
+
                     break;
                 }
-                default:
-                    
-                    break;
             }
 
             if ( i < context.children.Count - 1 )
@@ -1153,8 +1161,8 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             {
                 contextChildParseTree = context.children[i];
             }
-            
         }
+
         return ifStatementNode;
     }
 
@@ -1197,7 +1205,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     {
                         currentBinaryOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.And;
                     }
-                } 
+                }
                 else if ( context.GetChild( counter ) is BITEParser.BitwiseOrContext rhsContext )
                 {
                     currentBinaryOperationNode.DebugInfoAstNode.LineNumberStart = rhsContext.Start.Line;
@@ -1207,8 +1215,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     currentBinaryOperationNode.DebugInfoAstNode.ColumnNumberEnd = rhsContext.Stop.Column;
                     currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitBitwiseOr( rhsContext );
                 }
-                
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina && termina.Symbol.Text.Equals(" &&" ) )
+
+                if ( counter < context.ChildCount - 2 &&
+                     context.GetChild( counter + 1 ) is TerminalNodeImpl termina &&
+                     termina.Symbol.Text.Equals( " &&" ) )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -1217,17 +1227,15 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 else
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
-
                 }
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitBitwiseOr( context.bitwiseOr( 0 ) );
-        }
+
+        return VisitBitwiseOr( context.bitwiseOr( 0 ) );
     }
 
     public override HeteroAstNode VisitLogicOr( BITEParser.LogicOrContext context )
@@ -1259,7 +1267,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     {
                         currentBinaryOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.Or;
                     }
-                } 
+                }
                 else if ( context.GetChild( counter ) is BITEParser.LogicAndContext rhsContext )
                 {
                     currentBinaryOperationNode.DebugInfoAstNode.LineNumberStart = rhsContext.Start.Line;
@@ -1269,8 +1277,10 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     currentBinaryOperationNode.DebugInfoAstNode.ColumnNumberEnd = rhsContext.Stop.Column;
                     currentBinaryOperationNode.RightOperand = ( ExpressionNode ) VisitLogicAnd( rhsContext );
                 }
-                
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina && termina.Symbol.Text.Equals(" ||" ) )
+
+                if ( counter < context.ChildCount - 2 &&
+                     context.GetChild( counter + 1 ) is TerminalNodeImpl termina &&
+                     termina.Symbol.Text.Equals( " ||" ) )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -1279,23 +1289,19 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 else
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
-
                 }
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitLogicAnd( context.logicAnd( 0 ) );
-        }
+
+        return VisitLogicAnd( context.logicAnd( 0 ) );
     }
 
     public override HeteroAstNode VisitModule( BITEParser.ModuleContext context )
     {
-        
-
         ModuleNode moduleNode = new ModuleNode();
         string moduleName = "";
         List < string > parentModules = new List < string >();
@@ -1308,46 +1314,52 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             parentModules.Add( moduleName );
             moduleName = context.moduleDeclaration().Identifier( i ).Symbol.Text;
         }
+
         moduleNode.ModuleIdent = new ModuleIdentifier( moduleName, parentModules );
-        
+
         for ( int i = 0; i < context.importDirective().Length; i++ )
         {
             string nextIdentifier = context.importDirective( i ).Identifier( 0 ).Symbol.Text;
             List < string > pModules = new List < string >();
-            for ( int t = 1; t < context.importDirective(i).Identifier().Length; t++ )
+
+            for ( int t = 1; t < context.importDirective( i ).Identifier().Length; t++ )
             {
                 pModules.Add( moduleName );
-                moduleName = context.importDirective(i).Identifier( t ).Symbol.Text;
+                moduleName = context.importDirective( i ).Identifier( t ).Symbol.Text;
             }
-            importedModules.Add( new ModuleIdentifier( nextIdentifier, pModules) );
+
+            importedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
         }
-        
+
         for ( int i = 0; i < context.usingDirective().Length; i++ )
         {
             string nextIdentifier = context.usingDirective( i ).Identifier( 0 ).Symbol.Text;
             List < string > pModules = new List < string >();
-            for ( int t = 1; t < context.usingDirective(i).Identifier().Length; t++ )
+
+            for ( int t = 1; t < context.usingDirective( i ).Identifier().Length; t++ )
             {
                 pModules.Add( moduleName );
-                moduleName = context.usingDirective(i).Identifier( t ).Symbol.Text;
+                moduleName = context.usingDirective( i ).Identifier( t ).Symbol.Text;
             }
-            usedModules.Add( new ModuleIdentifier( nextIdentifier, pModules) );
+
+            usedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
         }
 
         moduleNode.ImportedModules = importedModules;
         moduleNode.UsedModules = usedModules;
-        
-        var _statements = new List < StatementNode >();
+
+        List < StatementNode > _statements = new List < StatementNode >();
 
         foreach ( BITEParser.DeclarationContext declarationContext in context.declaration() )
         {
-            _statements.Add( (StatementNode)VisitDeclaration( declarationContext ));
+            _statements.Add( ( StatementNode ) VisitDeclaration( declarationContext ) );
         }
 
         moduleNode.Statements = _statements;
+
         return moduleNode;
     }
-    
+
     public override HeteroAstNode VisitMultiplicative( BITEParser.MultiplicativeContext context )
     {
         if ( context.unary().Length > 1 )
@@ -1401,7 +1413,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     }
                 }
 
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina)
+                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -1411,16 +1423,14 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
                 }
-                
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitUnary( context.unary( 0 ) );
-        }
+
+        return VisitUnary( context.unary( 0 ) );
     }
 
     public override HeteroAstNode VisitParameters( BITEParser.ParametersContext context )
@@ -1516,7 +1526,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         foreach ( BITEParser.ModuleContext declarationContext in context.module() )
         {
             HeteroAstNode decl = VisitModule( declarationContext );
-            
+
             ProgramNode.AddModule( decl as ModuleNode );
         }
 
@@ -1581,7 +1591,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     }
                 }
 
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina)
+                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -1591,16 +1601,14 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 {
                     firstBinaryOperationNode = currentBinaryOperationNode;
                 }
-                
+
                 counter++;
             }
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitShift( context.shift( 0 ) );
-        }
+
+        return VisitShift( context.shift( 0 ) );
     }
 
     public override HeteroAstNode VisitReturnStatement( BITEParser.ReturnStatementContext context )
@@ -1665,7 +1673,7 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     }
                 }
 
-                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina)
+                if ( counter < context.ChildCount - 2 && context.GetChild( counter + 1 ) is TerminalNodeImpl termina )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentBinaryOperationNode;
@@ -1681,10 +1689,8 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
             return firstBinaryOperationNode;
         }
-        else
-        {
-            return VisitAdditive( context.additive( 0 ) );
-        }
+
+        return VisitAdditive( context.additive( 0 ) );
     }
 
     public override HeteroAstNode VisitStatement( BITEParser.StatementContext context )
@@ -1708,12 +1714,12 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         {
             return VisitUsingStatement( context.usingStatement() );
         }
-        
+
         if ( context.breakStatement() != null )
         {
             return VisitBreakStatement( context.breakStatement() );
         }
-        
+
         if ( context.whileStatement() != null )
         {
             return VisitWhileStatement( context.whileStatement() );
@@ -1731,7 +1737,6 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
 
         return null;
     }
-    
 
     public override HeteroAstNode VisitStructDeclaration( BITEParser.StructDeclarationContext context )
     {
@@ -1776,15 +1781,14 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             ternary.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
             ternary.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
 
-            ternary.LeftOperand = (ExpressionNode)VisitLogicOr( context.logicOr( 0 ) ); 
-            ternary.MidOperand = (ExpressionNode)VisitLogicOr( context.logicOr( 1 ) ); 
-            ternary.RightOperand = (ExpressionNode)VisitLogicOr( context.logicOr( 2 ) );
+            ternary.LeftOperand = ( ExpressionNode ) VisitLogicOr( context.logicOr( 0 ) );
+            ternary.MidOperand = ( ExpressionNode ) VisitLogicOr( context.logicOr( 1 ) );
+            ternary.RightOperand = ( ExpressionNode ) VisitLogicOr( context.logicOr( 2 ) );
+
             return ternary;
         }
-        else
-        {
-            return VisitLogicOr( context.logicOr( 0 ) );
-        }
+
+        return VisitLogicOr( context.logicOr( 0 ) );
     }
 
     public override HeteroAstNode VisitUnary( BITEParser.UnaryContext context )
@@ -1857,8 +1861,9 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
     public override HeteroAstNode VisitUsingStatement( BITEParser.UsingStatementContext context )
     {
         UsingStatementNode usingStatementNode = new UsingStatementNode();
-        usingStatementNode.UsingNode = VisitExpression(context.expression());
-        usingStatementNode.UsingBlock = (BlockStatementNode)VisitBlock( context.block() );
+        usingStatementNode.UsingNode = VisitExpression( context.expression() );
+        usingStatementNode.UsingBlock = ( BlockStatementNode ) VisitBlock( context.block() );
+
         return usingStatementNode;
     }
 

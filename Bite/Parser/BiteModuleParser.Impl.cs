@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Bite.Ast;
-using Bite.Runtime;
 
 namespace Bite.Parser
 {
@@ -15,10 +14,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = multiplicative();
+            IContext < ExpressionNode > context = multiplicative();
 
             if ( context.Failed )
+            {
                 return context;
+            }
 
             while ( LA( 1 ) == BiteLexer.MinusOperator || LA( 1 ) == BiteLexer.PlusOperator )
             {
@@ -26,17 +27,21 @@ public partial class BiteModuleParser
                 context = multiplicative();
 
                 if ( context.Failed )
+                {
                     return context;
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
-            var context = multiplicative();
+            IContext < ExpressionNode > context = multiplicative();
 
             if ( context.Failed )
+            {
                 return context;
+            }
 
             firstOperationNode.LeftOperand = context.Result;
 
@@ -58,7 +63,9 @@ public partial class BiteModuleParser
                 context = multiplicative();
 
                 if ( context.Failed )
+                {
                     return context;
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -99,10 +106,12 @@ public partial class BiteModuleParser
                         consume();
                     }
 
-                    var context = expression();
+                    IContext < ExpressionNode > context = expression();
 
                     if ( context.Failed )
+                    {
                         return Context < ArgumentsNode >.AsFailed( context.Exception );
+                    }
 
                     if ( LA( 1 ) == BiteLexer.CommaSeperator )
                     {
@@ -137,10 +146,12 @@ public partial class BiteModuleParser
                         argumentsNode.IsReference.Add( false );
                     }
 
-                    var context = expression();
+                    IContext < ExpressionNode > context = expression();
 
                     if ( context.Failed )
+                    {
                         return Context < ArgumentsNode >.AsFailed( context.Exception );
+                    }
 
                     ExpressionNode expressionNode = context.Result;
 
@@ -166,10 +177,12 @@ public partial class BiteModuleParser
         if ( speculate_assignment_assignment() )
         {
             // Console.WriteLine( "predict assignment assignment" );
-            var context = assignment_assignment();
+            IContext < AssignmentNode > context = assignment_assignment();
 
             if ( context.Failed )
+            {
                 return Context < AssignmentNode >.AsFailed( context.Exception );
+            }
 
             return context;
         }
@@ -178,10 +191,12 @@ public partial class BiteModuleParser
         {
             // Console.WriteLine( "predict logic or assignment" );
             AssignmentNode assignmentNode = new AssignmentNode();
-            var context = ternary();
+            IContext < ExpressionNode > context = ternary();
 
             if ( context.Failed )
+            {
                 return Context < AssignmentNode >.AsFailed( context.Exception );
+            }
 
             HeteroAstNode node = context.Result;
 
@@ -242,10 +257,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = call();
+            IContext < CallNode > context = call();
 
             if ( context.Failed )
+            {
                 return Context < AssignmentNode >.AsFailed( context.Exception );
+            }
 
             if ( LA( 1 ) == BiteLexer.AssignOperator ||
                  LA( 1 ) == BiteLexer.MultiplyAssignOperator ||
@@ -262,10 +279,12 @@ public partial class BiteModuleParser
             {
                 consume();
 
-                var contextAssignment = assignment();
+                IContext < AssignmentNode > contextAssignment = assignment();
 
                 if ( contextAssignment.Failed )
+                {
                     return Context < AssignmentNode >.AsFailed( context.Exception );
+                }
             }
             else
             {
@@ -277,10 +296,12 @@ public partial class BiteModuleParser
         {
             AssignmentNode assignmentNode = new AssignmentNode();
 
-            var context = call();
+            IContext < CallNode > context = call();
 
             if ( context.Failed )
+            {
                 return Context < AssignmentNode >.AsFailed( context.Exception );
+            }
 
             assignmentNode.Call = context.Result;
             assignmentNode.Type = AssignmentTypes.Assignment;
@@ -350,10 +371,12 @@ public partial class BiteModuleParser
 
             consume();
 
-            var contextAssignement = assignment();
+            IContext < AssignmentNode > contextAssignement = assignment();
 
             if ( contextAssignement.Failed )
+            {
                 return Context < AssignmentNode >.AsFailed( context.Exception );
+            }
 
             assignmentNode.Assignment = contextAssignement.Result;
 
@@ -368,7 +391,9 @@ public partial class BiteModuleParser
         IContext < BlockStatementNode > matchContext = null;
 
         if ( !match( BiteLexer.OpeningCurlyBracket, out matchContext ) )
+        {
             return matchContext;
+        }
 
         if ( Speculating == false )
         {
@@ -377,10 +402,12 @@ public partial class BiteModuleParser
 
             while ( LA( 1 ) != BiteLexer.ClosingCurlyBracket )
             {
-                var context = declaration();
+                IContext < HeteroAstNode > context = declaration();
 
                 if ( context.Failed )
+                {
                     return Context < BlockStatementNode >.AsFailed( context.Exception );
+                }
 
                 HeteroAstNode decl = context.Result;
 
@@ -424,23 +451,65 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.ClosingCurlyBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             return new Context < BlockStatementNode >( blockStatementNode );
         }
 
         while ( LA( 1 ) != BiteLexer.ClosingCurlyBracket )
         {
-            var context = declaration();
+            IContext < HeteroAstNode > context = declaration();
 
             if ( context.Failed )
+            {
                 return Context < BlockStatementNode >.AsFailed( context.Exception );
+            }
         }
 
         if ( !match( BiteLexer.ClosingCurlyBracket, out matchContext ) )
+        {
             return matchContext;
+        }
 
         return new Context < BlockStatementNode >( null );
+    }
+
+    public virtual IContext < BreakStatementNode > _breakStatement()
+    {
+        IContext < BreakStatementNode > matchContext = null;
+
+        if ( Speculating )
+        {
+            if ( !match( BiteLexer.Break, out matchContext ) )
+            {
+                return matchContext;
+            }
+
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
+                return matchContext;
+            }
+        }
+        else
+        {
+            if ( !match( BiteLexer.Break, out matchContext ) )
+            {
+                return matchContext;
+            }
+
+            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
+                return matchContext;
+            }
+
+            BreakStatementNode returnStatementNode = new BreakStatementNode();
+
+            return new Context < BreakStatementNode >( returnStatementNode );
+        }
+
+        return new Context < BreakStatementNode >( null );
     }
 
     public virtual IContext < CallNode > _call()
@@ -449,10 +518,12 @@ public partial class BiteModuleParser
 
         if ( Speculating )
         {
-            var context = primary();
+            IContext < PrimaryNode > context = primary();
 
             if ( context.Failed )
+            {
                 return Context < CallNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.DotOperator ||
                     LA( 1 ) == BiteLexer.OpeningRoundBracket ||
@@ -463,17 +534,23 @@ public partial class BiteModuleParser
                     while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
                         if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         if ( !match( BiteLexer.Identifier, out matchContext ) )
+                        {
                             return matchContext;
+                        }
                     }
                 }
 
                 else if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
                 {
                     if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                     {
@@ -482,20 +559,26 @@ public partial class BiteModuleParser
                             consume();
                         }
 
-                        var contextExpression = expression();
+                        IContext < ExpressionNode > contextExpression = expression();
 
                         if ( contextExpression.Failed )
+                        {
                             return Context < CallNode >.AsFailed( context.Exception );
+                        }
 
                         if ( LA( 1 ) == BiteLexer.CommaSeperator )
                         {
                             if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                            {
                                 return matchContext;
+                            }
                         }
                     }
 
                     if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
 
                 else if ( LA( 1 ) == BiteLexer.SquarebracketLeft )
@@ -503,7 +586,9 @@ public partial class BiteModuleParser
                     while ( LA( 1 ) == BiteLexer.SquarebracketLeft )
                     {
                         if ( !match( BiteLexer.SquarebracketLeft, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         if ( LA( 1 ) == BiteLexer.StringLiteral ||
                              LA( 1 ) == BiteLexer.IntegerLiteral ||
@@ -513,7 +598,9 @@ public partial class BiteModuleParser
                         }
 
                         if ( !match( BiteLexer.SquarebracketRight, out matchContext ) )
+                        {
                             return matchContext;
+                        }
                     }
                 }
             }
@@ -528,10 +615,12 @@ public partial class BiteModuleParser
         {
             CallNode callNode = new CallNode();
 
-            var context = primary();
+            IContext < PrimaryNode > context = primary();
 
             if ( context.Failed )
+            {
                 return Context < CallNode >.AsFailed( context.Exception );
+            }
 
             callNode.Primary = context.Result;
             callNode.CallType = CallTypes.Primary;
@@ -553,12 +642,16 @@ public partial class BiteModuleParser
                     while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
                         if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         context = primary();
 
                         if ( context.Failed )
+                        {
                             return Context < CallNode >.AsFailed( context.Exception );
+                        }
 
                         PrimaryNode primaryNode = context.Result;
                         CallEntry callEntry = new CallEntry();
@@ -573,7 +666,9 @@ public partial class BiteModuleParser
                     callNode.CallType = CallTypes.PrimaryCall;
 
                     if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( currentCallEntry != null )
                     {
@@ -604,10 +699,12 @@ public partial class BiteModuleParser
                                 currentCallEntry.Arguments.IsReference.Add( false );
                             }
 
-                            var contextExpression = expression();
+                            IContext < ExpressionNode > contextExpression = expression();
 
                             if ( contextExpression.Failed )
+                            {
                                 return Context < CallNode >.AsFailed( context.Exception );
+                            }
 
                             currentCallEntry.Arguments.Expressions.Add( contextExpression.Result );
                         }
@@ -623,10 +720,12 @@ public partial class BiteModuleParser
                                 callNode.Arguments.IsReference.Add( false );
                             }
 
-                            var contextExpression = expression();
+                            IContext < ExpressionNode > contextExpression = expression();
 
                             if ( contextExpression.Failed )
+                            {
                                 return Context < CallNode >.AsFailed( context.Exception );
+                            }
 
                             callNode.Arguments.Expressions.Add( contextExpression.Result );
                         }
@@ -634,12 +733,16 @@ public partial class BiteModuleParser
                         if ( LA( 1 ) == BiteLexer.CommaSeperator )
                         {
                             if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                            {
                                 return matchContext;
+                            }
                         }
                     }
 
                     if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
 
                 if ( LA( 1 ) == BiteLexer.SquarebracketLeft )
@@ -660,7 +763,9 @@ public partial class BiteModuleParser
                         CallElementEntry callElementEntry = new CallElementEntry();
 
                         if ( !match( BiteLexer.SquarebracketLeft, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         if ( LA( 1 ) == BiteLexer.StringLiteral )
                         {
@@ -679,17 +784,21 @@ public partial class BiteModuleParser
                         }
                         else if ( LA( 1 ) == BiteLexer.Identifier )
                         {
-                            var contextCall = call();
+                            IContext < CallNode > contextCall = call();
 
                             if ( contextCall.Failed )
+                            {
                                 return Context < CallNode >.AsFailed( context.Exception );
+                            }
 
                             callElementEntry.Call = contextCall.Result;
                             callElementEntry.CallElementType = CallElementTypes.Call;
                         }
 
                         if ( !match( BiteLexer.SquarebracketRight, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         if ( currentCallEntry != null )
                         {
@@ -726,33 +835,47 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareClass, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
                 if ( !match( BiteLexer.ColonOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
-            var context = block();
+            IContext < BlockStatementNode > context = block();
 
             if ( context.Failed )
+            {
                 return Context < ClassDeclarationNode >.AsFailed( context.Exception );
+            }
         }
         else
         {
@@ -773,34 +896,46 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareClass, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             classIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             List < string > baseClasses = new List < string >();
 
             if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
                 if ( !match( BiteLexer.ColonOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 baseClasses.Add( LT( 1 ).text );
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     baseClasses.Add( LT( 1 ).text );
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
@@ -827,10 +962,12 @@ public partial class BiteModuleParser
 
             classDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
-            var context = block();
+            IContext < BlockStatementNode > context = block();
 
             if ( context.Failed )
+            {
                 return Context < ClassDeclarationNode >.AsFailed( context.Exception );
+            }
 
             classDeclarationNode.BlockStatement = context.Result;
 
@@ -857,31 +994,45 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareClass, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
                 if ( !match( BiteLexer.ColonOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
             if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
                 return matchContext;
+            }
         }
         else
         {
@@ -902,34 +1053,46 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareClass, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             classIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             List < string > baseClasses = new List < string >();
 
             if ( LA( 1 ) == BiteLexer.ColonOperator && LA( 2 ) == BiteLexer.Identifier )
             {
                 if ( !match( BiteLexer.ColonOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 baseClasses.Add( LT( 1 ).text );
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) == BiteLexer.CommaSeperator && LA( 2 ) == BiteLexer.Identifier )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     baseClasses.Add( LT( 1 ).text );
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
@@ -957,7 +1120,9 @@ public partial class BiteModuleParser
             classDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
             if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             return new Context < ClassDeclarationNode >( classDeclarationNode );
         }
@@ -984,48 +1149,70 @@ public partial class BiteModuleParser
             if ( LA( 1 ) == BiteLexer.DeclareVariable )
             {
                 if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.AssignOperator, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.DeclareClassInstance, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             while ( LA( 1 ) == BiteLexer.DotOperator )
             {
                 if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
-                var context = arguments();
+                IContext < ArgumentsNode > context = arguments();
 
                 if ( context.Failed )
+                {
                     return Context < ClassInstanceDeclarationNode >.AsFailed( context.Exception );
+                }
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
         }
         else
@@ -1054,7 +1241,9 @@ public partial class BiteModuleParser
                 isRedeclaration = false;
 
                 if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             ClassInstanceDeclarationNode classInstanceDeclarationNode = new ClassInstanceDeclarationNode();
@@ -1063,18 +1252,26 @@ public partial class BiteModuleParser
             identifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.AssignOperator, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.DeclareClassInstance, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             classIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.DotOperator )
             {
@@ -1086,18 +1283,24 @@ public partial class BiteModuleParser
                 classInstanceDeclarationNode.ClassPath.Add( new Identifier( classIdentifier ) );
 
                 if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 classIdentifier = LT( 1 ).text;
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             classInstanceDeclarationNode.ClassName = new Identifier( classIdentifier );
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !string.IsNullOrEmpty( identifier ) )
             {
@@ -1112,21 +1315,27 @@ public partial class BiteModuleParser
 
             if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
-                var context = arguments();
+                IContext < ArgumentsNode > context = arguments();
 
                 if ( context.Failed )
+                {
                     return Context < ClassInstanceDeclarationNode >.AsFailed( context.Exception );
+                }
 
                 classInstanceDeclarationNode.Arguments = context.Result;
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             return new Context < ClassInstanceDeclarationNode >( classInstanceDeclarationNode );
@@ -1210,10 +1419,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = relational();
+            IContext < ExpressionNode > context = relational();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.UnequalOperator || LA( 1 ) == BiteLexer.EqualOperator )
             {
@@ -1221,17 +1432,21 @@ public partial class BiteModuleParser
                 context = relational();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
-            var context = relational();
+            IContext < ExpressionNode > context = relational();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
 
@@ -1253,7 +1468,9 @@ public partial class BiteModuleParser
                 context = relational();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -1285,19 +1502,23 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = assignment();
+            IContext < AssignmentNode > context = assignment();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
         }
         else
         {
             ExpressionNode expressionNode = new ExpressionNode();
 
-            var context = assignment();
+            IContext < AssignmentNode > context = assignment();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             expressionNode.Assignment = context.Result;
 
@@ -1313,32 +1534,40 @@ public partial class BiteModuleParser
 
         if ( Speculating )
         {
-            var context = expression();
+            IContext < ExpressionNode > context = expression();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionStatementNode >.AsFailed( context.Exception );
+            }
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
         }
         else
         {
             ExpressionStatementNode expressionStatementNode = new ExpressionStatementNode();
 
-            var context = expression();
+            IContext < ExpressionNode > context = expression();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionStatementNode >.AsFailed( context.Exception );
+            }
 
             expressionStatementNode.Expression = context.Result;
 
             if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             return new Context < ExpressionStatementNode >( expressionStatementNode );
@@ -1354,153 +1583,199 @@ public partial class BiteModuleParser
         if ( Speculating )
         {
             if ( !match( BiteLexer.DeclareForLoop, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.DeclareVariable )
             {
-                var context = variableDeclaration();
+                IContext < VariableDeclarationNode > context = variableDeclaration();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
             }
             else
             {
                 if ( LA( 1 ) != BiteLexer.SemicolonSeperator )
                 {
-                    var context = expressionStatement();
+                    IContext < ExpressionStatementNode > context = expressionStatement();
 
                     if ( context.Failed )
+                    {
                         return Context < ForStatementNode >.AsFailed( context.Exception );
+                    }
                 }
                 else
                 {
                     if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
             if ( LA( 1 ) != BiteLexer.SemicolonSeperator )
             {
-                var context = expression();
+                IContext < ExpressionNode > context = expression();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
 
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
             else
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             if ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
             {
-                var context = expression();
+                IContext < ExpressionNode > context = expression();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < ForStatementNode >.AsFailed( contextBlock.Exception );
+            }
         }
         else
         {
             ForStatementNode forStatementNode = new ForStatementNode();
 
             if ( !match( BiteLexer.DeclareForLoop, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.SemicolonSeperator )
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
             else if ( speculate_declaration_variable() )
             {
                 // Console.WriteLine( "predict variable declaration" );
-                var context = variableDeclaration();
+                IContext < VariableDeclarationNode > context = variableDeclaration();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
 
                 forStatementNode.VariableDeclaration = context.Result;
             }
             else if ( speculate_expression() )
             {
                 // Console.WriteLine( "predict alternative for expression statement" );
-                var context = expression();
+                IContext < ExpressionNode > context = expression();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
 
                 forStatementNode.ExpressionStatement = context.Result;
             }
             else
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             if ( LA( 1 ) == BiteLexer.SemicolonSeperator )
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
             else if ( speculate_expression() )
             {
                 // Console.WriteLine( "predict alternative for expression" );
-                var context = expression();
+                IContext < ExpressionNode > context = expression();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
 
                 forStatementNode.Expression1 = context.Result;
 
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
             else
             {
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             if ( LA( 1 ) == BiteLexer.ClosingRoundBracket )
             {
                 if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
             else if ( speculate_expression() )
             {
                 // Console.WriteLine( "predict alternative for expression" );
-                var context = expression();
+                IContext < ExpressionNode > context = expression();
 
                 if ( context.Failed )
+                {
                     return Context < ForStatementNode >.AsFailed( context.Exception );
+                }
 
                 forStatementNode.Expression2 = context.Result;
             }
 
-
-
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < ForStatementNode >.AsFailed( contextBlock.Exception );
+            }
 
             forStatementNode.Block = contextBlock.Result;
 
@@ -1527,36 +1802,52 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < FunctionDeclarationNode >.AsFailed( contextBlock.Exception );
+            }
         }
         else
         {
@@ -1578,15 +1869,21 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             functionIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.Identifier )
             {
@@ -1594,22 +1891,30 @@ public partial class BiteModuleParser
                 parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
 
@@ -1624,10 +1929,12 @@ public partial class BiteModuleParser
 
             functionDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < FunctionDeclarationNode >.AsFailed( contextBlock.Exception );
+            }
 
             functionDeclarationNode.FunctionBlock = contextBlock.Result;
             functionDeclarationNode.Parameters = parametersNode;
@@ -1655,34 +1962,50 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
                 return matchContext;
+            }
         }
         else
         {
@@ -1705,37 +2028,51 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareFunction, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             functionIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.Identifier )
             {
                 parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 while ( LA( 1 ) != BiteLexer.ClosingRoundBracket )
                 {
                     if ( !match( BiteLexer.CommaSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     parametersNode.Identifiers.Add( new Identifier( LT( 1 ).text ) );
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
 
@@ -1751,7 +2088,9 @@ public partial class BiteModuleParser
             functionDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
             if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             return new Context < FunctionDeclarationNode >( functionDeclarationNode );
         }
@@ -1766,83 +2105,117 @@ public partial class BiteModuleParser
         if ( Speculating )
         {
             if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var context = expression();
+            IContext < ExpressionNode > context = expression();
 
             if ( context.Failed )
+            {
                 return Context < IfStatementNode >.AsFailed( context.Exception );
+            }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < IfStatementNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.ControlFlowElse )
             {
                 if ( !match( BiteLexer.ControlFlowElse, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 if ( LA( 1 ) == BiteLexer.ControlFlowIf )
                 {
                     if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     context = expression();
 
                     if ( context.Failed )
+                    {
                         return Context < IfStatementNode >.AsFailed( context.Exception );
+                    }
 
                     if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     contextBlock = block();
 
                     if ( contextBlock.Failed )
+                    {
                         return Context < IfStatementNode >.AsFailed( context.Exception );
+                    }
                 }
                 else
                 {
                     contextBlock = block();
 
                     if ( contextBlock.Failed )
+                    {
                         return Context < IfStatementNode >.AsFailed( context.Exception );
+                    }
                 }
             }
         }
         else
         {
             if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             IfStatementNode ifStatement = new IfStatementNode();
 
-            var context = expression();
+            IContext < ExpressionNode > context = expression();
 
             if ( context.Failed )
+            {
                 return Context < IfStatementNode >.AsFailed( context.Exception );
+            }
 
             ifStatement.Expression = context.Result;
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < IfStatementNode >.AsFailed( context.Exception );
+            }
 
             ifStatement.ThenBlock = contextBlock.Result;
 
@@ -1853,32 +2226,44 @@ public partial class BiteModuleParser
                 IfStatementEntry ifStatementEntry = new IfStatementEntry();
 
                 if ( !match( BiteLexer.ControlFlowElse, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 if ( LA( 1 ) == BiteLexer.ControlFlowIf )
                 {
                     ifStatementEntry.IfStatementType = IfStatementEntryType.ElseIf;
 
                     if ( !match( BiteLexer.ControlFlowIf, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
-                    var context2 = expression();
+                    IContext < ExpressionNode > context2 = expression();
 
                     if ( context2.Failed )
+                    {
                         return Context < IfStatementNode >.AsFailed( context.Exception );
+                    }
 
                     ifStatementEntry.ExpressionElseIf = context2.Result;
 
                     if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
-                    var contextBlock2 = block();
+                    IContext < BlockStatementNode > contextBlock2 = block();
 
                     if ( contextBlock2.Failed )
+                    {
                         return Context < IfStatementNode >.AsFailed( context.Exception );
+                    }
 
                     ifStatementEntry.ElseBlock = contextBlock2.Result;
                 }
@@ -1886,10 +2271,12 @@ public partial class BiteModuleParser
                 {
                     ifStatementEntry.IfStatementType = IfStatementEntryType.Else;
 
-                    var contextBlock2 = block();
+                    IContext < BlockStatementNode > contextBlock2 = block();
 
                     if ( contextBlock2.Failed )
+                    {
                         return Context < IfStatementNode >.AsFailed( context.Exception );
+                    }
 
                     ifStatementEntry.ElseBlock = contextBlock2.Result;
                 }
@@ -1907,10 +2294,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = bitwiseOr();
+            IContext < ExpressionNode > context = bitwiseOr();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.LogicalAndOperator )
             {
@@ -1918,17 +2307,21 @@ public partial class BiteModuleParser
                 context = bitwiseOr();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
-            var context = bitwiseOr();
+            IContext < ExpressionNode > context = bitwiseOr();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
 
@@ -1942,7 +2335,9 @@ public partial class BiteModuleParser
                 context = bitwiseOr();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -1974,10 +2369,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = logicAnd();
+            IContext < ExpressionNode > context = logicAnd();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.LogicalOrOperator )
             {
@@ -1985,17 +2382,21 @@ public partial class BiteModuleParser
                 context = logicAnd();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
-            var context = logicAnd();
+            IContext < ExpressionNode > context = logicAnd();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
 
@@ -2009,7 +2410,9 @@ public partial class BiteModuleParser
                 context = logicAnd();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -2041,10 +2444,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = unary();
+            IContext < ExpressionNode > context = unary();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.MultiplyOperator ||
                     LA( 1 ) == BiteLexer.DivideOperator ||
@@ -2054,17 +2459,21 @@ public partial class BiteModuleParser
                 context = unary();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
-            var context = unary();
+            IContext < ExpressionNode > context = unary();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
@@ -2091,7 +2500,9 @@ public partial class BiteModuleParser
                 context = unary();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -2140,19 +2551,25 @@ public partial class BiteModuleParser
             else if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
             {
                 if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
 
-                var context = declaration();
+                IContext < HeteroAstNode > context = declaration();
 
                 if ( context.Failed )
+                {
                     return Context < PrimaryNode >.AsFailed( context.Exception );
+                }
 
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
 
                 if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
         }
         else
@@ -2202,21 +2619,27 @@ public partial class BiteModuleParser
             else if ( LA( 1 ) == BiteLexer.OpeningRoundBracket )
             {
                 if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
 
-                var context = declaration();
+                IContext < HeteroAstNode > context = declaration();
 
                 if ( context.Failed )
+                {
                     return Context < PrimaryNode >.AsFailed( context.Exception );
+                }
 
                 primaryNode.Expression = context.Result;
                 MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
                 primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Expression;
 
                 if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
             else
             {
@@ -2236,10 +2659,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = shift();
+            IContext < ExpressionNode > context = shift();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.GreaterOperator ||
                     LA( 1 ) == BiteLexer.GreaterEqualOperator ||
@@ -2250,17 +2675,21 @@ public partial class BiteModuleParser
                 context = shift();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
 
-            var context = shift();
+            IContext < ExpressionNode > context = shift();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
 
@@ -2293,7 +2722,9 @@ public partial class BiteModuleParser
                 context = shift();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -2331,23 +2762,31 @@ public partial class BiteModuleParser
         if ( Speculating )
         {
             if ( !match( BiteLexer.FunctionReturn, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var context = expressionStatement();
+            IContext < ExpressionStatementNode > context = expressionStatement();
 
             if ( context.Failed )
+            {
                 return Context < ReturnStatementNode >.AsFailed( context.Exception );
+            }
         }
         else
         {
             if ( !match( BiteLexer.FunctionReturn, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             ReturnStatementNode returnStatementNode = new ReturnStatementNode();
-            var context = expressionStatement();
+            IContext < ExpressionStatementNode > context = expressionStatement();
 
             if ( context.Failed )
+            {
                 return Context < ReturnStatementNode >.AsFailed( context.Exception );
+            }
 
             returnStatementNode.ExpressionStatement = context.Result;
 
@@ -2355,32 +2794,6 @@ public partial class BiteModuleParser
         }
 
         return new Context < ReturnStatementNode >( null );
-    }
-    
-    public virtual IContext < BreakStatementNode > _breakStatement()
-    {
-        IContext < BreakStatementNode > matchContext = null;
-
-        if ( Speculating )
-        {
-            if ( !match( BiteLexer.Break, out matchContext ) )
-                return matchContext;
-            
-            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
-                return matchContext;
-        }
-        else
-        {
-            if ( !match( BiteLexer.Break, out matchContext ) )
-                return matchContext;
-    
-            if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
-                return matchContext;
-            BreakStatementNode returnStatementNode = new BreakStatementNode();
-
-            return new Context < BreakStatementNode >( returnStatementNode );
-        }
-        return new Context < BreakStatementNode >( null );
     }
 
     public IContext < HeteroAstNode > _statement()
@@ -2419,7 +2832,7 @@ public partial class BiteModuleParser
 
             return returnStatement();
         }
-        
+
         if ( speculate_break_statement() )
         {
             // Console.WriteLine( "predict alternative break statement" );
@@ -2447,69 +2860,6 @@ public partial class BiteModuleParser
         //throw new NoViableAltException("expecting declaration found " + LT(1));
     }
 
-    public IContext < UsingStatementNode > _usingStatement()
-    {
-        IContext < UsingStatementNode > matchContext = null;
-
-        if ( !Speculating )
-        {
-            if ( !match( BiteLexer.UsingDirective, out matchContext ) )
-                return matchContext;
-
-            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
-                return matchContext;
-
-            UsingStatementNode usingStatementNode = new UsingStatementNode();
-            MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
-
-            var context = declaration();
-
-            if ( context.Failed )
-                return Context < UsingStatementNode >.AsFailed( context.Exception );
-
-            usingStatementNode.UsingNode = context.Result;
-
-            MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
-
-            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
-                return matchContext;
-
-            var contextBlock = block();
-
-            if ( contextBlock.Failed )
-                return Context < UsingStatementNode >.AsFailed( context.Exception );
-
-            usingStatementNode.UsingBlock = contextBlock.Result;
-
-            return new Context < UsingStatementNode >( usingStatementNode );
-        }
-
-        if ( !match( BiteLexer.UsingDirective, out matchContext ) )
-            return matchContext;
-
-        if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
-            return matchContext;
-
-        MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
-
-        var context2 = declaration();
-
-        if ( context2.Failed )
-            return Context < UsingStatementNode >.AsFailed( context2.Exception );
-
-        MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
-
-        if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
-            return matchContext;
-
-        var contextBlock2 = block();
-
-        if ( contextBlock2.Failed )
-            return Context < UsingStatementNode >.AsFailed( contextBlock2.Exception );
-
-        return new Context < UsingStatementNode >( null );
-    }
-
     public virtual IContext < StructDeclarationNode > _structDeclaration()
     {
         IContext < StructDeclarationNode > matchContext = null;
@@ -2522,15 +2872,21 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareStruct, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var context = block();
+            IContext < BlockStatementNode > context = block();
 
             if ( context.Failed )
+            {
                 return Context < StructDeclarationNode >.AsFailed( context.Exception );
+            }
         }
         else
         {
@@ -2545,12 +2901,16 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareStruct, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             classIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             StructDeclarationNode structDeclarationNode = new StructDeclarationNode();
 
@@ -2565,10 +2925,12 @@ public partial class BiteModuleParser
 
             structDeclarationNode.Modifiers = new ModifiersNode( accessMod, staticAbstractMod );
 
-            var context = block();
+            IContext < BlockStatementNode > context = block();
 
             if ( context.Failed )
+            {
                 return Context < StructDeclarationNode >.AsFailed( context.Exception );
+            }
 
             structDeclarationNode.Block = context.Result;
 
@@ -2576,6 +2938,109 @@ public partial class BiteModuleParser
         }
 
         return null;
+    }
+
+    public IContext < ExpressionNode > _ternary()
+    {
+        IContext < ExpressionNode > matchContext = null;
+
+        if ( Speculating )
+        {
+            IContext < ExpressionNode > context = logicOr();
+
+            if ( context.Failed )
+            {
+                return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
+
+            while ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
+            {
+                consume();
+
+                context = logicOr();
+
+                if ( context.Failed )
+                {
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
+                {
+                    return matchContext;
+                }
+
+                context = logicOr();
+
+                if ( context.Failed )
+                {
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+            }
+        }
+        else
+        {
+            TernaryOperationNode firstOperationNode = new TernaryOperationNode();
+
+            IContext < ExpressionNode > context = logicOr();
+
+            if ( context.Failed )
+            {
+                return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
+
+            firstOperationNode.LeftOperand = context.Result;
+
+            TernaryOperationNode currentOperationNode = firstOperationNode;
+
+            while ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
+            {
+                consume();
+
+                context = logicOr();
+
+                if ( context.Failed )
+                {
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+
+                currentOperationNode.MidOperand = context.Result;
+
+                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
+                {
+                    return matchContext;
+                }
+
+                context = logicOr();
+
+                if ( context.Failed )
+                {
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+
+                ExpressionNode right = context.Result;
+
+                if ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
+                {
+                    TernaryOperationNode ternaryOperationNode = new TernaryOperationNode();
+                    currentOperationNode.RightOperand = ternaryOperationNode;
+                    currentOperationNode = ternaryOperationNode;
+                    currentOperationNode.LeftOperand = ternaryOperationNode;
+                }
+                else
+                {
+                    currentOperationNode.RightOperand = right;
+                }
+            }
+
+            if ( firstOperationNode.RightOperand != null || firstOperationNode.MidOperand != null )
+            {
+                return new Context < ExpressionNode >( firstOperationNode );
+            }
+
+            return new Context < ExpressionNode >( firstOperationNode.LeftOperand );
+        }
+
+        return new Context < ExpressionNode >( null );
     }
 
     public virtual IContext < ExpressionNode > _unary()
@@ -2632,10 +3097,12 @@ public partial class BiteModuleParser
         {
             UnaryPostfixOperation unaryPostfix = new UnaryPostfixOperation();
 
-            var context = call();
+            IContext < CallNode > context = call();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             unaryPostfix.Primary = context.Result;
 
@@ -2645,14 +3112,18 @@ public partial class BiteModuleParser
                 if ( LA( 1 ) == BiteLexer.MinusMinusOperator )
                 {
                     if ( !match( BiteLexer.MinusMinusOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPostfix.Operator = UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus;
                 }
                 else if ( LA( 1 ) == BiteLexer.PlusPlusOperator )
                 {
                     if ( !match( BiteLexer.PlusPlusOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPostfix.Operator = UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus;
                 }
@@ -2679,10 +3150,12 @@ public partial class BiteModuleParser
             {
                 consume();
 
-                var context = unary();
+                IContext < ExpressionNode > context = unary();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
             else
             {
@@ -2705,50 +3178,64 @@ public partial class BiteModuleParser
                 if ( LA( 1 ) == BiteLexer.MinusMinusOperator )
                 {
                     if ( !match( BiteLexer.MinusMinusOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus;
                 }
                 else if ( LA( 1 ) == BiteLexer.PlusPlusOperator )
                 {
                     if ( !match( BiteLexer.PlusPlusOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus;
                 }
                 else if ( LA( 1 ) == BiteLexer.LogicalNegationOperator )
                 {
                     if ( !match( BiteLexer.LogicalNegationOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot;
                 }
                 else if ( LA( 1 ) == BiteLexer.ComplimentOperator )
                 {
                     if ( !match( BiteLexer.ComplimentOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment;
                 }
                 else if ( LA( 1 ) == BiteLexer.PlusOperator )
                 {
                     if ( !match( BiteLexer.PlusOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Plus;
                 }
                 else
                 {
                     if ( !match( BiteLexer.MinusOperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     unaryPrefix.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Negate;
                 }
 
-                var context = unary();
+                IContext < ExpressionNode > context = unary();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 unaryPrefix.Primary = context.Result;
             }
@@ -2757,6 +3244,89 @@ public partial class BiteModuleParser
         }
 
         return new Context < ExpressionNode >( null );
+    }
+
+    public IContext < UsingStatementNode > _usingStatement()
+    {
+        IContext < UsingStatementNode > matchContext = null;
+
+        if ( !Speculating )
+        {
+            if ( !match( BiteLexer.UsingDirective, out matchContext ) )
+            {
+                return matchContext;
+            }
+
+            if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
+                return matchContext;
+            }
+
+            UsingStatementNode usingStatementNode = new UsingStatementNode();
+            MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
+
+            IContext < HeteroAstNode > context = declaration();
+
+            if ( context.Failed )
+            {
+                return Context < UsingStatementNode >.AsFailed( context.Exception );
+            }
+
+            usingStatementNode.UsingNode = context.Result;
+
+            MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
+
+            if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
+                return matchContext;
+            }
+
+            IContext < BlockStatementNode > contextBlock = block();
+
+            if ( contextBlock.Failed )
+            {
+                return Context < UsingStatementNode >.AsFailed( context.Exception );
+            }
+
+            usingStatementNode.UsingBlock = contextBlock.Result;
+
+            return new Context < UsingStatementNode >( usingStatementNode );
+        }
+
+        if ( !match( BiteLexer.UsingDirective, out matchContext ) )
+        {
+            return matchContext;
+        }
+
+        if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+        {
+            return matchContext;
+        }
+
+        MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = false;
+
+        IContext < HeteroAstNode > context2 = declaration();
+
+        if ( context2.Failed )
+        {
+            return Context < UsingStatementNode >.AsFailed( context2.Exception );
+        }
+
+        MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration = true;
+
+        if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+        {
+            return matchContext;
+        }
+
+        IContext < BlockStatementNode > contextBlock2 = block();
+
+        if ( contextBlock2.Failed )
+        {
+            return Context < UsingStatementNode >.AsFailed( contextBlock2.Exception );
+        }
+
+        return new Context < UsingStatementNode >( null );
     }
 
     public virtual IContext < VariableDeclarationNode > _variableDeclaration()
@@ -2776,10 +3346,14 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( LA( 1 ) == BiteLexer.AssignOperator )
             {
@@ -2792,17 +3366,21 @@ public partial class BiteModuleParser
                         new MismatchedTokenException( "Expected variableDeclaration found", LT( 1 ) ) );
                 }
 
-                var context = expressionStatement();
+                IContext < ExpressionStatementNode > context = expressionStatement();
 
                 if ( context.Failed )
+                {
                     return Context < VariableDeclarationNode >.AsFailed( context.Exception );
+                }
             }
             else
             {
                 if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
                 {
                     if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
         }
@@ -2825,12 +3403,16 @@ public partial class BiteModuleParser
             }
 
             if ( !match( BiteLexer.DeclareVariable, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             identifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             ExpressionStatementNode init = null;
 
@@ -2845,10 +3427,12 @@ public partial class BiteModuleParser
                         new MismatchedTokenException( "Expected variableDeclaration found", LT( 1 ) ) );
                 }
 
-                var context = expressionStatement();
+                IContext < ExpressionStatementNode > context = expressionStatement();
 
                 if ( context.Failed )
+                {
                     return Context < VariableDeclarationNode >.AsFailed( context.Exception );
+                }
 
                 init = context.Result;
             }
@@ -2857,7 +3441,9 @@ public partial class BiteModuleParser
                 if ( MatchSemicolonAtTheEndOfVariableAndClassInstanceDeclaration )
                 {
                     if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
 
@@ -2893,48 +3479,68 @@ public partial class BiteModuleParser
         if ( Speculating )
         {
             if ( !match( BiteLexer.DeclareWhileLoop, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var context = expression();
+            IContext < ExpressionNode > context = expression();
 
             if ( context.Failed )
+            {
                 return Context < WhileStatementNode >.AsFailed( context.Exception );
+            }
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < WhileStatementNode >.AsFailed( context.Exception );
+            }
         }
         else
         {
             if ( !match( BiteLexer.DeclareWhileLoop, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.OpeningRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             WhileStatementNode whileStatementNode = new WhileStatementNode();
 
-            var context = expression();
+            IContext < ExpressionNode > context = expression();
 
             if ( context.Failed )
+            {
                 return Context < WhileStatementNode >.AsFailed( context.Exception );
+            }
 
             whileStatementNode.Expression = context.Result;
 
             if ( !match( BiteLexer.ClosingRoundBracket, out matchContext ) )
+            {
                 return matchContext;
+            }
 
-            var contextBlock = block();
+            IContext < BlockStatementNode > contextBlock = block();
 
             if ( contextBlock.Failed )
+            {
                 return Context < WhileStatementNode >.AsFailed( context.Exception );
+            }
 
             whileStatementNode.WhileBlock = contextBlock.Result;
 
@@ -2944,83 +3550,72 @@ public partial class BiteModuleParser
         return new Context < WhileStatementNode >( null );
     }
 
-    public IContext < ExpressionNode > _ternary()
-    {
-        IContext < ExpressionNode > matchContext = null;
+    #endregion
 
+    #region Private
+
+    private IContext < ExpressionNode > _bitwiseAnd()
+    {
         if ( Speculating )
         {
-            var context = logicOr();
+            IContext < ExpressionNode > context = equality();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
-            while ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
             {
                 consume();
-
-                context = logicOr();
-
-                if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-
-                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
-                    return matchContext;
-
-                context = logicOr();
+                context = equality();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
-            TernaryOperationNode firstOperationNode = new TernaryOperationNode();
-
-            var context = logicOr();
+            BinaryOperationNode firstOperationNode = new BinaryOperationNode();
+            IContext < ExpressionNode > context = equality();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
+            BinaryOperationNode currentOperationNode = firstOperationNode;
 
-            TernaryOperationNode currentOperationNode = firstOperationNode;
-
-            while ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
+            while ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
             {
+                currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseAnd;
                 consume();
-
-                context = logicOr();
-
-                if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-
-                currentOperationNode.MidOperand = context.Result;
-
-                if ( !match( BiteLexer.ColonOperator, out matchContext ) )
-                    return matchContext;
-
-                context = logicOr();
+                context = equality();
 
                 if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-
-                ExpressionNode right = context.Result;
-
-                if ( LA( 1 ) == BiteLexer.QuestionMarkOperator )
                 {
-                    TernaryOperationNode ternaryOperationNode = new TernaryOperationNode();
-                    currentOperationNode.RightOperand = ternaryOperationNode;
-                    currentOperationNode = ternaryOperationNode;
-                    currentOperationNode.LeftOperand = ternaryOperationNode;
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+
+                ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
+
+                if ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
+                {
+                    BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
+                    binaryOperationNode.LeftOperand = currentOperationNode;
+                    currentOperationNode = binaryOperationNode;
                 }
                 else
                 {
-                    currentOperationNode.RightOperand = right;
+                    firstOperationNode = currentOperationNode;
                 }
             }
 
-            if ( firstOperationNode.RightOperand != null || firstOperationNode.MidOperand != null )
+            if ( firstOperationNode.RightOperand != null )
             {
                 return new Context < ExpressionNode >( firstOperationNode );
             }
@@ -3035,10 +3630,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = bitwiseXor();
+            IContext < ExpressionNode > context = bitwiseXor();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.BitwiseOrOperator )
             {
@@ -3046,16 +3643,20 @@ public partial class BiteModuleParser
                 context = bitwiseXor();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-            var context = bitwiseXor();
+            IContext < ExpressionNode > context = bitwiseXor();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
@@ -3067,7 +3668,9 @@ public partial class BiteModuleParser
                 context = bitwiseXor();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
@@ -3099,10 +3702,12 @@ public partial class BiteModuleParser
     {
         if ( Speculating )
         {
-            var context = bitwiseAnd();
+            IContext < ExpressionNode > context = bitwiseAnd();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             while ( LA( 1 ) == BiteLexer.BitwiseXorOperator )
             {
@@ -3110,16 +3715,20 @@ public partial class BiteModuleParser
                 context = bitwiseAnd();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
             }
         }
         else
         {
             BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-            var context = bitwiseAnd();
+            IContext < ExpressionNode > context = bitwiseAnd();
 
             if ( context.Failed )
+            {
                 return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
 
             firstOperationNode.LeftOperand = context.Result;
             BinaryOperationNode currentOperationNode = firstOperationNode;
@@ -3132,149 +3741,14 @@ public partial class BiteModuleParser
                 context = bitwiseAnd();
 
                 if ( context.Failed )
+                {
                     return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
 
                 ExpressionNode expressionNode = context.Result;
                 currentOperationNode.RightOperand = expressionNode;
 
                 if ( LA( 1 ) == BiteLexer.BitwiseXorOperator )
-                {
-                    BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
-                    binaryOperationNode.LeftOperand = currentOperationNode;
-                    currentOperationNode = binaryOperationNode;
-                }
-                else
-                {
-                    firstOperationNode = currentOperationNode;
-                }
-            }
-
-            if ( firstOperationNode.RightOperand != null )
-            {
-                return new Context < ExpressionNode >( firstOperationNode );
-            }
-
-            return new Context < ExpressionNode >( firstOperationNode.LeftOperand );
-        }
-
-        return new Context < ExpressionNode >( null );
-    }
-
-    private IContext < ExpressionNode > _bitwiseAnd()
-    {
-        if ( Speculating )
-        {
-            var context = equality();
-
-            if ( context.Failed )
-                return Context < ExpressionNode >.AsFailed( context.Exception );
-
-            while ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
-            {
-                consume();
-                context = equality();
-
-                if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-            }
-        }
-        else
-        {
-            BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-            var context = equality();
-
-            if ( context.Failed )
-                return Context < ExpressionNode >.AsFailed( context.Exception );
-
-            firstOperationNode.LeftOperand = context.Result;
-            BinaryOperationNode currentOperationNode = firstOperationNode;
-
-            while ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
-            {
-                currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.BitwiseAnd;
-                consume();
-                context = equality();
-
-                if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-
-                ExpressionNode expressionNode = context.Result;
-                currentOperationNode.RightOperand = expressionNode;
-
-                if ( LA( 1 ) == BiteLexer.BitwiseAndOperator )
-                {
-                    BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
-                    binaryOperationNode.LeftOperand = currentOperationNode;
-                    currentOperationNode = binaryOperationNode;
-                }
-                else
-                {
-                    firstOperationNode = currentOperationNode;
-                }
-            }
-
-            if ( firstOperationNode.RightOperand != null )
-            {
-                return new Context < ExpressionNode >( firstOperationNode );
-            }
-
-            return new Context < ExpressionNode >( firstOperationNode.LeftOperand );
-        }
-
-        return new Context < ExpressionNode >( null );
-    }
-
-    private IContext < ExpressionNode > _shift()
-    {
-        if ( Speculating )
-        {
-            var context = additive();
-
-            if ( context.Failed )
-                return Context < ExpressionNode >.AsFailed( context.Exception );
-
-            while ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
-            {
-                consume();
-                context = additive();
-
-                if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-            }
-        }
-        else
-        {
-            BinaryOperationNode firstOperationNode = new BinaryOperationNode();
-            var context = additive();
-
-            if ( context.Failed )
-                return Context < ExpressionNode >.AsFailed( context.Exception );
-
-            firstOperationNode.LeftOperand = context.Result;
-            BinaryOperationNode currentOperationNode = firstOperationNode;
-
-            while ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
-            {
-                if ( LA( 1 ) == BiteLexer.ShiftLeftOperator )
-                {
-                    currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.ShiftLeft;
-                }
-                else
-                {
-                    currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.ShiftRight;
-                }
-
-                consume();
-
-                context = additive();
-
-                if ( context.Failed )
-                    return Context < ExpressionNode >.AsFailed( context.Exception );
-
-                ExpressionNode expressionNode = context.Result;
-                currentOperationNode.RightOperand = expressionNode;
-
-                if ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
                 {
                     BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
                     binaryOperationNode.LeftOperand = currentOperationNode;
@@ -3304,12 +3778,16 @@ public partial class BiteModuleParser
         if ( !Speculating )
         {
             if ( !match( BiteLexer.DeclareModule, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             string moduleIdentifier = LT( 1 ).text;
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             List < string > parentModules = new List < string >();
             List < ModuleIdentifier > importedModules = new List < ModuleIdentifier >();
@@ -3322,32 +3800,43 @@ public partial class BiteModuleParser
                 parentModules.Add( moduleIdentifier );
 
                 if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                {
                     return matchContext;
+                }
 
                 moduleIdentifier = LT( 1 ).text;
 
                 if ( !match( BiteLexer.Identifier, out matchContext ) )
+                {
                     return matchContext;
+                }
             }
 
             if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             moduleNode.ModuleIdent = new ModuleIdentifier( moduleIdentifier, parentModules );
 
             if ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective )
             {
-                while ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective && LA( 2 ) != BiteLexer.OpeningRoundBracket )
+                while ( LA( 1 ) == BiteLexer.ImportDirective ||
+                        LA( 1 ) == BiteLexer.UsingDirective && LA( 2 ) != BiteLexer.OpeningRoundBracket )
                 {
                     if ( LA( 1 ) == BiteLexer.ImportDirective )
                     {
                         if ( !match( BiteLexer.ImportDirective, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         string nextIdentifier = LT( 1 ).text;
 
                         if ( !match( BiteLexer.Identifier, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         List < string > pModules = new List < string >();
 
@@ -3356,28 +3845,38 @@ public partial class BiteModuleParser
                             pModules.Add( nextIdentifier );
 
                             if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                            {
                                 return matchContext;
+                            }
 
                             nextIdentifier = LT( 1 ).text;
 
                             if ( !match( BiteLexer.Identifier, out matchContext ) )
+                            {
                                 return matchContext;
+                            }
                         }
 
                         if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         importedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
                     }
                     else
                     {
                         if ( !match( BiteLexer.UsingDirective, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         string nextIdentifier = LT( 1 ).text;
 
                         if ( !match( BiteLexer.Identifier, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         List < string > pModules = new List < string >();
 
@@ -3386,16 +3885,22 @@ public partial class BiteModuleParser
                             pModules.Add( nextIdentifier );
 
                             if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                            {
                                 return matchContext;
+                            }
 
                             nextIdentifier = LT( 1 ).text;
 
                             if ( !match( BiteLexer.Identifier, out matchContext ) )
+                            {
                                 return matchContext;
+                            }
                         }
 
                         if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         usedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
                     }
@@ -3405,14 +3910,16 @@ public partial class BiteModuleParser
             moduleNode.ImportedModules = importedModules;
             moduleNode.UsedModules = usedModules;
 
-            var _statements = new List < StatementNode >();
+            List < StatementNode > _statements = new List < StatementNode >();
 
             while ( LA( 1 ) != Lexer.EOF_TYPE )
             {
-                var context = declaration();
+                IContext < HeteroAstNode > context = declaration();
 
                 if ( context.Failed )
+                {
                     return Context < ModuleNode >.AsFailed( context.Exception );
+                }
 
                 _statements.Add( ( StatementNode ) context.Result );
 
@@ -3450,22 +3957,32 @@ public partial class BiteModuleParser
         }
 
         if ( !match( BiteLexer.DeclareModule, out matchContext ) )
+        {
             return matchContext;
+        }
 
         if ( !match( BiteLexer.Identifier, out matchContext ) )
+        {
             return matchContext;
+        }
 
         while ( LA( 1 ) == BiteLexer.DotOperator )
         {
             if ( !match( BiteLexer.DotOperator, out matchContext ) )
+            {
                 return matchContext;
+            }
 
             if ( !match( BiteLexer.Identifier, out matchContext ) )
+            {
                 return matchContext;
+            }
         }
 
         if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+        {
             return matchContext;
+        }
 
         if ( LA( 1 ) == BiteLexer.ImportDirective || LA( 1 ) == BiteLexer.UsingDirective )
         {
@@ -3474,55 +3991,158 @@ public partial class BiteModuleParser
                 if ( LA( 1 ) == BiteLexer.ImportDirective )
                 {
                     if ( !match( BiteLexer.ImportDirective, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
                         if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         if ( !match( BiteLexer.Identifier, out matchContext ) )
+                        {
                             return matchContext;
+                        }
                     }
 
                     if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
                 else
                 {
                     if ( !match( BiteLexer.UsingDirective, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     if ( !match( BiteLexer.Identifier, out matchContext ) )
+                    {
                         return matchContext;
+                    }
 
                     while ( LA( 1 ) == BiteLexer.DotOperator )
                     {
                         if ( !match( BiteLexer.DotOperator, out matchContext ) )
+                        {
                             return matchContext;
+                        }
 
                         if ( !match( BiteLexer.Identifier, out matchContext ) )
+                        {
                             return matchContext;
+                        }
                     }
 
                     if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
+                    {
                         return matchContext;
+                    }
                 }
             }
         }
 
         while ( LA( 1 ) != Lexer.EOF_TYPE )
         {
-            var context = declaration();
+            IContext < HeteroAstNode > context = declaration();
 
             if ( context.Failed )
+            {
                 return Context < ModuleNode >.AsFailed( context.Exception );
+            }
         }
 
         return new Context < ModuleNode >( null );
+    }
+
+    private IContext < ExpressionNode > _shift()
+    {
+        if ( Speculating )
+        {
+            IContext < ExpressionNode > context = additive();
+
+            if ( context.Failed )
+            {
+                return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
+
+            while ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
+            {
+                consume();
+                context = additive();
+
+                if ( context.Failed )
+                {
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+            }
+        }
+        else
+        {
+            BinaryOperationNode firstOperationNode = new BinaryOperationNode();
+            IContext < ExpressionNode > context = additive();
+
+            if ( context.Failed )
+            {
+                return Context < ExpressionNode >.AsFailed( context.Exception );
+            }
+
+            firstOperationNode.LeftOperand = context.Result;
+            BinaryOperationNode currentOperationNode = firstOperationNode;
+
+            while ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
+            {
+                if ( LA( 1 ) == BiteLexer.ShiftLeftOperator )
+                {
+                    currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.ShiftLeft;
+                }
+                else
+                {
+                    currentOperationNode.Operator = BinaryOperationNode.BinaryOperatorType.ShiftRight;
+                }
+
+                consume();
+
+                context = additive();
+
+                if ( context.Failed )
+                {
+                    return Context < ExpressionNode >.AsFailed( context.Exception );
+                }
+
+                ExpressionNode expressionNode = context.Result;
+                currentOperationNode.RightOperand = expressionNode;
+
+                if ( LA( 1 ) == BiteLexer.ShiftLeftOperator || LA( 1 ) == BiteLexer.ShiftRightOperator )
+                {
+                    BinaryOperationNode binaryOperationNode = new BinaryOperationNode();
+                    binaryOperationNode.LeftOperand = currentOperationNode;
+                    currentOperationNode = binaryOperationNode;
+                }
+                else
+                {
+                    firstOperationNode = currentOperationNode;
+                }
+            }
+
+            if ( firstOperationNode.RightOperand != null )
+            {
+                return new Context < ExpressionNode >( firstOperationNode );
+            }
+
+            return new Context < ExpressionNode >( firstOperationNode.LeftOperand );
+        }
+
+        return new Context < ExpressionNode >( null );
     }
 
     #endregion

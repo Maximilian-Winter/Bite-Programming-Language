@@ -1,9 +1,9 @@
 namespace Bite.Ast
 {
 
-    public interface IAstVisitor
-    {
-        object Visit(HeteroAstNode heteroAstNode);
-    }
+public interface IAstVisitor
+{
+    object Visit( HeteroAstNode heteroAstNode );
+}
 
 }

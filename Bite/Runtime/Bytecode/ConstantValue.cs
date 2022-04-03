@@ -5,60 +5,68 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime.Bytecode
 {
 
-    [StructLayout(LayoutKind.Explicit)]
-    public struct ConstantValue
+[StructLayout( LayoutKind.Explicit )]
+public struct ConstantValue
+{
+    [FieldOffset( 0 )]
+    public ConstantValueType ConstantType;
+
+    [FieldOffset( 1 )]
+    public bool BoolConstantValue;
+
+    [FieldOffset( 1 )]
+    public int IntegerConstantValue;
+
+    [FieldOffset( 1 )]
+    public double DoubleConstantValue;
+
+    [FieldOffset( 16 )]
+    public string StringConstantValue;
+
+    public ConstantValue( int value ) : this()
     {
-        [FieldOffset(0)] public ConstantValueType ConstantType;
-        [FieldOffset(1)] public bool BoolConstantValue;
-        [FieldOffset(1)] public int IntegerConstantValue;
-        [FieldOffset(1)] public double DoubleConstantValue;
-        [FieldOffset(16)] public string StringConstantValue;
+        IntegerConstantValue = value;
+        ConstantType = ConstantValueType.Integer;
+    }
 
-        public ConstantValue(int value) : this()
+    public ConstantValue( double value ) : this()
+    {
+        DoubleConstantValue = value;
+        ConstantType = ConstantValueType.Double;
+    }
+
+    public ConstantValue( string value ) : this()
+    {
+        StringConstantValue = value;
+        ConstantType = ConstantValueType.String;
+    }
+
+    public ConstantValue( bool value ) : this()
+    {
+        BoolConstantValue = value;
+        ConstantType = ConstantValueType.Bool;
+    }
+
+    public override string ToString()
+    {
+        switch ( ConstantType )
         {
-            IntegerConstantValue = value;
-            ConstantType = ConstantValueType.Integer;
-        }
+            case ConstantValueType.Integer:
+                return $"{ConstantType.ToString()}: {IntegerConstantValue.ToString()}";
 
-        public ConstantValue(double value) : this()
-        {
-            DoubleConstantValue = value;
-            ConstantType = ConstantValueType.Double;
-        }
+            case ConstantValueType.Double:
+                return $"{ConstantType.ToString()}: {DoubleConstantValue.ToString()}";
 
-        public ConstantValue(string value) : this()
-        {
-            StringConstantValue = value;
-            ConstantType = ConstantValueType.String;
-        }
+            case ConstantValueType.String:
+                return $"{ConstantType.ToString()}: {StringConstantValue}";
 
-        public ConstantValue(bool value) : this()
-        {
-            BoolConstantValue = value;
-            ConstantType = ConstantValueType.Bool;
-        }
+            case ConstantValueType.Bool:
+                return $"{ConstantType.ToString()}: {BoolConstantValue.ToString()}";
 
-        public override string ToString()
-        {
-            switch (ConstantType)
-            {
-                case ConstantValueType.Integer:
-                    return $"{ConstantType.ToString()}: {IntegerConstantValue.ToString()}";
-
-                case ConstantValueType.Double:
-                    return $"{ConstantType.ToString()}: {DoubleConstantValue.ToString()}";
-
-                case ConstantValueType.String:
-                    return $"{ConstantType.ToString()}: {StringConstantValue}";
-
-                case ConstantValueType.Bool:
-                    return $"{ConstantType.ToString()}: {BoolConstantValue.ToString()}";
-
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
+}
 
 }

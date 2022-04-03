@@ -1,15 +1,15 @@
 ﻿namespace Bite.SymbolTable
 {
 
-    public class ParameterSymbol : DynamicVariable
+public class ParameterSymbol : DynamicVariable
+{
+    #region Public
+
+    public ParameterSymbol( string name ) : base( name, AccesModifierType.None, ClassAndMemberModifiers.None )
     {
-        #region Public
-
-        public ParameterSymbol(string name) : base(name, AccesModifierType.None, ClassAndMemberModifiers.None)
-        {
-        }
-
-        #endregion
     }
+
+    #endregion
+}
 
 }
