@@ -21,6 +21,10 @@ else if( b == "bar")
 {
    c = 42;
 }
+else
+{
+    c = 512;
+}
 
 Print(c);
 
