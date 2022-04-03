@@ -1066,7 +1066,8 @@ namespace Bite.Runtime.CodeGen
                 {
                     Compile(nodeIfStatementEntry.ElseBlock);
 
-                    for ( int i = 0; i < endJumpStack.Count; i++ )
+                    int endJumpCount = endJumpStack.Count;
+                    for ( int i = 0; i < endJumpCount; i++ )
                     {
                         int endJump = endJumpStack.Pop();
                         m_BiteProgram.CurrentChunk.Code[endJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
@@ -1084,7 +1085,9 @@ namespace Bite.Runtime.CodeGen
                     //m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
                 }
             }
-            for ( int i = 0; i < endJumpStack.Count; i++ )
+
+            int endJumpStackCount = endJumpStack.Count;
+            for ( int i = 0; i < endJumpStackCount; i++ )
             {
                 int endJump = endJumpStack.Pop();
                 m_BiteProgram.CurrentChunk.Code[endJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);

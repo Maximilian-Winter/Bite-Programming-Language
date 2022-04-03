@@ -21,7 +21,7 @@ else if( b == "bar1")
 {
    c = 4;
 }
-else if( b == "bar2")
+else if( b == "bar")
 {
    c = 8;
 }
@@ -29,7 +29,7 @@ else if( b == "bar5")
 {
    c = 16;
 }
-else if( b == "bar3")
+else if( b == "bar")
 {
    c = 32;
 }
@@ -37,14 +37,23 @@ else if( b == "bar4")
 {
    c = 64;
 }
-else
-{
-    c = 128;
-}
 
 Print(c);
 
 /*
+
+// C# Foreign Library Type Import System Example
+var CSharpInterfaceObject = new CSharpInterface();
+CSharpInterfaceObject.Type = "TestApp.TestClassCSharp, TestApp";
+
+CSharpInterfaceObject.ConstructorArguments[0] = 42;
+CSharpInterfaceObject.ConstructorArgumentsTypes[0] = "System.Int32";
+
+
+var TestCSharp = CSharpInterfaceCall(CSharpInterfaceObject);
+
+
+
 // Value Type Class Wraper Example
 class TestClass
 {
