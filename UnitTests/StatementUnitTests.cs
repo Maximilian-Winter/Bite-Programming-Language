@@ -448,6 +448,26 @@ namespace UnitTests
         }
 
         [Fact]
+        public void PostFixReturnFromFunction()
+        {
+            // While this code probably doesn't make sense, 
+            // i.e. you never return a postix, it is still valid code
+            var result = ExecStatements("function fn(a) { return a++; } fn(1);");
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(1, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void PostFixReturn()
+        {
+            // While this code probably doesn't make sense, 
+            // i.e. you never return a postix, it is still valid code
+            var result = ExecStatements("var a = 1; a++;");
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(1, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
         public void PostFixAssignment()
         {
             var statements = @"var a = 1;
@@ -469,6 +489,89 @@ namespace UnitTests
             var result = ExecStatements(statements);
             Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
             Assert.Equal(3, result.ReturnValue.NumberData);
+        }
+
+
+        [Fact]
+        public void PostFixMultiple()
+        {
+            var statements = @"var a = 1;
+            a++;
+            a++;
+            a++;
+            a++;
+            a;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(5, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void PostFixArgumentMultiple()
+        {
+            var statements = @"
+            function foo(a){
+              // nop
+            }
+            var a = 1;
+            foo(a++);
+            foo(a++);
+            foo(a++);
+            foo(a++);
+            a;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(5, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void MultiArgumentPostFix()
+        {
+            var statements = @"
+            function foo(a, b){
+              return a + b;
+            }
+            var a = 1;
+            var b = 2;
+            foo(a++, b++);";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(3, result.ReturnValue.NumberData);
+        }
+        
+        [Fact]
+        public void AfterMultiPostFix()
+        {
+            var statements = @"
+            var a = 1;
+            var b = 2;
+            a++; 
+            b++;
+            a + b;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(5, result.ReturnValue.NumberData);
+        }
+
+        [Fact]
+        public void AfterMultiArgumentPostFix()
+        {
+            var statements = @"
+            function foo(a, b){
+              return a + b;
+            }
+            var a = 1;
+            var b = 2;
+            foo(a++, b++);
+            a + b;";
+
+            var result = ExecStatements(statements);
+            Assert.Equal(BiteVmInterpretResult.InterpretOk, result.InterpretResult);
+            Assert.Equal(5, result.ReturnValue.NumberData);
         }
 
         #endregion

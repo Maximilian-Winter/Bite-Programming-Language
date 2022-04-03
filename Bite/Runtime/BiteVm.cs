@@ -1915,10 +1915,11 @@ namespace Bite.Runtime
 
                         case BiteVmOpCodes.OpPostfixDecrement:
                             {
-                                var currentStack = m_VmStack.Peek();
+                                var currentStack = m_VmStack.Pop();
 
                                 if (currentStack.DynamicType < DynamicVariableType.True)
                                 {
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(currentStack.NumberData));
                                     currentStack.NumberData -= 1;
                                 }
                                 else
@@ -1931,10 +1932,11 @@ namespace Bite.Runtime
 
                         case BiteVmOpCodes.OpPostfixIncrement:
                             {
-                                var currentStack = m_VmStack.Peek();
+                                var currentStack = m_VmStack.Pop();
 
                                 if (currentStack.DynamicType < DynamicVariableType.True)
                                 {
+                                    m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(currentStack.NumberData));
                                     currentStack.NumberData += 1;
                                 }
                                 else
