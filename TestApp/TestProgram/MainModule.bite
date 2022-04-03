@@ -3,28 +3,19 @@ module MainModule;
 import System;
 using System;
 
-// Inheritance Example
-class Foo
-{
-    var x = 2;
-    var y = 4;
-    var z = 8;
+import CSharpSystem;
+using CSharpSystem;
 
-    function FooFunc()
-    {
-        return x * y * z;
-    }
-}
+var a = 1 * 2 + 3 * 4;
+var b = 2 * 5 - 4 / 2 + 6;
+var c = 2 * 5 - (4 / 2 + 6);
+var d = 2 * 5 - 4 / (2 + 6);
 
-class Bar : Foo
-{
-}
+Console.WriteLine(a);
+Console.WriteLine(b);
+Console.WriteLine(c);
+Console.WriteLine(d);
 
-var a = new Bar();
-Print(a.x);
-Print(a.y);
-Print(a.z);
-Print(a.FooFunc());
 
 
 

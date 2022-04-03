@@ -42,11 +42,11 @@ namespace TestApp
             }
             
             
-            var program = parser.ParseModules("MainModule", files.Select<string, Func<string>>(f =>
+            /*var program = parser.ParseModules("MainModule", files.Select<string, Func<string>>(f =>
             {
                 
                 return () => File.ReadAllText(f);
-            }));
+            }));*/
 
            //var program = parser.ParseModules("MainModule", files.Select(File.ReadAllText));
             
