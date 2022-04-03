@@ -975,6 +975,47 @@ namespace Bite.Runtime
                                             }
                                             
                                         }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (float)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(string) )
+                                                {
+                                                    propertyInfo.SetValue( obj, m_VmStack.Pop().StringData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(bool) )
+                                                {
+                                                    if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
+                                                    {
+                                                        propertyInfo.SetValue( obj, true );
+                                                    }
+                                                    if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
+                                                    {
+                                                        propertyInfo.SetValue( obj, false );
+                                                    }
+                                                    
+                                                }
+                                                else
+                                                {
+                                                    propertyInfo.SetValue( obj, m_VmStack.Pop().ObjectData );
+                                                }
+                                                
+                                            }
+                                        }
                                     }
                                    
                                     m_SetMemberWithString = false;
@@ -1070,6 +1111,27 @@ namespace Bite.Runtime
                                             else if ( field.FieldType == typeof(int) )
                                             {
                                                 field.SetValue( obj, (int)field.GetValue( obj ) / (int)m_VmStack.Pop().NumberData );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (double)propertyInfo.GetValue( obj ) / m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (float)propertyInfo.GetValue( obj ) / (float)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) / (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
                                             }
                                         }
                                     }
@@ -1179,6 +1241,27 @@ namespace Bite.Runtime
                                                 field.SetValue( obj, (int)field.GetValue( obj ) * (int)m_VmStack.Pop().NumberData );
                                             }
                                         }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (double)propertyInfo.GetValue( obj ) * m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (float)propertyInfo.GetValue( obj )* (float)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) * (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                        }
                                     }
                                    
                                     m_SetMemberWithString = false;
@@ -1283,6 +1366,27 @@ namespace Bite.Runtime
                                             else if ( field.FieldType == typeof(int) )
                                             {
                                                 field.SetValue( obj, (int)field.GetValue( obj ) + (int)m_VmStack.Pop().NumberData );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (double)propertyInfo.GetValue( obj ) + m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (float)propertyInfo.GetValue( obj )+ (float)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) + (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
                                             }
                                         }
                                     }
@@ -1392,6 +1496,29 @@ namespace Bite.Runtime
                                                 field.SetValue( obj, (int)field.GetValue( obj ) - (int)m_VmStack.Pop().NumberData );
                                             }
                                         }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (double)propertyInfo.GetValue( obj ) - m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (float)propertyInfo.GetValue( obj ) - (float)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) - (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
+                                        }
+                                        
                                     }
                                    
                                     m_SetMemberWithString = false;
@@ -1497,6 +1624,28 @@ namespace Bite.Runtime
                                             {
                                                 field.SetValue( obj, (int)field.GetValue( obj ) % (int)m_VmStack.Pop().NumberData );
                                             }
+                                        }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (double)propertyInfo.GetValue( obj ) % m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (float)propertyInfo.GetValue( obj ) % (float)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) % (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
                                         }
                                     }
                                    
@@ -1604,6 +1753,28 @@ namespace Bite.Runtime
                                                 field.SetValue( obj, (int)field.GetValue( obj ) & (int)m_VmStack.Pop().NumberData );
                                             }
                                         }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) & (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj )& (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) & (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
+                                        }
                                     }
                                    
                                     m_SetMemberWithString = false;
@@ -1709,6 +1880,29 @@ namespace Bite.Runtime
                                             {
                                                 field.SetValue( obj, (int)field.GetValue( obj ) | (int)m_VmStack.Pop().NumberData );
                                             }
+                                            
+                                        }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) | (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj )| (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) | (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
                                         }
                                     }
                                    
@@ -1816,6 +2010,28 @@ namespace Bite.Runtime
                                                 field.SetValue( obj, (int)field.GetValue( obj ) ^ (int)m_VmStack.Pop().NumberData );
                                             }
                                         }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) ^ (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj )^ (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) ^ (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
+                                        }
                                     }
                                    
                                     m_SetMemberWithString = false;
@@ -1922,6 +2138,28 @@ namespace Bite.Runtime
                                                 field.SetValue( obj, (int)field.GetValue( obj ) << (int)m_VmStack.Pop().NumberData );
                                             }
                                         }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) << (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj )<< (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) << (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
+                                        }
                                     }
                                    
                                     m_SetMemberWithString = false;
@@ -2027,6 +2265,28 @@ namespace Bite.Runtime
                                             {
                                                 field.SetValue( obj, (int)field.GetValue( obj ) >> (int)m_VmStack.Pop().NumberData );
                                             }
+                                        }
+                                        else
+                                        {
+                                            PropertyInfo propertyInfo =
+                                                obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                            if ( propertyInfo != null )
+                                            {
+                                                if ( propertyInfo.PropertyType == typeof(Double) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) >> (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(Single) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj )>> (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( propertyInfo.PropertyType == typeof(int) )
+                                                {
+                                                    propertyInfo.SetValue( obj, (int)propertyInfo.GetValue( obj ) >> (int)m_VmStack.Pop().NumberData );
+                                                }
+                                                
+                                            }
+                                            
                                         }
                                     }
                                    

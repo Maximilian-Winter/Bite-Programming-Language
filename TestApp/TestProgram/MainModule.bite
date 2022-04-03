@@ -41,21 +41,23 @@ Print(FindPrimeNumber(16));
 Print(FindPrimeNumber(32));
 Print(FindPrimeNumber(64));
 
+
 /*
-
 // C# Foreign Library Type Import System Example
-var CSharpInterfaceObject = new CSharpInterface();
-CSharpInterfaceObject.Type = "TestApp.TestClassCSharp, TestApp";
+var testClassInterface = new CSharpInterface();
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
 
-CSharpInterfaceObject.ConstructorArguments[0] = 42;
-CSharpInterfaceObject.ConstructorArgumentsTypes[0] = "System.Int32";
+testClassInterface.ConstructorArguments[0] = 42;
+testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
 
 
-var TestCSharp = CSharpInterfaceCall(CSharpInterfaceObject);
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
 TestCSharp.PrintVar();
+Print(TestCSharp.testfield.i);
 TestCSharp.testfield.i = 42;
 Print(TestCSharp.testfield.i);
+
 */
 
 
