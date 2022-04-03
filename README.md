@@ -20,6 +20,8 @@ ToDo:
 * Finish implementation of private and public access modifiers
 * Finish implementation of static and abstract modifiers
 * More Testing
+* Better Error Messages for Users
+* Switch back to antlr based parser 
 
 # Modules
 Bite modules encapsulate code, classes and functions similar to namespaces in C#. You can import one module into another to access its declarations.
