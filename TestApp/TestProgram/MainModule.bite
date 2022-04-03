@@ -7,41 +7,23 @@ import CSharpSystem;
 using CSharpSystem;
 
 
-// Prime Number Example
-function FindPrimeNumber(n)
+var a = "foo";
+
+var b = "bar";
+
+var c = 0;
+
+if( a == "test")
 {
-    var count=0;
-    var a = 2;
-    while(count<n)
-    {
-        var b = 2;
-        var prime = 1;
-        while(b * b <= a )
-        {
-            if(a % b == 0)
-            {
-                prime = 0;
-                break;
-            }
-            b++;
-        }
-        if(prime > 0)
-        {
-            count++;
-        }
-        a++;
-    }
-    return (--a);
+    c = 48;
+}
+else if( b == "bar")
+{
+   c = 42;
 }
 
-Print(FindPrimeNumber(2));
-Print(FindPrimeNumber(4));
-Print(FindPrimeNumber(8));
-Print(FindPrimeNumber(16));
-Print(FindPrimeNumber(32));
-Print(FindPrimeNumber(64));
-Print(FindPrimeNumber(128));
-Print(FindPrimeNumber(256));
+Print(c);
+
 /*
 // Value Type Class Wraper Example
 class TestClass

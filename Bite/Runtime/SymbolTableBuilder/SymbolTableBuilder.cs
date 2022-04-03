@@ -920,6 +920,11 @@ namespace Bite.Runtime.SymbolTable
 
             foreach (IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries)
             {
+                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
+                {
+                    Resolve( nodeIfStatementEntry.ExpressionElseIf );
+                }
+               
                 Resolve(nodeIfStatementEntry.ElseBlock);
             }
 

@@ -2133,6 +2133,36 @@ namespace Bite.Runtime
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData == valueRhs.NumberData));
                                 }
+                                else if (valueLhs.DynamicType == DynamicVariableType.True &&
+                                        valueRhs.DynamicType == DynamicVariableType.True)
+                                {
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable(true));
+                                }
+                                else if (valueLhs.DynamicType == DynamicVariableType.False &&
+                                         valueRhs.DynamicType == DynamicVariableType.False)
+                                {
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable(true));
+                                }
+                                else if (valueLhs.DynamicType == DynamicVariableType.String &&
+                                         valueRhs.DynamicType == DynamicVariableType.String)
+                                {
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable(valueLhs.StringData == valueRhs.StringData));
+                                }
+                                else if (valueLhs.DynamicType == DynamicVariableType.False &&
+                                         valueRhs.DynamicType == DynamicVariableType.True)
+                                {
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable(false));
+                                }
+                                else if (valueLhs.DynamicType == DynamicVariableType.True &&
+                                         valueRhs.DynamicType == DynamicVariableType.False)
+                                {
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable(false));
+                                }
                                 else
                                 {
                                     throw new Exception("Can only check equality with Integers and Floating Point Numbers!");

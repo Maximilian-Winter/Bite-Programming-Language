@@ -5,10 +5,6 @@ namespace Bite.Ast
 
     public class IfStatementNode : StatementNode
     {
-
-
-
-
         public ExpressionNode Expression;
         public BlockStatementNode ThenBlock;
         public List<IfStatementEntry> IfStatementEntries;
