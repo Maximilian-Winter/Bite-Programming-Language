@@ -15,15 +15,31 @@ var c = 0;
 
 if( a == "test")
 {
-    c = 48;
+    c = 2;
 }
-else if( b == "bar")
+else if( b == "bar1")
 {
-   c = 42;
+   c = 4;
+}
+else if( b == "bar2")
+{
+   c = 8;
+}
+else if( b == "bar5")
+{
+   c = 16;
+}
+else if( b == "bar3")
+{
+   c = 32;
+}
+else if( b == "bar4")
+{
+   c = 64;
 }
 else
 {
-    c = 512;
+    c = 128;
 }
 
 Print(c);
