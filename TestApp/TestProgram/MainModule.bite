@@ -53,8 +53,13 @@ CSharpInterfaceObject.ConstructorArgumentsTypes[0] = "System.Int32";
 
 var TestCSharp = CSharpInterfaceCall(CSharpInterfaceObject);
 
+TestCSharp.PrintVar();
+TestCSharp.testfield.i = 42;
+Print(TestCSharp.testfield.i);
+*/
 
 
+/*
 // Value Type Class Wraper Example
 class TestClass
 {
