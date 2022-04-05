@@ -1708,7 +1708,7 @@ public partial class BiteModuleParser
                     return Context < ForStatementNode >.AsFailed( context.Exception );
                 }
 
-                forStatementNode.ExpressionStatement = context.Result;
+                forStatementNode.Condition = context.Result;
             }
             else
             {
@@ -1735,7 +1735,7 @@ public partial class BiteModuleParser
                     return Context < ForStatementNode >.AsFailed( context.Exception );
                 }
 
-                forStatementNode.Expression1 = context.Result;
+                forStatementNode.Condition = context.Result;
 
                 if ( !match( BiteLexer.SemicolonSeperator, out matchContext ) )
                 {
@@ -1767,7 +1767,7 @@ public partial class BiteModuleParser
                     return Context < ForStatementNode >.AsFailed( context.Exception );
                 }
 
-                forStatementNode.Expression2 = context.Result;
+                forStatementNode.Iterator = context.Result;
             }
 
             IContext < BlockStatementNode > contextBlock = block();
@@ -2217,7 +2217,7 @@ public partial class BiteModuleParser
                 return Context < IfStatementNode >.AsFailed( context.Exception );
             }
 
-            ifStatement.ThenBlock = contextBlock.Result;
+            ifStatement.ThenStatement = contextBlock.Result;
 
             ifStatement.IfStatementEntries = new List < IfStatementEntry >();
 

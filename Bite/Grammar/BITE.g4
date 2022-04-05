@@ -104,8 +104,8 @@ declaration
     ;                            
                                                        
 classDeclaration : 
-    ( privateModifier | publicModifier )? (staticModifier|abstractModifier)? 
-    DeclareClass Identifier (ColonOperator inheritance)? (block|SemicolonSeperator)
+    ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
+    DeclareClass Identifier (ColonOperator inheritance)? ( block | SemicolonSeperator )
     ;
 
 structDeclaration : 
@@ -114,19 +114,19 @@ structDeclaration :
     ; 
 
 functionDeclaration :
-    ( privateModifier | publicModifier )? (staticModifier|abstractModifier)? 
-    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket (block|SemicolonSeperator)
+    ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
+    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeperator )
     ;
 
 classInstanceDeclaration : 
-    ( privateModifier | publicModifier )? (staticModifier)? 
-    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier(DotOperator Identifier)* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
-    | Identifier AssignOperator DeclareClassInstance Identifier(DotOperator Identifier)* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
+    ( privateModifier | publicModifier )? ( staticModifier )? 
+    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
+    | Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
     ;
 
 variableDeclaration 
-    : ( privateModifier | publicModifier )? (staticModifier)? 
-    DeclareVariable Identifier (( AssignOperator exprStatement )? | SemicolonSeperator )
+    : ( privateModifier | publicModifier )? ( staticModifier )? 
+    DeclareVariable Identifier ( ( AssignOperator exprStatement )? | SemicolonSeperator )
     ;
    
 statements 
@@ -149,7 +149,7 @@ exprStatement
     ;
 
 localVarDeclaration 
-    : Identifier (( AssignOperator expression )? ) 
+    : Identifier ( ( AssignOperator expression )? ) 
     ;
 
 localVarInitializer 
@@ -258,7 +258,7 @@ multiplicative
 unary          
     : ( LogicalNegationOperator | MinusOperator| PlusOperator | PlusPlusOperator | MinusMinusOperator | ComplimentOperator ) unary 
     | call 
-    | unary ( PlusPlusOperator|MinusMinusOperator )
+    | unary ( PlusPlusOperator | MinusMinusOperator )
     ;
 
 call           

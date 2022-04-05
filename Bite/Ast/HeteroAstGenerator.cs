@@ -961,6 +961,33 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         return expressionStatementNode;
     }
 
+    public override HeteroAstNode VisitLocalVarDeclaration( BITEParser.LocalVarDeclarationContext context )
+    {
+        LocalVariableDeclarationNode variableDeclarationNode = new LocalVariableDeclarationNode();
+        variableDeclarationNode.VarId = new Identifier( context.Identifier().Symbol.Text );
+        variableDeclarationNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
+        variableDeclarationNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
+
+        variableDeclarationNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
+        variableDeclarationNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
+        if ( context.expression() != null )
+        {
+            variableDeclarationNode.Expression = ( ExpressionNode ) VisitExpression( context.expression() );
+        }
+
+        Token accessToken = new Token();
+        Token abstractStaticMod = new Token();
+
+        accessToken.text = "private";
+        accessToken.type = BiteLexer.DeclarePrivate;
+
+        ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
+        variableDeclarationNode.Modifiers = Modifiers;
+
+        return variableDeclarationNode;
+    }
+
     public override HeteroAstNode VisitLocalVarInitializer( BITEParser.LocalVarInitializerContext context )
     {
         LocalVariableInitializerNode localVariableInitializerNode = new LocalVariableInitializerNode();
@@ -1654,6 +1681,26 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         return VisitAdditive( context.additive( 0 ) );
     }
 
+    /// <summary>
+    /// This is primarily for unit testing
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public override HeteroAstNode VisitStatements( BITEParser.StatementsContext context )
+    {
+        DeclarationsNode declarations = new DeclarationsNode()
+        {
+            Statements = new List < StatementNode >()
+        };
+
+        foreach ( var declaration in context.declaration() )
+        {
+            declarations.Statements.Add( ( StatementNode ) VisitDeclaration( declaration ) );
+        }
+
+        return declarations;
+    }
+
     public override HeteroAstNode VisitStatement( BITEParser.StatementContext context )
     {
         if ( context.exprStatement() != null )
@@ -1812,6 +1859,11 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                     unaryOperationNode.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus;
                 }
 
+                if ( context.ComplimentOperator() != null )
+                {
+                    unaryOperationNode.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment;
+                }
+                
                 return unaryOperationNode;
             }
         }

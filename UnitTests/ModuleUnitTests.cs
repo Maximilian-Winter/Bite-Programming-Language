@@ -1,3 +1,5 @@
+#define USE_NEW_PARSER
+
 using System.Collections.Generic;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
@@ -10,7 +12,11 @@ public class ModuleUnitTests
 {
     private BiteResult ExecModules( string mainModule, IEnumerable < string > modules )
     {
-        Compiler compiler = new Compiler( true );
+#if USE_NEW_PARSER
+        var compiler = new BITECompiler();
+#else
+        var compiler = new Compiler( true );
+#endif
         BiteProgram program = compiler.Compile( mainModule, modules );
 
         return program.Run();
