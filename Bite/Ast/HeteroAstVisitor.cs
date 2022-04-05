@@ -1,7 +1,7 @@
 namespace Bite.Ast
 {
 
-public abstract class HeteroAstVisitor < T >
+public abstract class HeteroAstVisitor<T>
 {
     #region Public
 
@@ -20,6 +20,10 @@ public abstract class HeteroAstVisitor < T >
     public abstract T Visit( ClassDeclarationNode node );
 
     public abstract T Visit( FunctionDeclarationNode node );
+
+    public abstract T Visit( LocalVariableInitializerNode node );
+
+    public abstract T Visit( LocalVariableDeclarationNode node );
 
     public abstract T Visit( VariableDeclarationNode node );
 

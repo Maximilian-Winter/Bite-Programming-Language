@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITE.g4 by ANTLR 4.9.2
+// Generated from BITE.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -99,6 +99,12 @@ public interface IBITEVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitVariableDeclaration([NotNull] BITEParser.VariableDeclarationContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.statements"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStatements([NotNull] BITEParser.StatementsContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.statement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -110,6 +116,30 @@ public interface IBITEVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitExprStatement([NotNull] BITEParser.ExprStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.localVarDeclaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLocalVarDeclaration([NotNull] BITEParser.LocalVarDeclarationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.localVarInitializer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLocalVarInitializer([NotNull] BITEParser.LocalVarInitializerContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.forInitializer"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitForInitializer([NotNull] BITEParser.ForInitializerContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.forIterator"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitForIterator([NotNull] BITEParser.ForIteratorContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.forStatement"/>.
 	/// </summary>

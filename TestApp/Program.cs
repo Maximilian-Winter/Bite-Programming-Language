@@ -3,14 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Antlr4.Runtime;
-using AntlrBiteParser;
-using Bite.Ast;
-using Bite.Parser;
 using Bite.Runtime;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
-using MemoizeSharp;
 
 namespace TestApp
 {
@@ -21,41 +16,15 @@ public class Program
 
     public static void Main( string[] args )
     {
-        BiteParser parser = new BiteParser();
 
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
             "*.bite",
             SearchOption.AllDirectories );
 
-        ProgramNode programNode = new ProgramNode( "MainModule" );
-        HeteroAstGenerator gen = new HeteroAstGenerator();
+        BITECompiler compiler = new BITECompiler();
 
-        foreach ( string file in files )
-        {
-            AntlrInputStream input = new AntlrInputStream( File.OpenRead( file ) );
-
-            BITELexer lexer = new BITELexer( input );
-            CommonTokenStream tokens = new CommonTokenStream( lexer );
-            BITEParser biteParser = new BITEParser( tokens );
-            BITEParser.ModuleContext tree = biteParser.program().module( 0 );
-
-            programNode.AddModule( ( ModuleNode ) gen.VisitModule( tree ) );
-        }
-
-        /*var program = parser.ParseModules("MainModule", files.Select<string, Func<string>>(f =>
-        {
-            
-            return () => File.ReadAllText(f);
-        }));*/
-
-        //var program = parser.ParseModules("MainModule", files.Select(File.ReadAllText));
-
-        CodeGenerator generator = new CodeGenerator();
-
-        BiteProgram context = generator.CompileProgram( programNode );
-
-        BiteVm biteVm = new BiteVm();
+        BiteProgram program = compiler.Compile( "MainModule", files.Select(File.ReadAllText));
 
         int k = 1;
         long elapsedMillisecondsAccu = 0;
@@ -64,7 +33,7 @@ public class Program
         {
             Stopwatch stopwatch2 = new Stopwatch();
             stopwatch2.Start();
-            biteVm.Interpret( context );
+            program.Run();
             stopwatch2.Stop();
             Console.WriteLine( "--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds );
             elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;

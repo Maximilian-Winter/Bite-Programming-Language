@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using AntlrBiteParser;
 using Bite.Ast;
 using Bite.Parser;
 using Bite.Runtime;
@@ -19,18 +20,14 @@ public class Program
     {
         TestCodeModules();
 
-        //TestExpression();
-
-        //TestStatements();
-
-        //PerfTests();
+        PerfTests();
 
         Console.ReadLine();
     }
 
     public static void PerfTests()
     {
-        BiteParser parser = new();
+        BITECompiler compiler = new();
 
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
@@ -39,15 +36,9 @@ public class Program
 
         Stopwatch stopwatch = new();
         stopwatch.Start();
-        ProgramNode program = parser.ParseModules( "MainModule", files.Select( File.ReadAllText ) );
+        BiteProgram program = compiler.Compile( "MainModule", files.Select( File.ReadAllText ) );
         stopwatch.Stop();
         Console.WriteLine( $"Parsing completed in {stopwatch.ElapsedMilliseconds}ms" );
-
-        CodeGenerator generator = new();
-
-        BiteProgram context = generator.CompileProgram( program );
-
-        BiteVm biteVm = new();
 
         int k = 5;
         long elapsedMillisecondsAccu = 0;
@@ -56,11 +47,11 @@ public class Program
         {
             Stopwatch stopwatch2 = new();
             stopwatch2.Start();
-            biteVm.Interpret( context );
-
-            Console.WriteLine( biteVm.ReturnValue.ToString() );
-
+            BiteResult result = program.Run();
             stopwatch2.Stop();
+
+            Console.WriteLine(result.ReturnValue.ToString() );
+
             Console.WriteLine( "--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds );
             elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;
         }
@@ -117,48 +108,11 @@ Console.WriteLine(greeting);"
             }
         };
 
-        Compiler compiler = new(true);
+        BITECompiler compiler = new();
 
         BiteProgram program = compiler.Compile( modules );
 
         program.Run();
-    }
-
-    public static void TestExpression()
-    {
-        BiteParser parser = new();
-
-        ExpressionNode expression = parser.ParseExpression( "1 + 1" );
-
-        CodeGenerator generator = new();
-
-        BiteProgram context = generator.CompileExpression( expression );
-
-        BiteVm biteVm = new();
-
-        BiteVmInterpretResult result = biteVm.Interpret( context );
-
-        Console.WriteLine( biteVm.ReturnValue.NumberData );
-    }
-
-    public static void TestExternalObjects()
-    {
-        BiteParser parser = new();
-
-        ExpressionNode expression = parser.ParseExpression( "a + b" );
-
-        CodeGenerator generator = new();
-
-        BiteProgram context = generator.CompileExpression( expression );
-
-        BiteVm biteVm = new();
-
-        biteVm.RegisterGlobalObject( "a", "Hello" );
-        biteVm.RegisterGlobalObject( "b", "World" );
-
-        BiteVmInterpretResult result = biteVm.Interpret( context );
-
-        Console.WriteLine( biteVm.ReturnValue.StringData );
     }
 
     public static void TestProgram()
@@ -168,27 +122,10 @@ Console.WriteLine(greeting);"
             "*.bite",
             SearchOption.AllDirectories );
 
-        Compiler compiler = new(true);
+        BITECompiler compiler = new();
         BiteProgram program = compiler.Compile( "MainModule", files.Select( File.ReadAllText ) );
         BiteResult vm = program.Run();
     }
-
-    public static void TestStatements()
-    {
-        BiteParser parser = new();
-
-        IReadOnlyCollection < StatementNode > statements = parser.ParseStatements( "1 + 1;" );
-
-        CodeGenerator generator = new();
-
-        BiteProgram context = generator.CompileStatements( statements );
-
-        BiteVm biteVm = new();
-
-        BiteVmInterpretResult result = biteVm.Interpret( context );
-
-        Console.WriteLine( biteVm.ReturnValue.NumberData );
-    }
-
+    
     #endregion
 }

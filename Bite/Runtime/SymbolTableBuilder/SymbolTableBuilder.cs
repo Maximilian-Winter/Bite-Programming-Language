@@ -502,6 +502,42 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
+    public override object Visit( LocalVariableInitializerNode node )
+    {
+        foreach ( var variableDeclaration in node.VariableDeclarations )
+        {
+            Resolve( variableDeclaration );
+        }
+
+        return null;
+    }
+
+    public override object Visit( LocalVariableDeclarationNode node )
+    {
+        node.AstScopeNode = CurrentScope;
+
+        if ( node.Expression != null )
+        {
+            Resolve( node.Expression );
+        }
+
+        bool declaredPublicOrPrivate = node.Modifiers.Modifiers != null &&
+                                       node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclarePublic );
+
+        bool isStatic = node.Modifiers.Modifiers != null &&
+                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
+
+        DynamicVariable variableSymbol = new DynamicVariable( node.VarId.Id,
+            declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
+            isStatic ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
+
+        variableSymbol.Type = new BiteClassType( "Object" );
+        variableSymbol.DefinitionNode = node;
+        CurrentScope.define( variableSymbol );
+
+        return null;
+    }
+
     public override object Visit( VariableDeclarationNode node )
     {
         node.AstScopeNode = CurrentScope;
@@ -512,14 +548,12 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         }
 
         bool declaredPublicOrPrivate = node.Modifiers.Modifiers != null &&
-                                       node.Modifiers.Modifiers.Contains(
-                                           ModifiersNode.ModifierTypes.DeclarePublic );
+                                       node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclarePublic );
 
         bool isStatic = node.Modifiers.Modifiers != null &&
                         node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
 
-        DynamicVariable variableSymbol = new DynamicVariable(
-            node.VarId.Id,
+        DynamicVariable variableSymbol = new DynamicVariable( node.VarId.Id,
             declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
             isStatic ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
 
@@ -781,8 +815,14 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
     {
         node.AstScopeNode = CurrentScope;
         Resolve( node.Expression );
-        Resolve( node.ThenBlock );
+        Resolve(node.ThenStatement);
 
+        if (node.ElseStatement != null)
+        {
+            Resolve(node.ElseStatement);
+        }
+
+        // TODO: Remove
         if ( node.IfStatementEntries != null )
         {
             foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
@@ -810,24 +850,51 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         {
             Resolve( node.VariableDeclaration );
         }
-        else
+        else if ( node.ExpressionStatement != null )
         {
-            if ( node.ExpressionStatement != null )
+            Resolve( node.ExpressionStatement );
+        }
+        else if ( node.Initializer != null )
+        {
+            if ( node.Initializer.Expressions != null )
             {
-                Resolve( node.ExpressionStatement );
+                foreach ( var expression in node.Initializer.Expressions )
+                {
+                    Resolve( expression );
+                }
+            }
+            else if ( node.Initializer.LocalVariableInitializer != null )
+            {
+                Resolve( node.Initializer.LocalVariableInitializer );
             }
         }
 
-        if ( node.Expression1 != null )
+        if ( node.Condition != null )
         {
-            Resolve( node.Expression1 );
+            Resolve( node.Condition );
         }
 
-        Resolve( node.Block );
-
-        if ( node.Expression2 != null )
+        if ( node.Iterators != null )
         {
-            Resolve( node.Expression2 );
+            foreach ( var iterator in node.Iterators )
+            {
+                Resolve( iterator );
+            }
+        }
+
+        if ( node.Statement != null )
+        {
+            Resolve( node.Statement );
+        }
+
+        if ( node.Iterator != null )
+        {
+            Resolve( node.Iterator );
+        }
+
+        if ( node.Block != null )
+        {
+            Resolve( node.Block );
         }
 
         popScope();
@@ -946,6 +1013,12 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
             case FunctionDeclarationNode functionDeclarationNode:
                 return Visit( functionDeclarationNode );
+            
+            case LocalVariableDeclarationNode localVar:
+                return Visit(localVar);
+
+            case LocalVariableInitializerNode initializer:
+                return Visit(initializer);
 
             case VariableDeclarationNode variable:
                 return Visit( variable );

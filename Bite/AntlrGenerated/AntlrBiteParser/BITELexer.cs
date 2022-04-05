@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITE.g4 by ANTLR 4.9.2
+// Generated from BITE.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162

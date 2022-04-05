@@ -1,3 +1,5 @@
+#define USE_NEW_PARSER
+
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 using Xunit;
@@ -9,7 +11,11 @@ public class StatementUnitTests
 {
     private BiteResult ExecStatements( string statements )
     {
-        Compiler compiler = new Compiler( true );
+#if USE_NEW_PARSER
+        var compiler = new BITECompiler();
+#else
+        var compiler = new Compiler( true );
+#endif
         BiteProgram program = compiler.CompileStatements( statements );
 
         return program.Run();
@@ -147,6 +153,14 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void ForEverInitLoopBreak()
+    {
+        var result = ExecStatements( "for (var i = 0;;) { i++; if (i == 10) { break; } } i;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
     public void ForLoop()
     {
         BiteResult result = ExecStatements( "var j = 0; for (var i = 0; i < 10; i++) { j++; } j;" );
@@ -170,6 +184,22 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( "var j = 0; for (var i = 10; i > 0; i--) { j++; } j;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void ForLoopScope()
+    {
+        var result = ExecStatements( "var j = 0; for (var i = 0; i < 10; i++) { j++; i++; } j;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void ForMultipleVarAndIterator()
+    {
+        var result = ExecStatements( "var a = 0; for (var i = 0, j = 0; i < 10; i++, j++ ) { a += j + i; } a;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 90, result.ReturnValue.NumberData );
     }
 
     [Fact]
@@ -394,7 +424,7 @@ public class StatementUnitTests
     {
         BiteResult result = ExecStatements( "var a = 7; a--;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( 6, result.ReturnValue.NumberData );
+        Assert.Equal( 7, result.ReturnValue.NumberData );
     }
 
     [Fact]
@@ -422,7 +452,7 @@ public class StatementUnitTests
     {
         BiteResult result = ExecStatements( "var a = 7; a++;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( 8, result.ReturnValue.NumberData );
+        Assert.Equal( 7, result.ReturnValue.NumberData );
     }
 
     [Fact]
