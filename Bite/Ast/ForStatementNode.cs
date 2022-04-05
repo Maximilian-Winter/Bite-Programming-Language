@@ -3,11 +3,16 @@ namespace Bite.Ast
 
 public class ForStatementNode : StatementNode
 {
-    public VariableDeclarationNode VariableDeclaration;
-    public ExpressionNode ExpressionStatement;
-    public ExpressionNode Expression1;
-    public ExpressionNode Expression2;
+    public ForInitializerNode Initializer { get; set; }
+    public ExpressionNode Condition { get; set; }
+    public ExpressionNode[] Iterators { get; set; }
+    public StatementNode Statement { get; set; }
 
+
+    // TODO: Remove
+    public VariableDeclarationNode VariableDeclaration;
+    public ExpressionNode Iterator;
+    public ExpressionStatementNode ExpressionStatement;
     public BlockStatementNode Block;
 
     #region Public

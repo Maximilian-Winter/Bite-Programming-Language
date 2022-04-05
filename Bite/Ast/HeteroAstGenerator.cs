@@ -216,6 +216,12 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 assignmentNode.PrimaryNode = primaryNode;
             }
 
+            if (node is TernaryOperationNode ternaryOperationNode)
+            {
+                assignmentNode.Type = AssignmentTypes.Ternary;
+                assignmentNode.Ternary = ternaryOperationNode;
+            }
+
             return assignmentNode;
         }
 
@@ -955,6 +961,56 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         return expressionStatementNode;
     }
 
+    public override HeteroAstNode VisitLocalVarInitializer( BITEParser.LocalVarInitializerContext context )
+    {
+        LocalVariableInitializerNode localVariableInitializerNode = new LocalVariableInitializerNode();
+
+        var variableDeclarationNodes = new List < LocalVariableDeclarationNode >();
+
+        var localVarDeclarations = context.localVarDeclaration();
+
+        if ( localVarDeclarations != null )
+        {
+            foreach ( var localVarDeclarationContext in context.localVarDeclaration() )
+            {
+                variableDeclarationNodes.Add(
+                    ( LocalVariableDeclarationNode ) VisitLocalVarDeclaration( localVarDeclarationContext ) );
+            }
+        }
+
+        localVariableInitializerNode.VariableDeclarations = variableDeclarationNodes;
+
+        return localVariableInitializerNode;
+    }
+
+    public override HeteroAstNode VisitForInitializer( BITEParser.ForInitializerContext context )
+    {
+        ForInitializerNode forInitializerNode = new ForInitializerNode();
+
+        var expressions = context.expression();
+
+        if ( expressions != null && expressions.Length > 0 )
+        {
+            forInitializerNode.Expressions = new ExpressionNode[expressions.Length];
+            int i = 0;
+
+            foreach ( var expression in expressions )
+            {
+                forInitializerNode.Expressions[i++] = ( ExpressionNode ) VisitExpression( expression );
+            }
+        }
+
+        var localVarInitializer = context.localVarInitializer();
+
+        if ( localVarInitializer != null )
+        {
+            forInitializerNode.LocalVariableInitializer =
+                ( LocalVariableInitializerNode ) VisitLocalVarInitializer( localVarInitializer );
+        }
+
+        return forInitializerNode;
+    }
+
     public override HeteroAstNode VisitForStatement( BITEParser.ForStatementContext context )
     {
         ForStatementNode forStatementNode = new ForStatementNode();
@@ -964,33 +1020,34 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         forStatementNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
         forStatementNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
 
-        int expressionIndex = 0;
+        var initializer = context.forInitializer();
 
-        if ( context.variableDeclaration() != null )
+        if ( initializer != null )
         {
-            forStatementNode.VariableDeclaration =
-                ( VariableDeclarationNode ) VisitVariableDeclaration( context.variableDeclaration( 0 ) );
+            forStatementNode.Initializer = ( ForInitializerNode ) VisitForInitializer( initializer );
         }
 
-        if ( context.expression() != null )
+        if ( context.condition != null )
         {
-            forStatementNode.ExpressionStatement =
-                ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
+            forStatementNode.Condition = ( ExpressionNode ) VisitExpression( context.condition );
         }
 
-        if ( context.expression().Length > 0 )
+        var iterators = context.forIterator();
+
+        if ( iterators != null )
         {
-            forStatementNode.Expression1 =
-                ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
+            var expressions = iterators.expression();
+
+            forStatementNode.Iterators = new ExpressionNode[expressions.Length];
+            var i = 0;
+
+            foreach ( var iterator in expressions )
+            {
+                forStatementNode.Iterators[i++] = ( ExpressionNode ) VisitExpression( iterator );
+            }
         }
 
-        if ( context.expression().Length > 1 )
-        {
-            forStatementNode.Expression2 =
-                ( ExpressionNode ) VisitExpression( context.expression()[++expressionIndex] );
-        }
-
-        forStatementNode.Block = ( BlockStatementNode ) VisitBlock( context.block() );
+        forStatementNode.Statement = ( StatementNode ) VisitStatement( context.statement() );
 
         return forStatementNode;
     }
@@ -1050,117 +1107,21 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
     public override HeteroAstNode VisitIfStatement( BITEParser.IfStatementContext context )
     {
         IfStatementNode ifStatementNode = new IfStatementNode();
-        ifStatementNode.Expression = ( ExpressionNode ) VisitExpression( context.expression( 0 ) );
+        ifStatementNode.Expression = ( ExpressionNode ) VisitExpression( context.expression() );
         ifStatementNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
         ifStatementNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
 
         ifStatementNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
         ifStatementNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
 
-        if ( context.block() != null )
+        if ( context.trueStatement != null )
         {
-            ifStatementNode.ThenBlock = ( BlockStatementNode ) VisitBlock( context.block( 0 ) );
+            ifStatementNode.ThenStatement = ( StatementNode ) VisitStatement( context.trueStatement );
         }
 
-        bool firstElement = true;
-        ifStatementNode.IfStatementEntries = new List < IfStatementEntry >();
-
-        int i = 0;
-        IParseTree contextChildParseTree = context.children[i];
-        i++;
-
-        while ( i < context.children.Count - 1 )
+        if ( context.falseStatement != null )
         {
-            switch ( contextChildParseTree )
-            {
-                case TerminalNodeImpl terminalNodeImpl:
-                {
-                    if ( terminalNodeImpl.Symbol.Text.Equals( "if" ) )
-                    {
-                        if ( context.children[++i] is BITEParser.ExpressionContext expressionContext )
-                        {
-                            ifStatementNode.Expression = ( ExpressionNode ) VisitExpression( expressionContext );
-                        }
-                        else
-                        {
-                            i--;
-                        }
-
-                        ++i;
-
-                        if ( context.children[++i] is BITEParser.BlockContext blockContext )
-                        {
-                            ifStatementNode.ThenBlock = ( BlockStatementNode ) VisitBlock( blockContext );
-                        }
-                        else
-                        {
-                            i--;
-                        }
-                    }
-                    else if ( terminalNodeImpl.Symbol.Text.Equals( "else" ) &&
-                              i < context.children.Count - 2 &&
-                              context.children[++i] is TerminalNodeImpl terminalNode &&
-                              terminalNode.Symbol.Text.Equals( "if" ) )
-                    {
-                        IfStatementEntry ifStatementEntry = new IfStatementEntry();
-                        ifStatementEntry.IfStatementType = IfStatementEntryType.ElseIf;
-
-                        if ( context.children[++i] is BITEParser.ExpressionContext expressionContext )
-                        {
-                            ifStatementEntry.ExpressionElseIf = ( ExpressionNode ) VisitExpression( expressionContext );
-                        }
-                        else
-                        {
-                            i--;
-                        }
-
-                        if ( context.children[++i] is BITEParser.BlockContext blockContext )
-                        {
-                            ifStatementEntry.ElseBlock = ( BlockStatementNode ) VisitBlock( blockContext );
-                        }
-                        else
-                        {
-                            i--;
-                        }
-
-                        ifStatementNode.IfStatementEntries.Add( ifStatementEntry );
-                    }
-                    else
-                    {
-                        if ( terminalNodeImpl.Symbol.Text.Equals( "else" ) )
-                        {
-                            IfStatementEntry ifStatementEntry = new IfStatementEntry();
-                            ifStatementEntry.IfStatementType = IfStatementEntryType.Else;
-
-                            if ( context.children[++i] is BITEParser.BlockContext blockContext )
-                            {
-                                ifStatementEntry.ElseBlock = ( BlockStatementNode ) VisitBlock( blockContext );
-                            }
-                            else
-                            {
-                                i--;
-                            }
-
-                            ifStatementNode.IfStatementEntries.Add( ifStatementEntry );
-                        }
-                        else
-                        {
-                            i++;
-                        }
-                    }
-
-                    break;
-                }
-            }
-
-            if ( i < context.children.Count - 1 )
-            {
-                contextChildParseTree = context.children[++i];
-            }
-            else
-            {
-                contextChildParseTree = context.children[i];
-            }
+            ifStatementNode.ElseStatement = ( StatementNode ) VisitStatement( context.falseStatement );
         }
 
         return ifStatementNode;

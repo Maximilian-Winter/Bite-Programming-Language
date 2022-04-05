@@ -75,87 +75,206 @@ grammar BITE;
 
 program: module*;
 
+module
+    : moduleDeclaration
+    ( importDirective | usingDirective )*
+    declaration*                          
+    EOF
+    ; 
 
-module     :moduleDeclaration
-            (importDirective|usingDirective)*
-            declaration*                          
-            EOF; 
+moduleDeclaration 
+    : DeclareModule Identifier ( DotOperator Identifier )* SemicolonSeperator
+    ;
 
-moduleDeclaration             : DeclareModule Identifier (DotOperator Identifier)* SemicolonSeperator;
-importDirective               : ImportDirective Identifier (DotOperator Identifier)* SemicolonSeperator;
-usingDirective                : UsingDirective Identifier (DotOperator Identifier)* SemicolonSeperator;
+importDirective 
+    : ImportDirective Identifier ( DotOperator Identifier )* SemicolonSeperator
+    ;
 
+usingDirective 
+    : UsingDirective Identifier ( DotOperator Identifier )* SemicolonSeperator
+    ;
 
-declaration     :classDeclaration                  
-                |structDeclaration                  
-                |functionDeclaration                
-                |classInstanceDeclaration           
-                |variableDeclaration                     
-                |statement ;                            
-
-
+declaration 
+    : classDeclaration                  
+    | structDeclaration                  
+    | functionDeclaration                
+    | classInstanceDeclaration           
+    | variableDeclaration                     
+    | statement 
+    ;                            
                                                        
-classDeclaration                : (privateModifier|publicModifier)? (staticModifier|abstractModifier)? DeclareClass Identifier (ColonOperator inheritance)? (block|SemicolonSeperator);
-structDeclaration               : (privateModifier|publicModifier)? DeclareStruct Identifier (block|SemicolonSeperator); 
-functionDeclaration             : (privateModifier|publicModifier)? (staticModifier|abstractModifier)? DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket (block|SemicolonSeperator);
-classInstanceDeclaration        : (privateModifier|publicModifier)? (staticModifier)? DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier(DotOperator Identifier)* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
-                                | Identifier AssignOperator DeclareClassInstance Identifier(DotOperator Identifier)* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator;
-variableDeclaration             : (privateModifier|publicModifier)? (staticModifier)? DeclareVariable Identifier (( AssignOperator exprStatement )? | SemicolonSeperator );
+classDeclaration : 
+    ( privateModifier | publicModifier )? (staticModifier|abstractModifier)? 
+    DeclareClass Identifier (ColonOperator inheritance)? (block|SemicolonSeperator)
+    ;
+
+structDeclaration : 
+    ( privateModifier | publicModifier )? 
+    DeclareStruct Identifier (block|SemicolonSeperator)
+    ; 
+
+functionDeclaration :
+    ( privateModifier | publicModifier )? (staticModifier|abstractModifier)? 
+    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket (block|SemicolonSeperator)
+    ;
+
+classInstanceDeclaration : 
+    ( privateModifier | publicModifier )? (staticModifier)? 
+    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier(DotOperator Identifier)* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
+    | Identifier AssignOperator DeclareClassInstance Identifier(DotOperator Identifier)* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
+    ;
+
+variableDeclaration 
+    : ( privateModifier | publicModifier )? (staticModifier)? 
+    DeclareVariable Identifier (( AssignOperator exprStatement )? | SemicolonSeperator )
+    ;
    
+statements 
+    : declaration ( declaration )*
+    ;
 
-statement   :exprStatement
-            |forStatement
-            |ifStatement
-            |returnStatement
-            |breakStatement
-            |usingStatement
-            |whileStatement
-            |block ;  
+statement 
+    : exprStatement
+    | forStatement
+    | ifStatement
+    | returnStatement
+    | breakStatement
+    | usingStatement
+    | whileStatement
+    | block 
+    ;  
             
-exprStatement       :expression SemicolonSeperator ;
+exprStatement 
+    : expression SemicolonSeperator 
+    ;
 
-forStatement        :DeclareForLoop OpeningRoundBracket (expression | variableDeclaration( CommaSeperator expression| variableDeclaration)*)?  
-                     SemicolonSeperator (expression( CommaSeperator expression)*)?  
-                     SemicolonSeperator (expression( CommaSeperator expression)*)? 
-                     ClosingRoundBracket block ;
+localVarDeclaration 
+    : Identifier (( AssignOperator expression )? ) 
+    ;
+
+localVarInitializer 
+    : DeclareVariable localVarDeclaration ( CommaSeperator localVarDeclaration )*
+    ;
+
+forInitializer 
+    : localVarInitializer 
+    | expression ( CommaSeperator expression )*
+    ;
+
+forIterator
+    : expression ( CommaSeperator expression )* 
+    ;
+
+forStatement
+    : DeclareForLoop OpeningRoundBracket ( forInitializer )?  
+    SemicolonSeperator ( condition = expression )?  
+    SemicolonSeperator ( forIterator )? 
+    ClosingRoundBracket ( statement )?
+    ;
                      
-ifStatement         :ControlFlowIf OpeningRoundBracket expression ClosingRoundBracket block
-                     ( (ControlFlowElse ControlFlowIf expression|ControlFlowElse) block )* ;
+ifStatement         
+    : ControlFlowIf OpeningRoundBracket expression ClosingRoundBracket trueStatement = statement
+    ( ControlFlowElse falseStatement = statement )?
+    ;
                      
-returnStatement     :FunctionReturn expression? SemicolonSeperator ;
-breakStatement      :Break SemicolonSeperator;
-usingStatement      :UsingDirective OpeningRoundBracket expression ClosingRoundBracket block;
-whileStatement      :DeclareWhileLoop OpeningRoundBracket expression ClosingRoundBracket block ;
-block               :OpeningCurlyBracket declaration* ClosingCurlyBracket ;
+returnStatement     
+    : FunctionReturn expression? SemicolonSeperator
+    ;
 
-expression     :assignment;
+breakStatement      
+    : Break SemicolonSeperator
+    ;
 
-assignment     : call (AssignOperator|MinusAssignOperator|PlusAssignOperator| MultiplyAssignOperator
-                        |DivideAssignOperator|ModuloAssignOperator|BitwiseAndAssignOperator|BitwiseOrAssignOperator|BitwiseXorAssignOperator|
-                        BitwiseLeftShiftAssignOperator|BitwiseRightShiftAssignOperator) assignment
-               | ternary;
+usingStatement      
+    : UsingDirective OpeningRoundBracket expression ClosingRoundBracket block
+    ;
+
+whileStatement
+    : DeclareWhileLoop OpeningRoundBracket expression ClosingRoundBracket block 
+    ;
+
+block
+    : OpeningCurlyBracket declaration* ClosingCurlyBracket 
+    ;
+
+
+expression     
+    : assignment;
+
+assignment     
+    : call ( AssignOperator | MinusAssignOperator 
+        | PlusAssignOperator | MultiplyAssignOperator
+        | DivideAssignOperator | ModuloAssignOperator 
+        | BitwiseAndAssignOperator | BitwiseOrAssignOperator
+        | BitwiseXorAssignOperator | BitwiseLeftShiftAssignOperator 
+        | BitwiseRightShiftAssignOperator ) assignment
+    | ternary
+    ;
   
-ternary	       : logicOr (QuestionMarkOperator logicOr ColonOperator logicOr)*;
-logicOr        : logicAnd ( LogicalOrOperator logicAnd )* ;
-logicAnd       : bitwiseOr ( LogicalAndOperator bitwiseOr )* ;
-bitwiseOr      : bitwiseXor ( BitwiseOrOperator bitwiseXor )* ;
-bitwiseXor     : bitwiseAnd ( BitwiseXorOperator bitwiseAnd )* ;
-bitwiseAnd     : equality ( BitwiseAndOperator equality )*;
-equality       : relational ( ( UnequalOperator | EqualOperator ) relational )* ;
-relational     : shift ( ( GreaterOperator | GreaterEqualOperator | SmallerOperator | SmallerEqualOperator ) shift )* ;
-shift          : additive ( ( ShiftLeftOperator | ShiftRightOperator ) additive )* ;
-additive       : multiplicative ( ( MinusOperator | PlusOperator ) multiplicative )* ;
-multiplicative : unary ( ( DivideOperator | MultiplyOperator | ModuloOperator) unary )* ;
-unary          : ( LogicalNegationOperator | MinusOperator| PlusOperator|PlusPlusOperator|MinusMinusOperator|ComplimentOperator ) unary 
-               | call 
-               | unary ( PlusPlusOperator|MinusMinusOperator );
+ternary	       
+    : logicOr (QuestionMarkOperator logicOr ColonOperator logicOr)*
+    ;
 
-call           : primary (callArguments | DotOperator Identifier| elementAccess )*;
-primary        : BooleanLiteral | NullReference | ThisReference 
-               | IntegerLiteral | FloatingLiteral | StringLiteral | Identifier | OpeningRoundBracket expression ClosingRoundBracket;
+logicOr        
+    : logicAnd ( LogicalOrOperator logicAnd )* 
+    ;
 
+logicAnd       
+    : bitwiseOr ( LogicalAndOperator bitwiseOr )* 
+    ;
 
+bitwiseOr      
+    : bitwiseXor ( BitwiseOrOperator bitwiseXor )* 
+    ;
 
+bitwiseXor     
+    : bitwiseAnd ( BitwiseXorOperator bitwiseAnd )* 
+    ;
+
+bitwiseAnd     
+    : equality ( BitwiseAndOperator equality )*
+    ;
+
+equality       
+    : relational ( ( UnequalOperator | EqualOperator ) relational )* 
+    ;
+
+relational     
+    : shift ( ( GreaterOperator | GreaterEqualOperator | SmallerOperator | SmallerEqualOperator ) shift )* 
+    ;
+
+shift          
+    : additive ( ( ShiftLeftOperator | ShiftRightOperator ) additive )* 
+    ;
+
+additive       
+    : multiplicative ( ( MinusOperator | PlusOperator ) multiplicative )* 
+    ;
+
+multiplicative 
+    : unary ( ( DivideOperator | MultiplyOperator | ModuloOperator) unary )* 
+    ;
+
+unary          
+    : ( LogicalNegationOperator | MinusOperator| PlusOperator | PlusPlusOperator | MinusMinusOperator | ComplimentOperator ) unary 
+    | call 
+    | unary ( PlusPlusOperator|MinusMinusOperator )
+    ;
+
+call           
+    : primary (callArguments | DotOperator Identifier| elementAccess )*
+    ;
+
+primary        
+    : BooleanLiteral 
+    | NullReference 
+    | ThisReference 
+    | IntegerLiteral 
+    | FloatingLiteral 
+    | StringLiteral 
+    | Identifier 
+    | OpeningRoundBracket expression ClosingRoundBracket
+    ;
 
 privateModifier         : DeclarePrivate;
 publicModifier          : DeclarePublic;
