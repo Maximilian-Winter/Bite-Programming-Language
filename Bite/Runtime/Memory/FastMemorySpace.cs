@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Bite.Runtime.Bytecode;
 
 namespace Bite.Runtime.Memory
@@ -40,6 +41,13 @@ public class FastMemorySpace
 
     public virtual void Define( DynamicBiteVariable value )
     {
+        if ( CurrentMemoryPointer >= Properties.Length )
+        {
+            DynamicBiteVariable[] newProperties = new DynamicBiteVariable[Properties.Length * 2];
+            Array.Copy( Properties, newProperties, Properties.Length );
+            Properties = newProperties;
+        }
+        
         Properties[CurrentMemoryPointer] = value;
 
         CurrentMemoryPointer++;
@@ -49,6 +57,13 @@ public class FastMemorySpace
     {
         if ( addToProperties )
         {
+            if ( CurrentMemoryPointer >= Properties.Length )
+            {
+                DynamicBiteVariable[] newProperties = new DynamicBiteVariable[Properties.Length * 2];
+                Array.Copy( Properties, newProperties, Properties.Length );
+                Properties = newProperties;
+            }
+            
             Properties[CurrentMemoryPointer] = value;
 
             if ( !string.IsNullOrEmpty( idStr ) )

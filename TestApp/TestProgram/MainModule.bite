@@ -39,7 +39,6 @@ Print(FindPrimeNumber(8));
 Print(FindPrimeNumber(16));
 Print(FindPrimeNumber(32));
 Print(FindPrimeNumber(64));
-
 /*
 // C# Foreign Library Type Import System Example
 var testClassInterface = new CSharpInterface();

@@ -61,6 +61,8 @@ public class BiteVm
     private bool m_KeepLastItemOnStackToReturn = false;
     private bool m_SetVarWithName = false;
     private string m_SetVarName = "";
+
+    private bool HasInitCSharpInterfaceObjectBytecode = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
@@ -71,7 +73,7 @@ public class BiteVm
 
     #region Public
 
-    public BiteVmInterpretResult Interpret( BiteProgram context )
+    public void InitVm(BinaryChunk csharpInterfaceObjectBytecodeChunk = null)
     {
         m_VmStack = new DynamicBiteVariableStack();
         m_UsingStatementStack = new UsingStatementStack();
@@ -79,14 +81,38 @@ public class BiteVm
         m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
 
         m_GlobalMemorySpace =
-            new FastGlobalMemorySpace( context.BaseScope.NumberOfSymbols );
-
+            new FastGlobalMemorySpace( 10 );
+        
+        InitMemorySpaces(csharpInterfaceObjectBytecodeChunk);
+    }
+    public BiteVmInterpretResult Interpret( BiteProgram context, bool initVm = true )
+    {
         m_CurrentChunk = context.CompiledMainChunk;
         CompiledChunks = context.CompiledChunks;
         m_CurrentInstructionPointer = 0;
         m_CurrentScope = context.BaseScope;
 
-        InitMemorySpaces();
+        if ( initVm )
+        {
+            if ( CompiledChunks != null )
+            {
+                if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
+                {
+                    InitVm(chunk);
+                }
+            }
+           
+        }
+        else if(!HasInitCSharpInterfaceObjectBytecode)
+        {
+            if ( CompiledChunks != null )
+            {
+                if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
+                {
+                    AddCSharpInterfaceObjectBytecode( chunk );
+                }
+            }
+        }
 
         return Run();
     }
@@ -96,22 +122,32 @@ public class BiteVm
         m_ExternalObjects.Add( varName, data );
     }
 
-    public void ShutdownVm()
+    public void ResetVm(BinaryChunk csharpInterfaceObjectBytecodeChunk = null)
     {
-        //m_VmStack.Clear();
+        m_VmStack = new DynamicBiteVariableStack();
+        m_UsingStatementStack = new UsingStatementStack();
+        m_CallStack = new FastMemoryStack();
+        m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
+
+        m_GlobalMemorySpace =
+            new FastGlobalMemorySpace( 10 );
+
+        HasInitCSharpInterfaceObjectBytecode = false;
+        
+        InitMemorySpaces(csharpInterfaceObjectBytecodeChunk);
     }
 
     #endregion
 
     #region Protected
 
-    protected void InitMemorySpaces()
+    protected void InitMemorySpaces(BinaryChunk csharpInterfaceObjectBytecodeChunk = null)
     {
         m_CurrentMemorySpace = m_GlobalMemorySpace;
         string moduleName = "System";
 
         FastMemorySpace callSpace = new FastMemorySpace(
-            "$root",
+            "$system",
             m_GlobalMemorySpace,
             0,
             m_CurrentChunk,
@@ -132,14 +168,9 @@ public class BiteVm
             DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
             "System.CSharpInterfaceCall" );
 
-        if ( CompiledChunks != null )
+        if ( csharpInterfaceObjectBytecodeChunk != null && !HasInitCSharpInterfaceObjectBytecode )
         {
-            if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
-            {
-                callSpace.Define(
-                    DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( chunk ) ),
-                    "System.CSharpInterface" );
-            } 
+            AddCSharpInterfaceObjectBytecode( csharpInterfaceObjectBytecodeChunk );
         }
     }
 
@@ -147,6 +178,18 @@ public class BiteVm
 
     #region Private
 
+    private void AddCSharpInterfaceObjectBytecode(BinaryChunk compiledCSharpInterfaceObjectChunk)
+    {
+        FastMemorySpace biteSystemMemorySpace = m_GlobalMemorySpace.GetModule( 0 );
+        if ( !biteSystemMemorySpace.NamesToProperties.ContainsKey( "System.CSharpInterface" ) )
+        {
+            HasInitCSharpInterfaceObjectBytecode = true;
+            biteSystemMemorySpace.Define(
+                DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( compiledCSharpInterfaceObjectChunk ) ),
+                "System.CSharpInterface" );
+        }
+      
+    }
     private ConstantValue ReadConstant()
     {
         ConstantValue instruction =

@@ -28,7 +28,7 @@ public class Program
 
         int k = 1;
         long elapsedMillisecondsAccu = 0;
-
+        
         for ( int i = 0; i < k; i++ )
         {
             Stopwatch stopwatch2 = new Stopwatch();
