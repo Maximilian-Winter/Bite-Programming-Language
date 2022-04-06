@@ -822,20 +822,6 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             Resolve(node.ElseStatement);
         }
 
-        // TODO: Remove
-        if ( node.IfStatementEntries != null )
-        {
-            foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
-            {
-                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
-                {
-                    Resolve( nodeIfStatementEntry.ExpressionElseIf );
-                }
-
-                Resolve( nodeIfStatementEntry.ElseBlock );
-            }
-        }
-
         return null;
     }
 
@@ -846,15 +832,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         CurrentScope.nest( l );
         pushScope( l );
 
-        if ( node.VariableDeclaration != null )
-        {
-            Resolve( node.VariableDeclaration );
-        }
-        else if ( node.ExpressionStatement != null )
-        {
-            Resolve( node.ExpressionStatement );
-        }
-        else if ( node.Initializer != null )
+        if ( node.Initializer != null )
         {
             if ( node.Initializer.Expressions != null )
             {
@@ -885,16 +863,6 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         if ( node.Statement != null )
         {
             Resolve( node.Statement );
-        }
-
-        if ( node.Iterator != null )
-        {
-            Resolve( node.Iterator );
-        }
-
-        if ( node.Block != null )
-        {
-            Resolve( node.Block );
         }
 
         popScope();

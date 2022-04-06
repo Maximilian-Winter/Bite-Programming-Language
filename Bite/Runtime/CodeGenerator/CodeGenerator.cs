@@ -1169,44 +1169,6 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             Compile(node.ElseStatement);
         }
 
-        // TODO: Remove
-        if ( node.IfStatementEntries != null )
-        {
-            foreach ( IfStatementEntry nodeIfStatementEntry in node.IfStatementEntries )
-            {
-                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.Else )
-                {
-                    Compile( nodeIfStatementEntry.ElseBlock );
-
-                    int endJumpCount = endJumpStack.Count;
-
-                    for ( int i = 0; i < endJumpCount; i++ )
-                    {
-                        int endJump = endJumpStack.Pop();
-
-                        m_BiteProgram.CurrentChunk.Code[endJump] = new ByteCode(
-                            BiteVmOpCodes.OpJump,
-                            m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
-                    }
-                }
-
-                if ( nodeIfStatementEntry.IfStatementType == IfStatementEntryType.ElseIf )
-                {
-                    Compile( nodeIfStatementEntry.ExpressionElseIf );
-                    int elseJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
-                    Compile( nodeIfStatementEntry.ElseBlock );
-                    int endJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
-                    endJumpStack.Push( endJump );
-
-                    m_BiteProgram.CurrentChunk.Code[elseJump] = new ByteCode(
-                        BiteVmOpCodes.OpJumpIfFalse,
-                        m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
-
-                    //m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(BiteVmOpCodes.OpJump, m_BiteProgram.CurrentChunk.SerializeToBytes().Length);
-                }
-            }
-        }
-
         int endJumpStackCount = endJumpStack.Count;
 
         for ( int i = 0; i < endJumpStackCount; i++ )
@@ -1254,16 +1216,6 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_CurrentEnterBlockCount++;
         PreviousLoopBlockCount = m_CurrentEnterBlockCount;
 
-        // TODO: Remove old code
-        if ( node.VariableDeclaration != null )
-        {
-            Compile( node.VariableDeclaration );
-        }
-        else if ( node.ExpressionStatement != null )
-        {
-            Compile( node.ExpressionStatement );
-        }
-        else  /* TODO: END Remove old code */ 
         if (node.Initializer != null)
         {
             if (node.Initializer.Expressions != null)
@@ -1296,24 +1248,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         {
             Compile( node.Statement );
         }
-
-        // TODO: Remove
-        if ( node.Block != null )
-        {
-            Compile( node.Block );
-        }
-
+        
         if ( node.Iterators != null )
         {
             foreach ( var iterator in node.Iterators )
             {
                 Compile( iterator );
             }
-        }
-
-        if ( node.Iterator != null )
-        {
-            Compile( node.Iterator );
         }
 
         m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(

@@ -11,9 +11,6 @@ public class IfStatementNode : StatementNode
 
     public StatementNode ElseStatement;
 
-    // Old Parser
-    public List < IfStatementEntry > IfStatementEntries;
-
     #region Public
 
     public override object Accept( IAstVisitor visitor )
