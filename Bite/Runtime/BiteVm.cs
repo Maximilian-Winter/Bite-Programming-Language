@@ -340,7 +340,6 @@ public class BiteVm
                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                         m_CurrentInstructionPointer += 4;
-                        m_FunctionArguments.Clear();
 
                         for ( int i = 0; i < numberOfArguments; i++ )
                         {
@@ -370,14 +369,14 @@ public class BiteVm
                             {
                                 m_CurrentMemorySpace.Define( m_FunctionArguments[i] );
                             }
-
+                            m_FunctionArguments.Clear();
                             m_CurrentChunk = function.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                         }
                         else if ( call.ObjectData is IBiteVmCallable callable )
                         {
                             object returnVal = callable.Call( m_FunctionArguments );
-
+                            m_FunctionArguments.Clear();
                             if ( returnVal != null )
                             {
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
@@ -400,7 +399,7 @@ public class BiteVm
                             {
                                 m_CurrentMemorySpace.Define( m_FunctionArguments[i] );
                             }
-
+                            m_FunctionArguments.Clear();
                             m_CurrentChunk = functionFromStack.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                         }
@@ -432,7 +431,7 @@ public class BiteVm
                                 methodName,
                                 functionArguments,
                                 functionArgumentTypes );
-
+                            m_FunctionArguments.Clear();
                             if ( returnVal != null )
                             {
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
@@ -462,7 +461,7 @@ public class BiteVm
                                     {
                                         m_CurrentMemorySpace.Define( functionArgument );
                                     }
-
+                                    m_FunctionArguments.Clear();
                                     m_CurrentChunk = function.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
                                 }
@@ -470,7 +469,7 @@ public class BiteVm
                                 if ( call.ObjectData is IBiteVmCallable callable )
                                 {
                                     object returnVal = callable.Call( m_FunctionArguments );
-
+                                    m_FunctionArguments.Clear();
                                     if ( returnVal != null )
                                     {
                                         m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
@@ -503,7 +502,7 @@ public class BiteVm
 
                                 object returnVal = CachedMethods[callString].
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
-
+                                m_FunctionArguments.Clear();
                                 if ( returnVal != null )
                                 {
                                     m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
@@ -546,6 +545,8 @@ public class BiteVm
                                     throw new Exception(
                                         "Error Function " + constant.StringConstantValue + " not found!" );
                                 }
+                                
+                                m_FunctionArguments.Clear();
                             }
                         }
 
