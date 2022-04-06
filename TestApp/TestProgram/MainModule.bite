@@ -3,32 +3,41 @@ module MainModule;
 import System;
 using System;
 
-function A()
+
+// Prime Number Example
+function FindPrimeNumber(n)
 {
-    Print("Hello World! 1");
+    var count=0;
+    var a = 2;
+    while(count<n)
+    {
+        var b = 2;
+        var prime = 1;
+        while(b * b <= a )
+        {
+            if(a % b == 0)
+            {
+                prime = 0;
+                break;
+            }
+            b++;
+        }
+        if(prime > 0)
+        {
+            count++;
+        }
+        a++;
+    }
+    return (--a);
 }
 
-function B(n)
-{
-    Print("Hello World! " + n);
-}
+PrintLine(FindPrimeNumber(2));
+PrintLine(FindPrimeNumber(4));
+PrintLine(FindPrimeNumber(8));
+PrintLine(FindPrimeNumber(16));
+PrintLine(FindPrimeNumber(32));
+PrintLine(FindPrimeNumber(64));
 
-function C()
-{
-    Print("Hello World! 3");
-}
-
-// Dispatch
-
-var functionObj = new Object();
-
-functionObj["a"] = A;
-functionObj["b"] = B;
-functionObj["c"] = C;
-
-functionObj["a"]();
-functionObj["b"](5);
-functionObj["c"]();
 
 /*
 // C# Foreign Library Type Import System Example
@@ -41,10 +50,10 @@ testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
 
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
-TestCSharp.PrintVar();
-Print(TestCSharp.testfield.i);
+TestCSharp.PrintLineVar();
+PrintLine(TestCSharp.testfield.i);
 TestCSharp.testfield.i = 42;
-Print(TestCSharp.testfield.i);
+PrintLine(TestCSharp.testfield.i);
 
 */
 
@@ -65,11 +74,11 @@ function TestFunction(n)
 
 var a = new TestClass();
 
-Print(a.x);
+PrintLine(a.x);
 
 TestFunction(a);
 
-Print(a.x);
+PrintLine(a.x);
 
 */
 
@@ -91,13 +100,41 @@ function TestFunction(n)
 
 
 
+function A()
+{
+    PrintLine("Hello World! 1");
+}
+
+function B(n)
+{
+    PrintLine("Hello World! " + n);
+}
+
+function C()
+{
+    PrintLine("Hello World! 3");
+}
+
+// Dispatch
+
+var functionObj = new Object();
+
+functionObj["a"] = A;
+functionObj["b"] = B;
+functionObj["c"] = C;
+
+functionObj["a"]();
+functionObj["b"](5);
+functionObj["c"]();
+
+
 var a = new TestClass(150);
 
-Print(a.x);
+PrintLine(a.x);
 
 TestFunction(a);
 
-Print(a.x);*/
+PrintLine(a.x);*/
 
 /*
 // Inheritance Example
@@ -118,10 +155,10 @@ class Bar : Foo
 }
 
 var a = new Bar();
-Print(a.x);
-Print(a.y);
-Print(a.z);
-Print(a.FooFunc());
+PrintLine(a.x);
+PrintLine(a.y);
+PrintLine(a.z);
+PrintLine(a.FooFunc());
 */
 
 
@@ -162,7 +199,7 @@ while(count3 < 1000)
     count3++;
 }
 
-Print(temp);
+PrintLine(temp);
 
 */
 
@@ -196,12 +233,12 @@ function FindPrimeNumber(n)
     return (--a);
 }
 
-Print(FindPrimeNumber(2));
-Print(FindPrimeNumber(4));
-Print(FindPrimeNumber(8));
-Print(FindPrimeNumber(16));
-Print(FindPrimeNumber(32));
-Print(FindPrimeNumber(64));
+PrintLine(FindPrimeNumber(2));
+PrintLine(FindPrimeNumber(4));
+PrintLine(FindPrimeNumber(8));
+PrintLine(FindPrimeNumber(16));
+PrintLine(FindPrimeNumber(32));
+PrintLine(FindPrimeNumber(64));
 
 */
 
@@ -273,7 +310,7 @@ for(var x = 0; x < 10; x++)
     {
         for(var z = 0; z < 10; z++)
         {
-           Print(c[x][y][z]);
+           PrintLine(c[x][y][z]);
         }
     }
 }
@@ -336,6 +373,6 @@ else
 {
     c = 42;
 }
-Print(c);
+PrintLine(c);
 
 */

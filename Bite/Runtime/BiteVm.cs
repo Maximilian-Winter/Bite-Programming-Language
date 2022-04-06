@@ -152,7 +152,7 @@ public class BiteVm
             0,
             m_CurrentChunk,
             m_CurrentInstructionPointer,
-            4 );
+            5 );
 
         m_GlobalMemorySpace.AddModule( callSpace );
 
@@ -163,6 +163,10 @@ public class BiteVm
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new PrintFunctionVm() ),
             "System.Print" );
+        
+        callSpace.Define(
+            DynamicVariableExtension.ToDynamicVariable( new PrintLineFunctionVm() ),
+            "System.PrintLine" );
 
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
@@ -375,7 +379,7 @@ public class BiteVm
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
                             }
                         }
-                        else if ( m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
+                        else if ( m_VmStack.Count > 0 && m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
                         {
                             m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();

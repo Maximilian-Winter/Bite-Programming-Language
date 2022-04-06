@@ -1137,6 +1137,29 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         CurrentScope.define( functionSymbol );
 
         functionSymbol = new FunctionSymbol(
+            "PrintLine",
+            AccesModifierType.Public,
+            ClassAndMemberModifiers.None );
+
+        parameterSymbol = new ParameterSymbol( "x" );
+        functionType = new BiteClassType( "Object" );
+
+        functionSymbol.Type = functionType;
+        functionSymbol.EnclosingScope = CurrentScope;
+        functionDeclarationNode = new FunctionDeclarationNode();
+        functionDeclarationNode.FunctionId = new Identifier( "PrintLine" );
+        functionDeclarationNode.Parameters = new ParametersNode();
+        functionDeclarationNode.Parameters.Identifiers = new List < Identifier >();
+        functionDeclarationNode.Parameters.Identifiers.Add( new Identifier( "x" ) );
+        functionSymbol.defNode = functionDeclarationNode;
+        pushScope( functionSymbol );
+
+        functionSymbol.define( parameterSymbol );
+
+        popScope();
+        CurrentScope.define( functionSymbol );
+        
+        functionSymbol = new FunctionSymbol(
             "CSharpInterfaceCall",
             AccesModifierType.Public,
             ClassAndMemberModifiers.None );
