@@ -69,14 +69,14 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return m_BiteProgram;
     }
 
-    public BiteProgram CompileStatements( IReadOnlyCollection < StatementNode > statements )
+    public BiteProgram CompileStatements( IReadOnlyCollection < StatementNode > statements, BiteProgram previousBiteProgram = null )
     {
         ModuleNode module = new ModuleNode
         {
             ModuleIdent = new ModuleIdentifier( "MainModule" ), Statements = statements
         };
 
-        m_BiteProgram = new BiteProgram( module );
+        m_BiteProgram = new BiteProgram( module, previousBiteProgram );
 
         module.Accept( this );
 

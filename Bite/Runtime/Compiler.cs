@@ -76,7 +76,7 @@ public class Compiler
         return generator.CompileExpression( expressionNode );
     }
 
-    public BiteProgram CompileStatements( string statements )
+    public BiteProgram CompileStatements( string statements, BiteProgram previousBiteProgram = null )
     {
         m_Parser = new BiteParser { ThrowOnRecognitionException = m_ThrowOnRecognitionException };
 
@@ -84,7 +84,7 @@ public class Compiler
 
         CodeGenerator generator = new CodeGenerator();
 
-        return generator.CompileStatements( statementNodes );
+        return generator.CompileStatements( statementNodes, previousBiteProgram );
     }
 
     #endregion

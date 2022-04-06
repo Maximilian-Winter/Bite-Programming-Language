@@ -169,10 +169,14 @@ public partial class BiteModuleParser
 
             if ( context.Failed )
             {
-                return new List < IContext < StatementNode > >
+                context = module();
+                if ( context.Failed )
                 {
-                    Context < StatementNode >.AsFailed( context.Exception )
-                };
+                    return new List < IContext < StatementNode > >
+                    {
+                        Context < StatementNode >.AsFailed( context.Exception )
+                    };
+                }
             }
 
             HeteroAstNode decl = context.Result;

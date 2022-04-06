@@ -101,7 +101,6 @@ public class BiteVm
                     InitVm(chunk);
                 }
             }
-           
         }
         else if(!HasInitCSharpInterfaceObjectBytecode)
         {
