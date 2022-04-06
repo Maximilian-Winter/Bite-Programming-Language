@@ -3,7 +3,6 @@ module MainModule;
 import System;
 using System;
 
-
 // Prime Number Example
 function FindPrimeNumber(n)
 {
@@ -37,6 +36,8 @@ PrintLine(FindPrimeNumber(8));
 PrintLine(FindPrimeNumber(16));
 PrintLine(FindPrimeNumber(32));
 PrintLine(FindPrimeNumber(64));
+
+
 
 
 /*

@@ -73,7 +73,7 @@ public class BiteVm
 
     #region Public
 
-    public void InitVm(BinaryChunk csharpInterfaceObjectBytecodeChunk = null)
+    public void InitVm( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
     {
         m_VmStack = new DynamicBiteVariableStack();
         m_UsingStatementStack = new UsingStatementStack();
@@ -82,8 +82,8 @@ public class BiteVm
 
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
-        
-        InitMemorySpaces(csharpInterfaceObjectBytecodeChunk);
+
+        InitMemorySpaces( csharpInterfaceObjectBytecodeChunk );
     }
 
     public BiteVmInterpretResult Interpret( BiteProgram context, bool initVm = true )
@@ -99,11 +99,11 @@ public class BiteVm
             {
                 if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
                 {
-                    InitVm(chunk);
+                    InitVm( chunk );
                 }
             }
         }
-        else if(!HasInitCSharpInterfaceObjectBytecode)
+        else if ( !HasInitCSharpInterfaceObjectBytecode )
         {
             if ( CompiledChunks != null )
             {
@@ -122,7 +122,7 @@ public class BiteVm
         m_ExternalObjects.Add( varName, data );
     }
 
-    public void ResetVm(BinaryChunk csharpInterfaceObjectBytecodeChunk = null)
+    public void ResetVm( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
     {
         m_VmStack = new DynamicBiteVariableStack();
         m_UsingStatementStack = new UsingStatementStack();
@@ -133,15 +133,15 @@ public class BiteVm
             new FastGlobalMemorySpace( 10 );
 
         HasInitCSharpInterfaceObjectBytecode = false;
-        
-        InitMemorySpaces(csharpInterfaceObjectBytecodeChunk);
+
+        InitMemorySpaces( csharpInterfaceObjectBytecodeChunk );
     }
 
     #endregion
 
     #region Protected
 
-    protected void InitMemorySpaces(BinaryChunk csharpInterfaceObjectBytecodeChunk = null)
+    protected void InitMemorySpaces( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
     {
         m_CurrentMemorySpace = m_GlobalMemorySpace;
         string moduleName = "System";
@@ -163,7 +163,7 @@ public class BiteVm
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new PrintFunctionVm() ),
             "System.Print" );
-        
+
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new PrintLineFunctionVm() ),
             "System.PrintLine" );
@@ -182,18 +182,21 @@ public class BiteVm
 
     #region Private
 
-    private void AddCSharpInterfaceObjectBytecode(BinaryChunk compiledCSharpInterfaceObjectChunk)
+    private void AddCSharpInterfaceObjectBytecode( BinaryChunk compiledCSharpInterfaceObjectChunk )
     {
         FastMemorySpace biteSystemMemorySpace = m_GlobalMemorySpace.GetModule( 0 );
+
         if ( !biteSystemMemorySpace.NamesToProperties.ContainsKey( "System.CSharpInterface" ) )
         {
             HasInitCSharpInterfaceObjectBytecode = true;
+
             biteSystemMemorySpace.Define(
-                DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( compiledCSharpInterfaceObjectChunk ) ),
+                DynamicVariableExtension.ToDynamicVariable(
+                    new BiteChunkWrapper( compiledCSharpInterfaceObjectChunk ) ),
                 "System.CSharpInterface" );
         }
-      
     }
+
     private ConstantValue ReadConstant()
     {
         ConstantValue instruction =
@@ -262,7 +265,6 @@ public class BiteVm
                         string moduleName = ReadConstant().StringConstantValue;
                         int depth = 0;
 
-                        
                         m_CurrentScope = ( BaseScope ) m_CurrentScope.resolve(
                             moduleName,
                             out int moduleId,
@@ -275,6 +277,7 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
                         FastMemorySpace fastMemorySpace = m_GlobalMemorySpace.GetModule( $"$module_{moduleName}" );
+
                         if ( fastMemorySpace == null )
                         {
                             FastModuleMemorySpace callSpace = new FastModuleMemorySpace(
@@ -298,6 +301,7 @@ public class BiteVm
                             m_CurrentMemorySpace = fastMemorySpace;
                             m_CallStack.Push( fastMemorySpace );
                         }
+
                         break;
                     }
 
@@ -350,7 +354,7 @@ public class BiteVm
                     {
                         string method = ReadConstant().StringConstantValue;
                         DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
-                        
+
                         if ( call.ObjectData is BiteChunkWrapper function )
                         {
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
@@ -379,7 +383,8 @@ public class BiteVm
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
                             }
                         }
-                        else if ( m_VmStack.Count > 0 && m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
+                        else if ( m_VmStack.Count > 0 &&
+                                  m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
                         {
                             m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
@@ -400,7 +405,7 @@ public class BiteVm
                             m_CurrentInstructionPointer = 0;
                         }
 
-                            break;
+                        break;
                     }
 
                     case BiteVmOpCodes.OpCallMemberFunction:
@@ -746,12 +751,13 @@ public class BiteVm
 
                         break;
                     }
-                    
+
                     case BiteVmOpCodes.OpGetVarByName:
                     {
                         string varName = ReadConstant().StringConstantValue;
+
                         m_VmStack.Push(
-                            DynamicVariableExtension.ToDynamicVariable(m_ExternalObjects[varName]) );
+                            DynamicVariableExtension.ToDynamicVariable( m_ExternalObjects[varName] ) );
 
                         break;
                     }
@@ -875,11 +881,12 @@ public class BiteVm
 
                         break;
                     }
-                    
+
                     case BiteVmOpCodes.OpSetVarByName:
                     {
                         m_SetVarName = ReadConstant().StringConstantValue;
                         m_SetVarWithName = true;
+
                         break;
                     }
 
@@ -997,7 +1004,7 @@ public class BiteVm
 
                             m_SetMember = false;
                         }
-                        else if( m_SetVarWithName)
+                        else if ( m_SetVarWithName )
                         {
                             m_ExternalObjects[m_SetVarName] = m_VmStack.Pop().ToObject();
 
