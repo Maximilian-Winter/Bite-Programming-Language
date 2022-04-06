@@ -24,15 +24,20 @@ internal class Program
                 {
 
                     BiteVm biteVm = new BiteVm();
-                    biteVm.
                     biteVm.InitVm(  );
+
 
                     var statements = Console.ReadLine();
 
+                    BiteProgram program = null;
+
+                    Compiler compiler = new Compiler( true );
+                    program = compiler.Compile( "MainModule", new []{ "module MainModule; import System; using System;" } );
+
                     while ( statements != "exit" )
                     {
-                        Compiler compiler = new Compiler( true );
-                        BiteProgram program = compiler.CompileStatements( statements );
+                        compiler = new Compiler( true );
+                        program = compiler.CompileStatements( statements, program );
                         BiteVmInterpretResult result = biteVm.Interpret( program, false );
                         statements = Console.ReadLine();
                     }
