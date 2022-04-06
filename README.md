@@ -19,6 +19,7 @@ My idea was it to have a dynamically interpreted language in C# to support moddi
 
 # Overall Status
 Most of Language Features are implemented.
+Still has to be integrated into unity!
 
 ToDo:
 * Finish implementation of private and public access modifiers
