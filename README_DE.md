@@ -68,7 +68,7 @@ Die folgenden Beispiele finden Sie hier:
 
 Der folgende Code berechnet die ersten 36 Fibonacci-Zahlen 1000 Mal und druckt die 36-te Fibonacci-Zahl:
 
-![CodeBitePic](https://user-images.githubusercontent.com/24946356/161370277-ec838b53-0865-4536-ae74-c4b25d4ac850.PNG)
+![BiteFibo](https://user-images.githubusercontent.com/24946356/161903954-3d85e17d-34ef-4e60-aac6-f8a0fad8380d.PNG)
 
 
 
@@ -76,7 +76,7 @@ Der folgende Code berechnet die ersten 36 Fibonacci-Zahlen 1000 Mal und druckt d
 
 Der folgende Code berechnet und druckt die 2-, 4-, 8-, 16-, 32- und 64-te Primzahl:
 
-![CodeBitePic2](https://user-images.githubusercontent.com/24946356/161400684-5e95861f-e34c-4303-9c2e-285d14ab6f4a.PNG)
+![BitePrime](https://user-images.githubusercontent.com/24946356/161903979-3d4cbdc5-8d22-4bcd-9719-a75428227d6a.PNG)
 
 
 
@@ -84,5 +84,5 @@ Der folgende Code berechnet und druckt die 2-, 4-, 8-, 16-, 32- und 64-te Primza
 
 Der folgende Code erstellt ein dynamisches Array und füllt es mit Zeichenketten. Dann werden die Array-Elemente ausgedruckt:
 
-![CodeBitePic3](https://user-images.githubusercontent.com/24946356/161400777-68bb5d8b-49ff-4cb1-9d8f-2adb83eaecfb.PNG)
+![biteDynamic](https://user-images.githubusercontent.com/24946356/161903997-fe14fa25-9b80-4962-aeec-a977052b834a.PNG)
 
