@@ -12,6 +12,7 @@ public class BiteProgram
     private readonly Dictionary < string, Chunk > m_CompilingChunks;
     private readonly Stack < Chunk > _savedChunks = new Stack < Chunk >();
 
+    public SymbolTableBuilder SymbolTableBuilder;
     internal BaseScope BaseScope { get; }
 
     internal Dictionary < string, BinaryChunk > CompiledChunks { get; }
@@ -24,11 +25,18 @@ public class BiteProgram
 
     #region Public
 
-    public BiteProgram( ModuleNode module )
+    public BiteProgram( ModuleNode module, BiteProgram previousProgram = null )
     {
-        SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder();
-        symbolTableBuilder.BuildModuleSymbolTable( module );
-        BaseScope = symbolTableBuilder.CurrentScope as BaseScope;
+        if ( previousProgram == null )
+        {
+            SymbolTableBuilder = new SymbolTableBuilder();
+        }
+        else
+        {
+            SymbolTableBuilder = previousProgram.SymbolTableBuilder;
+        }
+        SymbolTableBuilder.BuildModuleSymbolTable( module );
+        BaseScope = SymbolTableBuilder.CurrentScope as BaseScope;
         m_CompilingChunks = new Dictionary < string, Chunk >();
         MainChunk = new Chunk();
         CurrentChunk = MainChunk;
@@ -37,9 +45,9 @@ public class BiteProgram
 
     public BiteProgram( ProgramNode programNode )
     {
-        SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder();
-        symbolTableBuilder.BuildProgramSymbolTable( programNode );
-        BaseScope = symbolTableBuilder.CurrentScope as BaseScope;
+        SymbolTableBuilder = new SymbolTableBuilder();
+        SymbolTableBuilder.BuildProgramSymbolTable( programNode );
+        BaseScope = SymbolTableBuilder.CurrentScope as BaseScope;
         m_CompilingChunks = new Dictionary < string, Chunk >();
         MainChunk = new Chunk();
         CurrentChunk = MainChunk;

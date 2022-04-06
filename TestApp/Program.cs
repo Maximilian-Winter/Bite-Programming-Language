@@ -16,7 +16,20 @@ public class Program
 
     public static void Main( string[] args )
     {
+        BiteVm biteVm = new BiteVm();
+        biteVm.InitVm( );
 
+        var statements = Console.ReadLine();
+        BiteProgram program = null;
+        while ( statements != "exit" )
+        {
+            Compiler compiler = new Compiler( true );
+            program = compiler.CompileStatements( statements, program );
+            BiteVmInterpretResult result = biteVm.Interpret( program, false );
+            statements = Console.ReadLine();
+        }
+        
+        /*
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
             "*.bite",
@@ -63,7 +76,7 @@ public class Program
 
         ChunkDebugHelper.InstructionCounter.Clear();
 
-        Console.ReadLine();
+        Console.ReadLine();*/
     }
 
     #endregion
