@@ -257,6 +257,7 @@ public class BiteVm
                         string moduleName = ReadConstant().StringConstantValue;
                         int depth = 0;
 
+                        
                         m_CurrentScope = ( BaseScope ) m_CurrentScope.resolve(
                             moduleName,
                             out int moduleId,
@@ -268,21 +269,30 @@ public class BiteVm
                                               ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                         m_CurrentInstructionPointer += 4;
+                        FastMemorySpace fastMemorySpace = m_GlobalMemorySpace.GetModule( $"$module_{moduleName}" );
+                        if ( fastMemorySpace == null )
+                        {
+                            FastModuleMemorySpace callSpace = new FastModuleMemorySpace(
+                                $"$module_{moduleName}",
+                                m_GlobalMemorySpace,
+                                m_VmStack.Count,
+                                m_CurrentChunk,
+                                m_CurrentInstructionPointer,
+                                numberOfMembers );
 
-                        FastModuleMemorySpace callSpace = new FastModuleMemorySpace(
-                            $"$module_{moduleName}",
-                            m_GlobalMemorySpace,
-                            m_VmStack.Count,
-                            m_CurrentChunk,
-                            m_CurrentInstructionPointer,
-                            numberOfMembers );
-
-                        m_GlobalMemorySpace.AddModule( callSpace );
-                        m_CurrentChunk = CompiledChunks[moduleName];
-                        m_CurrentInstructionPointer = 0;
-                        m_CurrentMemorySpace = callSpace;
-                        m_CallStack.Push( callSpace );
-
+                            m_GlobalMemorySpace.AddModule( callSpace );
+                            m_CurrentChunk = CompiledChunks[moduleName];
+                            m_CurrentInstructionPointer = 0;
+                            m_CurrentMemorySpace = callSpace;
+                            m_CallStack.Push( callSpace );
+                        }
+                        else
+                        {
+                            m_CurrentChunk = CompiledChunks[moduleName];
+                            m_CurrentInstructionPointer = 0;
+                            m_CurrentMemorySpace = fastMemorySpace;
+                            m_CallStack.Push( fastMemorySpace );
+                        }
                         break;
                     }
 
