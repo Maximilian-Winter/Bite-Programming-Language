@@ -59,6 +59,8 @@ public class BiteVm
     private string m_MemberWithStringToSet = "";
     private bool m_SetMemberWithString = false;
     private bool m_KeepLastItemOnStackToReturn = false;
+    private bool m_SetVarWithName = false;
+    private string m_SetVarName = "";
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
@@ -89,7 +91,7 @@ public class BiteVm
         return Run();
     }
 
-    public void RegisterGlobalObject( string varName, object data )
+    public void RegisterExternalGlobalObject( string varName, object data )
     {
         m_ExternalObjects.Add( varName, data );
     }
@@ -130,11 +132,14 @@ public class BiteVm
             DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
             "System.CSharpInterfaceCall" );
 
-        if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
+        if ( CompiledChunks != null )
         {
-            callSpace.Define(
-                DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( chunk ) ),
-                "System.CSharpInterface" );
+            if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
+            {
+                callSpace.Define(
+                    DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( chunk ) ),
+                    "System.CSharpInterface" );
+            } 
         }
     }
 
@@ -466,7 +471,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpDefineLocalInstance:
+                    case BiteVmOpCodes.OpDefineInstance:
                     {
                         int moduleIdClass = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                             ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -524,7 +529,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpDefineLocalVar:
+                    case BiteVmOpCodes.OpDefineVar:
                     {
                         BiteVmOpCodes biteVmOpCode = ReadInstruction();
                         string instanceName = ReadConstant().StringConstantValue;
@@ -533,7 +538,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpDeclareLocalVar:
+                    case BiteVmOpCodes.OpDeclareVar:
                     {
                         BiteVmOpCodes biteVmOpCode = ReadInstruction();
                         string instanceName = ReadConstant().StringConstantValue;
@@ -542,7 +547,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpSetLocalInstance:
+                    case BiteVmOpCodes.OpSetInstance:
                     {
                         int moduleIdLocalInstance = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                     ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -626,7 +631,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpGetLocalVar:
+                    case BiteVmOpCodes.OpGetVar:
                     {
                         m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                     ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -662,6 +667,15 @@ public class BiteVm
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
                                 m_LastGetLocalVarId ) );
+
+                        break;
+                    }
+                    
+                    case BiteVmOpCodes.OpGetVarByName:
+                    {
+                        string varName = ReadConstant().StringConstantValue;
+                        m_VmStack.Push(
+                            DynamicVariableExtension.ToDynamicVariable(m_ExternalObjects[varName]) );
 
                         break;
                     }
@@ -747,7 +761,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpSetLocalVar:
+                    case BiteVmOpCodes.OpSetVar:
                     {
                         int moduleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                        ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -783,6 +797,13 @@ public class BiteVm
 
                         m_VmStack.Push( m_CurrentMemorySpace.Get( moduleId, depth, classId, id ) );
 
+                        break;
+                    }
+                    
+                    case BiteVmOpCodes.OpSetVarByName:
+                    {
+                        m_SetVarName = ReadConstant().StringConstantValue;
+                        m_SetVarWithName = true;
                         break;
                     }
 
@@ -899,6 +920,12 @@ public class BiteVm
                             }
 
                             m_SetMember = false;
+                        }
+                        else if( m_SetVarWithName)
+                        {
+                            m_ExternalObjects[m_SetVarName] = m_VmStack.Pop().ToObject();
+
+                            m_SetVarWithName = false;
                         }
                         else if ( m_SetElement )
                         {

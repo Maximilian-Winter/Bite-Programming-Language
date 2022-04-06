@@ -98,7 +98,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_BiteProgram.NewChunk();
 
         ByteCode byteCode = new ByteCode(
-            BiteVmOpCodes.OpDefineLocalInstance,
+            BiteVmOpCodes.OpDefineInstance,
             moduleId2,
             d2,
             c.InsertionOrderNumber,
@@ -327,7 +327,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             {
                 if ( !field.Name.Equals( "this" ) )
                 {
-                    EmitByteCode( BiteVmOpCodes.OpDefineLocalVar );
+                    EmitByteCode( BiteVmOpCodes.OpDefineVar );
                     EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( field.Name ) );
                 }
 
@@ -349,7 +349,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             }
         }
 
-        EmitByteCode( BiteVmOpCodes.OpDefineLocalVar );
+        EmitByteCode( BiteVmOpCodes.OpDefineVar );
         EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "this" ) );
         m_BiteProgram.PopChunk();
 
@@ -410,12 +410,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         if ( node.Initializer != null )
         {
             Compile( node.Initializer );
-            EmitByteCode( BiteVmOpCodes.OpDefineLocalVar );
+            EmitByteCode( BiteVmOpCodes.OpDefineVar );
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
         }
         else
         {
-            EmitByteCode( BiteVmOpCodes.OpDeclareLocalVar );
+            EmitByteCode( BiteVmOpCodes.OpDeclareVar );
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
         }
 
@@ -437,7 +437,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         if ( node.IsVariableRedeclaration )
         {
             ByteCode byteCode = new ByteCode(
-                BiteVmOpCodes.OpSetLocalInstance,
+                BiteVmOpCodes.OpSetInstance,
                 moduleId,
                 d,
                 variableSymbol.InsertionOrderNumber,
@@ -452,7 +452,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         else
         {
             ByteCode byteCode = new ByteCode(
-                BiteVmOpCodes.OpDefineLocalInstance,
+                BiteVmOpCodes.OpDefineInstance,
                 moduleId2,
                 d2,
                 classSymbol.InsertionOrderNumber,
@@ -469,7 +469,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 if ( methodSymbol.IsConstructor && node.Arguments.Expressions.Count == methodSymbol.NumberOfParameters )
                 {
                     ByteCode byteCode = new ByteCode(
-                        BiteVmOpCodes.OpGetLocalVar,
+                        BiteVmOpCodes.OpGetVar,
                         moduleId,
                         d,
                         -1,
@@ -493,7 +493,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 if ( methodSymbol.IsConstructor && methodSymbol.NumberOfParameters == 0 )
                 {
                     ByteCode byteCode = new ByteCode(
-                        BiteVmOpCodes.OpGetLocalVar,
+                        BiteVmOpCodes.OpGetVar,
                         moduleId,
                         d,
                         -1,
@@ -554,8 +554,18 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             {
                 if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                 {
-                    BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetLocalVar );
-                    Compile( node.Primary );
+                    int d = 0;
+                    if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) != null )
+                    {
+                        BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
+                        Compile( node.Primary );
+                    }
+                    else
+                    {
+                        EmitByteCode( BiteVmOpCodes.OpSetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                    }
+                    
+                    
                 }
                 else
                 {
@@ -570,8 +580,16 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     }
                     else
                     {
-                        BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetLocalVar );
-                        Compile( node.Primary );
+                        if ( var != null )
+                        {
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
+                            Compile( node.Primary );
+                        }
+                        else
+                        {
+                            EmitByteCode( BiteVmOpCodes.OpGetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                        }
+                     
                     }
                 }
             }
@@ -1125,7 +1143,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         DynamicVariable variableSymbol = node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d ) as DynamicVariable;
 
         Compile( node.Expression );
-        EmitByteCode( BiteVmOpCodes.OpDefineLocalVar );
+        EmitByteCode( BiteVmOpCodes.OpDefineVar );
         EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
 
         return null;
