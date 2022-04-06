@@ -86,3 +86,13 @@ Der folgende Code erstellt ein dynamisches Array und füllt es mit Zeichenketten
 
 ![biteDynamic](https://user-images.githubusercontent.com/24946356/161903997-fe14fa25-9b80-4962-aeec-a977052b834a.PNG)
 
+
+Der folgende Code zeigt das C# Type Import System. Er zeigt, wie man ein C#-Objekt erstellt, indem man seinen Konstruktor aufruft und das Benutzen danach:
+
+![BiteFFI](https://user-images.githubusercontent.com/24946356/161910038-cfa41e5d-ecb6-4e75-a912-2a7517dfe967.PNG)
+
+
+
+Der folgende Code zeigt die entsprechende C#-Klasse, die für den obigen Typ Import verwendet wird. 
+
+![BiteFFICSharpClass](https://user-images.githubusercontent.com/24946356/161909903-f045b75f-734a-4de3-8203-d47644a8c8d4.PNG)
