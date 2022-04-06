@@ -2,7 +2,6 @@
 using Antlr4.Runtime.Tree;
 using AntlrBiteParser;
 using Bite.Ast;
-using Bite.Parser;
 
 namespace MemoizeSharp
 {
@@ -725,29 +724,25 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             classDeclarationNode.BlockStatement = ( BlockStatementNode ) VisitBlock( context.block() );
         }
 
-        Token accessToken = new Token();
-        Token abstractStaticMod = new Token();
+        string accessToken = null;
+        string abstractStaticMod = null;
 
         if ( context.publicModifier() != null )
         {
-            accessToken.text = "public";
-            accessToken.type = BiteLexer.DeclarePublic;
+            accessToken = "public";
         }
         else
         {
-            accessToken.text = "private";
-            accessToken.type = BiteLexer.DeclarePrivate;
+            accessToken = "private";
         }
 
         if ( context.abstractModifier() != null )
         {
-            abstractStaticMod.text = "abstract";
-            abstractStaticMod.type = BiteLexer.DeclareAbstract;
+            abstractStaticMod = "abstract";
         }
         else if ( context.staticModifier() != null )
         {
-            abstractStaticMod.text = "static";
-            abstractStaticMod.type = BiteLexer.DeclareStatic;
+            abstractStaticMod = "static";
         }
 
         ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
@@ -795,19 +790,18 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             classInstanceDeclarationNode.Arguments = ( ArgumentsNode ) VisitArguments( context.arguments() );
         }
 
-        Token accessToken = new Token();
-        Token abstractStaticMod = new Token();
+        string accessToken = null;
+        string abstractStaticMod = null;
 
         if ( context.publicModifier() != null )
         {
-            accessToken.text = "public";
-            accessToken.type = BiteLexer.DeclarePublic;
+            accessToken = "public";
         }
         else
         {
-            accessToken.text = "private";
-            accessToken.type = BiteLexer.DeclarePrivate;
+            accessToken = "private";
         }
+
 
         ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
         classInstanceDeclarationNode.Modifiers = Modifiers;
@@ -976,13 +970,9 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             variableDeclarationNode.Expression = ( ExpressionNode ) VisitExpression( context.expression() );
         }
 
-        Token accessToken = new Token();
-        Token abstractStaticMod = new Token();
+        string accessToken = "private";
 
-        accessToken.text = "private";
-        accessToken.type = BiteLexer.DeclarePrivate;
-
-        ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
+        ModifiersNode Modifiers = new ModifiersNode( accessToken, null );
         variableDeclarationNode.Modifiers = Modifiers;
 
         return variableDeclarationNode;
@@ -1095,29 +1085,25 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
             functionDeclarationNode.FunctionBlock = ( BlockStatementNode ) VisitBlock( context.block() );
         }
 
-        Token accessToken = new Token();
-        Token abstractStaticMod = new Token();
+        string accessToken;
+        string abstractStaticMod = null;
 
         if ( context.publicModifier() != null )
         {
-            accessToken.text = "public";
-            accessToken.type = BiteLexer.DeclarePublic;
+            accessToken = "public";
         }
         else
         {
-            accessToken.text = "private";
-            accessToken.type = BiteLexer.DeclarePrivate;
+            accessToken = "private";
         }
 
         if ( context.abstractModifier() != null )
         {
-            abstractStaticMod.text = "abstract";
-            abstractStaticMod.type = BiteLexer.DeclareAbstract;
+            abstractStaticMod = "abstract";
         }
         else if ( context.staticModifier() != null )
         {
-            abstractStaticMod.text = "static";
-            abstractStaticMod.type = BiteLexer.DeclareStatic;
+            abstractStaticMod = "static";
         }
 
         ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
@@ -1757,18 +1743,16 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
         structDeclarationNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
         structDeclarationNode.Block = ( BlockStatementNode ) VisitBlock( context.block() );
 
-        Token accessToken = new Token();
-        Token abstractStaticMod = new Token();
+        string accessToken;
+        string abstractStaticMod = null;
 
         if ( context.publicModifier() != null )
         {
-            accessToken.text = "public";
-            accessToken.type = BiteLexer.DeclarePublic;
+            accessToken = "public";
         }
         else
         {
-            accessToken.text = "private";
-            accessToken.type = BiteLexer.DeclarePrivate;
+            accessToken = "private";
         }
 
         ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
@@ -1898,18 +1882,16 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                 ( ExpressionStatementNode ) VisitExprStatement( context.exprStatement() );
         }
 
-        Token accessToken = new Token();
-        Token abstractStaticMod = new Token();
+        string accessToken;
+        string abstractStaticMod = null;
 
         if ( context.publicModifier() != null )
         {
-            accessToken.text = "public";
-            accessToken.type = BiteLexer.DeclarePublic;
+            accessToken = "public";
         }
         else
         {
-            accessToken.text = "private";
-            accessToken.type = BiteLexer.DeclarePrivate;
+            accessToken = "private";
         }
 
         ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );

@@ -24,19 +24,21 @@ internal class Program
                 {
 
                     BiteVm biteVm = new BiteVm();
-                    biteVm.InitVm(  );
+                    biteVm.InitVm();
 
 
                     var statements = Console.ReadLine();
 
                     BiteProgram program = null;
 
-                    Compiler compiler = new Compiler( true );
-                    program = compiler.Compile( "MainModule", new []{ "module MainModule; import System; using System;" } );
+                    BITECompiler compiler = new BITECompiler();
+
+                    program = compiler.Compile( "MainModule",
+                        new[] { "module MainModule; import System; using System;" } );
 
                     while ( statements != "exit" )
                     {
-                        compiler = new Compiler( true );
+                        compiler = new BITECompiler();
                         program = compiler.CompileStatements( statements, program );
                         BiteVmInterpretResult result = biteVm.Interpret( program, false );
                         statements = Console.ReadLine();
@@ -44,12 +46,12 @@ internal class Program
                 }
                 else
                 {
-                    IEnumerable<string> files = Directory.EnumerateFiles(
+                    IEnumerable < string > files = Directory.EnumerateFiles(
                         o.Path,
                         "*.bite",
                         SearchOption.AllDirectories );
 
-                    Compiler compiler = new Compiler( true );
+                    BITECompiler compiler = new BITECompiler();
 
                     BiteProgram program = compiler.Compile( o.MainModule, files.Select( File.ReadAllText ) );
 

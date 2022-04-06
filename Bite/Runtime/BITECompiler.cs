@@ -86,13 +86,13 @@ public class BITECompiler
         return generator.CompileExpression( expressionNode );
     }
 
-    public BiteProgram CompileStatements( string statements )
+    public BiteProgram CompileStatements( string statements, BiteProgram program = null )
     {
         var statementNodes = ParseStatements( statements );
 
         CodeGenerator generator = new CodeGenerator();
 
-        return generator.CompileStatements( statementNodes );
+        return generator.CompileStatements( statementNodes, program );
     }
 
     public BiteProgram Compile( IReadOnlyCollection < Module > modules )
