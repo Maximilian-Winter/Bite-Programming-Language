@@ -24,7 +24,7 @@ internal class Program
                 {
 
                     BiteVm biteVm = new BiteVm();
-                    biteVm.InitVm(  );
+                    biteVm.InitVm();
 
 
                     var statements = Console.ReadLine();
@@ -32,7 +32,9 @@ internal class Program
                     BiteProgram program = null;
 
                     BITECompiler compiler = new BITECompiler();
-                    program = compiler.Compile( "MainModule", new []{ "module MainModule; import System; using System;" } );
+
+                    program = compiler.Compile( "MainModule",
+                        new[] { "module MainModule; import System; using System;" } );
 
                     while ( statements != "exit" )
                     {
@@ -44,7 +46,7 @@ internal class Program
                 }
                 else
                 {
-                    IEnumerable<string> files = Directory.EnumerateFiles(
+                    IEnumerable < string > files = Directory.EnumerateFiles(
                         o.Path,
                         "*.bite",
                         SearchOption.AllDirectories );

@@ -61,6 +61,7 @@ public class BiteProgram
     public BiteResult Run()
     {
         BiteVm biteVm = new BiteVm();
+        biteVm.InitVm();
         BiteVmInterpretResult result = biteVm.Interpret( this );
 
         return new BiteResult { InterpretResult = result, ReturnValue = biteVm.ReturnValue };

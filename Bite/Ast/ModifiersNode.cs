@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Bite.Parser;
 
 namespace Bite.Ast
 {
@@ -18,11 +17,11 @@ public class ModifiersNode : HeteroAstNode
 
     #region Public
 
-    public ModifiersNode( Token accessMod, Token staticAbstractMod )
+    public ModifiersNode( string accessMod, string staticAbstractMod )
     {
         Modifiers = new List < ModifierTypes >();
 
-        if ( accessMod != null && accessMod.type == BiteLexer.DeclarePublic )
+        if ( accessMod != null && accessMod == "public" )
         {
             Modifiers.Add( ModifierTypes.DeclarePublic );
         }
@@ -31,11 +30,11 @@ public class ModifiersNode : HeteroAstNode
             Modifiers.Add( ModifierTypes.DeclarePrivate );
         }
 
-        if ( staticAbstractMod != null && staticAbstractMod.type == BiteLexer.DeclareStatic )
+        if ( staticAbstractMod != null && staticAbstractMod == "static")
         {
             Modifiers.Add( ModifierTypes.DeclareStatic );
         }
-        else if ( staticAbstractMod != null && staticAbstractMod.type == BiteLexer.DeclareAbstract )
+        else if ( staticAbstractMod != null && staticAbstractMod == "abstract" )
         {
             Modifiers.Add( ModifierTypes.DeclareAbstract );
         }

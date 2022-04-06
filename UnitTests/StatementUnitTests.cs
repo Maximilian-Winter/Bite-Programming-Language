@@ -158,9 +158,9 @@ public class StatementUnitTests
 
             var a = new TestClass(150);
             
-            a[0] = 10;
+            a[""x""] = 10;
 
-            a.53;";
+            a.x;";
 
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
@@ -181,7 +181,7 @@ public class StatementUnitTests
 
             var a = new TestClass(150);
             
-            a.""x"";";
+            a[""x""];";
 
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
