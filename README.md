@@ -1,5 +1,5 @@
 # Bite Programming Language
-[German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language)
+[German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/README_DE.md)
 
 
 
