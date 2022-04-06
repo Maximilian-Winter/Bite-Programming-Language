@@ -3,42 +3,33 @@ module MainModule;
 import System;
 using System;
 
-import CSharpSystem;
-using CSharpSystem;
-
-// Prime Number Example
-function FindPrimeNumber(n)
+function A()
 {
-    var count=0;
-    var a = 2;
-    while(count<n)
-    {
-        var b = 2;
-        var prime = 1;
-        while(b * b <= a )
-        {
-            if(a % b == 0)
-            {
-                prime = 0;
-                break;
-            }
-            b++;
-        }
-        if(prime > 0)
-        {
-            count++;
-        }
-        a++;
-    }
-    return (--a);
+    Print("Hello World! 1");
 }
 
-Print(FindPrimeNumber(2));
-Print(FindPrimeNumber(4));
-Print(FindPrimeNumber(8));
-Print(FindPrimeNumber(16));
-Print(FindPrimeNumber(32));
-Print(FindPrimeNumber(64));
+function B(n)
+{
+    Print("Hello World!" + n);
+}
+
+function C()
+{
+    Print("Hello World! 3");
+}
+
+// Dispatch
+
+var functionObj = new Object();
+
+functionObj["a"] = A;
+functionObj["b"] = B;
+functionObj["c"] = C;
+
+functionObj["a"]();
+functionObj["b"](5);
+functionObj["c"]();
+
 /*
 // C# Foreign Library Type Import System Example
 var testClassInterface = new CSharpInterface();

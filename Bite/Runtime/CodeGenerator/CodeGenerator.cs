@@ -546,7 +546,95 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             FunctionSymbol functionSymbol =
                 node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as FunctionSymbol;
 
-            EmitByteCode( BiteVmOpCodes.OpCallFunction, new ConstantValue( functionSymbol.QualifiedName ) );
+            if ( node.ElementAccess != null )
+            {
+                if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                {
+                    if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
+                    {
+                        int d2 = 0;
+                        if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2 ) != null )
+                        {
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
+                            Compile( node.Primary );
+                        }
+                        else
+                        {
+                            EmitByteCode( BiteVmOpCodes.OpSetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                        }
+                    
+                    
+                    }
+                    else
+                    {
+                        int d2 = 0;
+                        Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2 );
+
+                        if ( var is ModuleSymbol m )
+                        {
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetModule );
+                            AddToConstuctingByteCodeInstruction( m.InsertionOrderNumber );
+                            EndConstuctingByteCodeInstruction();
+                        }
+                        else
+                        {
+                            if ( var != null )
+                            {
+                                BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
+                                Compile( node.Primary );
+                            }
+                            else
+                            {
+                                EmitByteCode( BiteVmOpCodes.OpGetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                            }
+                     
+                        }
+                    }
+                }
+                else
+                {
+                    Compile( node.Primary );
+                }
+                if ( node.ElementAccess != null )
+                {
+                    foreach ( CallElementEntry callElementEntry in node.ElementAccess )
+                    {
+                        if ( callElementEntry.CallElementType == CallElementTypes.Call )
+                        {
+                            Compile( callElementEntry.Call );
+                        }
+                        else
+                        {
+                            EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
+                        }
+                    }
+
+                    if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
+                    {
+                        ByteCode byteCode = new ByteCode(
+                            BiteVmOpCodes.OpSetElement,
+                            node.ElementAccess.Count );
+
+                        EmitByteCode( byteCode );
+                    }
+                    else
+                    {
+                        ByteCode byteCode = new ByteCode(
+                            BiteVmOpCodes.OpGetElement,
+                            node.ElementAccess.Count );
+
+                        EmitByteCode( byteCode );
+                    }
+                }
+            }
+            if ( functionSymbol != null )
+            {
+                EmitByteCode( BiteVmOpCodes.OpCallFunction, new ConstantValue( functionSymbol.QualifiedName ) );
+            }
+            else
+            {
+                EmitByteCode( BiteVmOpCodes.OpCallFunction, new ConstantValue( node.Primary.PrimaryId.Id ) );
+            }
         }
         else
         {
@@ -597,39 +685,40 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             {
                 Compile( node.Primary );
             }
-        }
-
-        if ( node.ElementAccess != null )
-        {
-            foreach ( CallElementEntry callElementEntry in node.ElementAccess )
+            if ( node.ElementAccess != null )
             {
-                if ( callElementEntry.CallElementType == CallElementTypes.Call )
+                foreach ( CallElementEntry callElementEntry in node.ElementAccess )
                 {
-                    Compile( callElementEntry.Call );
+                    if ( callElementEntry.CallElementType == CallElementTypes.Call )
+                    {
+                        Compile( callElementEntry.Call );
+                    }
+                    else
+                    {
+                        EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
+                    }
+                }
+
+                if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
+                {
+                    ByteCode byteCode = new ByteCode(
+                        BiteVmOpCodes.OpSetElement,
+                        node.ElementAccess.Count );
+
+                    EmitByteCode( byteCode );
                 }
                 else
                 {
-                    EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
+                    ByteCode byteCode = new ByteCode(
+                        BiteVmOpCodes.OpGetElement,
+                        node.ElementAccess.Count );
+
+                    EmitByteCode( byteCode );
                 }
             }
-
-            if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
-            {
-                ByteCode byteCode = new ByteCode(
-                    BiteVmOpCodes.OpSetElement,
-                    node.ElementAccess.Count );
-
-                EmitByteCode( byteCode );
-            }
-            else
-            {
-                ByteCode byteCode = new ByteCode(
-                    BiteVmOpCodes.OpGetElement,
-                    node.ElementAccess.Count );
-
-                EmitByteCode( byteCode );
-            }
         }
+
+        
 
         if ( node.CallEntries != null )
         {

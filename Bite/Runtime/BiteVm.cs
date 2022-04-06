@@ -346,7 +346,7 @@ public class BiteVm
                     {
                         string method = ReadConstant().StringConstantValue;
                         DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
-
+                        
                         if ( call.ObjectData is BiteChunkWrapper function )
                         {
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
@@ -366,8 +366,7 @@ public class BiteVm
                             m_CurrentChunk = function.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                         }
-
-                        if ( call.ObjectData is IBiteVmCallable callable )
+                        else if ( call.ObjectData is IBiteVmCallable callable )
                         {
                             object returnVal = callable.Call( m_FunctionArguments );
 
@@ -376,8 +375,28 @@ public class BiteVm
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
                             }
                         }
+                        else if ( m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
+                        {
+                            m_VmStack.Pop();
+                            FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+                            callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                            callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                            callSpace.CallerChunk = m_CurrentChunk;
+                            callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                            callSpace.StackCountAtBegin = m_VmStack.Count;
+                            m_CurrentMemorySpace = callSpace;
+                            m_CallStack.Push( callSpace );
 
-                        break;
+                            for ( int i = 0; i < m_FunctionArguments.Count; i++ )
+                            {
+                                m_CurrentMemorySpace.Define( m_FunctionArguments[i] );
+                            }
+
+                            m_CurrentChunk = functionFromStack.ChunkToWrap;
+                            m_CurrentInstructionPointer = 0;
+                        }
+
+                            break;
                     }
 
                     case BiteVmOpCodes.OpCallMemberFunction:
