@@ -1,5 +1,8 @@
 # Bite Programming Language
-[German Readme|Deutsches Readme]https://github.com/Maximilian-Winter/Bite-Programming-Language
+[German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language)
+
+
+
 Bite is a dynamic programming language. 
 
 It uses Modules, Classes and Functions to separate the code.
