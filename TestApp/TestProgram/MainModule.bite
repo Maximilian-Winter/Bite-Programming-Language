@@ -3,20 +3,39 @@ module MainModule;
 import System;
 using System;
 
-// C# Foreign Library Type Import System Example
-var testClassInterface = new CSharpInterface();
-testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
+// Prime Number Example
+function FindPrimeNumber(n)
+{
+    var count=0;
+    var a = 2;
+    while(count<n)
+    {
+        var b = 2;
+        var prime = 1;
+        while(b * b <= a )
+        {
+            if(a % b == 0)
+            {
+                prime = 0;
+                break;
+            }
+            b++;
+        }
+        if(prime > 0)
+        {
+            count++;
+        }
+        a++;
+    }
+    return (--a);
+}
 
-testClassInterface.ConstructorArguments[0] = 42;
-testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
-
-
-var TestCSharp = CSharpInterfaceCall(testClassInterface);
-
-TestCSharp.PrintVar();
-PrintLine(TestCSharp.testfield.i);
-TestCSharp.testfield.i = 58;
-PrintLine(TestCSharp.testfield.i);
+PrintLine(FindPrimeNumber(2));
+PrintLine(FindPrimeNumber(4));
+PrintLine(FindPrimeNumber(8));
+PrintLine(FindPrimeNumber(16));
+PrintLine(FindPrimeNumber(32));
+PrintLine(FindPrimeNumber(64));
 
 
 
@@ -32,9 +51,9 @@ testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
 
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
-TestCSharp.PrintLineVar();
+TestCSharp.PrintVar();
 PrintLine(TestCSharp.testfield.i);
-TestCSharp.testfield.i = 42;
+TestCSharp.testfield.i = 58;
 PrintLine(TestCSharp.testfield.i);
 
 */

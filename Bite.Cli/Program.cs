@@ -31,12 +31,12 @@ internal class Program
 
                     BiteProgram program = null;
 
-                    Compiler compiler = new Compiler( true );
+                    BITECompiler compiler = new BITECompiler();
                     program = compiler.Compile( "MainModule", new []{ "module MainModule; import System; using System;" } );
 
                     while ( statements != "exit" )
                     {
-                        compiler = new Compiler( true );
+                        compiler = new BITECompiler();
                         program = compiler.CompileStatements( statements, program );
                         BiteVmInterpretResult result = biteVm.Interpret( program, false );
                         statements = Console.ReadLine();
@@ -49,7 +49,7 @@ internal class Program
                         "*.bite",
                         SearchOption.AllDirectories );
 
-                    Compiler compiler = new Compiler( true );
+                    BITECompiler compiler = new BITECompiler();
 
                     BiteProgram program = compiler.Compile( o.MainModule, files.Select( File.ReadAllText ) );
 
