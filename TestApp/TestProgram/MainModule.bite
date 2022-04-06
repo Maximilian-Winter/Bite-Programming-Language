@@ -51,9 +51,9 @@ testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
 
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
-TestCSharp.PrintLineVar();
+TestCSharp.PrintVar();
 PrintLine(TestCSharp.testfield.i);
-TestCSharp.testfield.i = 42;
+TestCSharp.testfield.i = 58;
 PrintLine(TestCSharp.testfield.i);
 
 */
