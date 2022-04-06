@@ -96,7 +96,8 @@ The following code will create a dynamic array and fill it with strings. Then it
 
 The following code shows the CSharp Type Import System. It shows how to create an C# Object by calling his constructor and the usement after it:
 
-![BiteFFI](https://user-images.githubusercontent.com/24946356/161909773-477113b6-f40b-4d4d-9949-e4323b1e37e8.PNG)
+![BiteFFI](https://user-images.githubusercontent.com/24946356/161910038-cfa41e5d-ecb6-4e75-a912-2a7517dfe967.PNG)
+
 
 
 The following code shows the corresponding C# Class used for type import above. 
