@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Bite.Cli.CommandLine;
@@ -19,16 +20,36 @@ internal class Program
         commandLine.Parse < Options >(
             o =>
             {
-                IEnumerable < string > files = Directory.EnumerateFiles(
-                    o.Path,
-                    "*.bite",
-                    SearchOption.AllDirectories );
+                if ( o.Interactive )
+                {
 
-                Compiler compiler = new Compiler( true );
+                    BiteVm biteVm = new BiteVm();
+                    biteVm.
+                    biteVm.InitVm(  );
 
-                BiteProgram program = compiler.Compile( o.MainModule, files.Select( File.ReadAllText ) );
+                    var statements = Console.ReadLine();
 
-                program.Run();
+                    while ( statements != "exit" )
+                    {
+                        Compiler compiler = new Compiler( true );
+                        BiteProgram program = compiler.CompileStatements( statements );
+                        BiteVmInterpretResult result = biteVm.Interpret( program, false );
+                        statements = Console.ReadLine();
+                    }
+                }
+                else
+                {
+                    IEnumerable<string> files = Directory.EnumerateFiles(
+                        o.Path,
+                        "*.bite",
+                        SearchOption.AllDirectories );
+
+                    Compiler compiler = new Compiler( true );
+
+                    BiteProgram program = compiler.Compile( o.MainModule, files.Select( File.ReadAllText ) );
+
+                    program.Run();
+                }
             } );
     }
 

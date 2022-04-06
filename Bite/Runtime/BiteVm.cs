@@ -85,6 +85,7 @@ public class BiteVm
         
         InitMemorySpaces(csharpInterfaceObjectBytecodeChunk);
     }
+
     public BiteVmInterpretResult Interpret( BiteProgram context, bool initVm = true )
     {
         m_CurrentChunk = context.CompiledMainChunk;
