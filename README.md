@@ -94,6 +94,16 @@ The following code will create a dynamic array and fill it with strings. Then it
 ![biteDynamic](https://user-images.githubusercontent.com/24946356/161903997-fe14fa25-9b80-4962-aeec-a977052b834a.PNG)
 
 
+The following code shows the C# Type Import System. It shows how to create an C# Object by calling his constructor and the use after it:
+
+![BiteFFI](https://user-images.githubusercontent.com/24946356/161910038-cfa41e5d-ecb6-4e75-a912-2a7517dfe967.PNG)
+
+
+
+The following code shows the corresponding C# Class used for type import above. 
+
+![BiteFFICSharpClass](https://user-images.githubusercontent.com/24946356/161909903-f045b75f-734a-4de3-8203-d47644a8c8d4.PNG)
+
 
 
 # Usage
