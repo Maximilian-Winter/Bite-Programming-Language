@@ -94,7 +94,7 @@ The following code will create a dynamic array and fill it with strings. Then it
 ![biteDynamic](https://user-images.githubusercontent.com/24946356/161903997-fe14fa25-9b80-4962-aeec-a977052b834a.PNG)
 
 
-The following code shows the CSharp Type Import System. It shows how to create an C# Object by calling his constructor and the usement after it:
+The following code shows the C# Type Import System. It shows how to create an C# Object by calling his constructor and the use after it:
 
 ![BiteFFI](https://user-images.githubusercontent.com/24946356/161910038-cfa41e5d-ecb6-4e75-a912-2a7517dfe967.PNG)
 
