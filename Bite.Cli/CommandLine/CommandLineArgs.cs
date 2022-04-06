@@ -59,6 +59,11 @@ public class CommandLineArgs
                                 throw new Exception( $"Unknown option {arg}" );
                             }
 
+                            if ( currentPropertyOption.Property.PropertyType == typeof( bool ) )
+                            {
+                                currentPropertyOption.Property.SetValue( options, true );
+                            }
+
                             state = ArgState.ReadValue;
                         }
                         else if ( arg.StartsWith( "--" ) )

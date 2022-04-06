@@ -145,6 +145,50 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void DynamicMemberAccess()
+    {
+        string statements = @"class TestClass
+            {
+                var x = 5;
+                function TestClass(n)
+                {
+                    x = n;
+                }
+            }
+
+            var a = new TestClass(150);
+            
+            a[0] = 10;
+
+            a.53;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void DynamicMemberGet()
+    {
+        string statements = @"class TestClass
+            {
+                var x = 5;
+                function TestClass(n)
+                {
+                    x = n;
+                }
+            }
+
+            var a = new TestClass(150);
+            
+            a.""x"";";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 150, result.ReturnValue.NumberData );
+    }
+
+        [Fact]
     public void ForEverLoopBreak()
     {
         BiteResult result = ExecStatements( "var i = 0; for (;;) { i++; if (i == 10) { break; } } i;" );
@@ -153,9 +197,9 @@ public class StatementUnitTests
     }
 
     [Fact]
-    public void ForEverInitLoopBreak()
+    public void ForInitLoopBreak()
     {
-        var result = ExecStatements( "for (var i = 0;;) { i++; if (i == 10) { break; } } i;" );
+        var result = ExecStatements( "var a = 0; for (var i = 0;;) { i++; a++; if (i == 10) { break; } } a;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( 10, result.ReturnValue.NumberData );
     }
@@ -191,7 +235,7 @@ public class StatementUnitTests
     {
         var result = ExecStatements( "var j = 0; for (var i = 0; i < 10; i++) { j++; i++; } j;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( 10, result.ReturnValue.NumberData );
+        Assert.Equal( 5, result.ReturnValue.NumberData );
     }
 
     [Fact]
@@ -212,6 +256,7 @@ public class StatementUnitTests
     [Fact]
     public void FunctionCallNoReturnShouldThrowErrorWhenAssigned()
     {
+        // Or assign null or undefined?
         BiteResult result = ExecStatements( "function foo(a) { a = a + 1; } var a = 1; a = foo(a);" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }

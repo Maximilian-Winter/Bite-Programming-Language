@@ -1,0 +1,32 @@
+
+[*]
+
+# Microsoft .NET properties
+csharp_space_after_cast = true
+csharp_space_between_method_call_parameter_list_parentheses = true
+csharp_space_between_method_declaration_parameter_list_parentheses = true
+
+# ReSharper properties
+resharper_align_multiline_calls_chain = true
+resharper_blank_lines_after_multiline_statements = 1
+resharper_blank_lines_around_single_line_auto_property = 1
+resharper_blank_lines_before_case = 1
+resharper_blank_lines_before_control_transfer_statements = 1
+resharper_blank_lines_before_multiline_statements = 1
+resharper_blank_lines_inside_namespace = 1
+resharper_csharp_indent_pars = outside
+resharper_csharp_space_within_parentheses = true
+resharper_csharp_wrap_arguments_style = chop_if_long
+resharper_indent_inside_namespace = false
+resharper_place_field_attribute_on_same_line = false
+resharper_space_before_type_argument_angle = true
+resharper_space_between_typecast_parentheses = true
+resharper_space_within_foreach_parentheses = true
+resharper_space_within_for_parentheses = true
+resharper_space_within_if_parentheses = true
+resharper_space_within_switch_parentheses = true
+resharper_space_within_typeof_parentheses = true
+resharper_space_within_type_argument_angles = true
+resharper_space_within_while_parentheses = true
+resharper_wrap_after_dot_in_method_calls = true
+resharper_wrap_chained_binary_expressions = chop_if_long

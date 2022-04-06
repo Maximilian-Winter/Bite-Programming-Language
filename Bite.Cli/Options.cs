@@ -1,4 +1,5 @@
-﻿using Bite.Cli.CommandLine;
+﻿using Bite.Ast;
+using Bite.Cli.CommandLine;
 
 namespace Bite.Cli
 {
@@ -13,6 +14,9 @@ public class Options
 
     [Option( 'i', "input", false, "<module1.bite> [module2.bite] ...", "A list of modules to be loaded" )]
     public string[] Modules { get; set; }
+
+    [Option( 'r', "repl", false, "", "Start bitevm in interactive mode (REPL)" )]
+    public bool Interactive { get; set; }
 }
 
 }

@@ -45,6 +45,14 @@ public class ModuleUnitTests
     }
 
     [Fact]
+    public void LoadSystemModule()
+    {
+        string mainModule = "module MainModule; import System;";
+        BiteResult result = ExecModules( "MainModule", new[] { mainModule } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+    }
+
+    [Fact]
     public void ReferenceStringsFromSubmodule()
     {
         string mainModule =
