@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITE.g4 by ANTLR 4.9.2
+// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITEParser.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -31,7 +31,7 @@ using IToken = Antlr4.Runtime.IToken;
 /// <typeparam name="Result">The return type of the visit operation.</typeparam>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.9.2")]
 [System.CLSCompliant(false)]
-public interface IBITEVisitor<Result> : IParseTreeVisitor<Result> {
+public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.program"/>.
 	/// </summary>
@@ -195,6 +195,12 @@ public interface IBITEVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAssignment([NotNull] BITEParser.AssignmentContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.lambdaExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLambdaExpression([NotNull] BITEParser.LambdaExpressionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.ternary"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -350,5 +356,17 @@ public interface IBITEVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitParametersIdentifier([NotNull] BITEParser.ParametersIdentifierContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.interpolatedString"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInterpolatedString([NotNull] BITEParser.InterpolatedStringContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.interpolatedStringContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInterpolatedStringContent([NotNull] BITEParser.InterpolatedStringContentContext context);
 }
 } // namespace AntlrBiteParser

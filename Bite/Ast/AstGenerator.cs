@@ -3,7 +3,7 @@
 namespace Bite.Ast
 {
 
-public class AstGenerator : BITEBaseVisitor < HeteroAstNode >
+public class AstGenerator : BITEParserBaseVisitor < HeteroAstNode >
 {
 }
 

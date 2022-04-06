@@ -6,7 +6,7 @@ using Bite.Ast;
 namespace MemoizeSharp
 {
 
-public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
+public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
 {
     private ProgramNode ProgramNode = new ProgramNode( "MainModule" );
 
@@ -1479,7 +1479,36 @@ public class HeteroAstGenerator : BITEBaseVisitor < HeteroAstNode >
                                                     1,
                                                     context.StringLiteral().Symbol.Text.Length - 2 );
         }
+        
+        if(context.interpolatedString() != null)
+        {
+            primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.InterpolatedString;
+            primaryNode.InterpolatedString = new InterpolatedString();
+            string lastText = "";
+            foreach ( BITEParser.InterpolatedStringContentContext stringContent in context.interpolatedString().interpolatedStringContent() )
+            {
+                ExpressionNode expressionNode = null;
 
+                if ( stringContent.expression() != null )
+                {
+                    expressionNode = ( ExpressionNode ) VisitExpression( stringContent.expression() );
+                    if ( expressionNode != null )
+                    {
+                        primaryNode.InterpolatedString.StringParts.Add( new InterpolatedStringPart(lastText, expressionNode) );
+                        lastText = "";
+                    }
+                }
+                
+                if ( stringContent.TEXT() != null )
+                {
+                    lastText = stringContent.TEXT().Symbol.Text;
+                }
+            }
+
+            primaryNode.InterpolatedString.TextAfterLastExpression = lastText;
+        }
+        
+        
         if ( context.Identifier() != null )
         {
             primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.Identifier;

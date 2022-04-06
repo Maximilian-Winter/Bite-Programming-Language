@@ -19,7 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace AntlrBiteParser {
+namespace AntlrBiteLexer {
 using System;
 using System.IO;
 using System.Text;
@@ -707,4 +707,4 @@ public partial class BITELexer : Lexer {
 
 
 }
-} // namespace AntlrBiteParser
+} // namespace AntlrBiteLexer
