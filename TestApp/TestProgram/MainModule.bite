@@ -10,7 +10,7 @@ function A()
 
 function B(n)
 {
-    Print("Hello World!" + n);
+    Print("Hello World! " + n);
 }
 
 function C()
