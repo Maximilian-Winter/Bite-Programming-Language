@@ -1,7 +1,7 @@
 # Bite Programming Language
 [German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/README_DE.md)
 
-
+[The following information and more can be find here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
 
 Bite is a dynamically typed programming language
 
@@ -198,4 +198,51 @@ For .NET Core to .NET 6.0, you need to specify an Assembly Qualified Name if the
 
 ```
 CSharpInterfaceObject.Type = "System.Console, System.Console";
+```
+
+The following code  shows how to create an C# Object by calling his constructor and the use after it:
+
+```
+var testClassInterface = new CSharpInterface();
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
+
+testClassInterface.ConstructorArguments[0] = 42;
+testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
+
+
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+TestCSharp.PrintVar();
+PrintLine(TestCSharp.testfield.i);
+TestCSharp.testfield.i = 58;
+PrintLine(TestCSharp.testfield.i);
+```
+
+The corresponding C# Classes:
+```C#
+public class Foo
+{
+    public int i = 5;
+}
+
+public class TestClassCSharp
+{
+    private readonly int i = 5;
+
+    public Foo testfield { get; set; } = new Foo();
+
+    #region Public
+
+    public TestClassCSharp( int n )
+    {
+        i = n;
+    }
+
+    public void PrintVar()
+    {
+        Console.WriteLine( i );
+    }
+
+    #endregion
+}
 ```
