@@ -18,7 +18,7 @@ Classes in Bite are an object-oriented way to separate Code into blueprints for 
 
 Bite kompiliert zu einem Bytecode, der auf einer virtuellen Maschine ausgeführt wird.
 
-Die referenz implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
+Die Referenz implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
 
 # Features
 
