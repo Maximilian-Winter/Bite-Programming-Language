@@ -32,15 +32,10 @@ ToDo:
 * Bessere Fehlermeldungen für Benutzer
 
 # Module
-Bite-Module kapseln Code, Klassen und Funktionen ähnlich wie Namespaces in C#. Sie können ein Modul in ein anderes importieren, um auf seine Deklarationen zuzugreifen.
-
-Module sind die grundlegende Basis eines Programms in Bite. Jedes Programm besteht aus mindestens einem Modul. Das so genannte Hauptmodul. Module werden wie folgt definiert:
+Module werden wie folgt definiert:
 ```
 module ModuleName;
 ```
-
-
-Module können Klassen, Funktionen und Code enthalten.
 
 Sie können andere Module mit dem Schlüsselwort "import" importieren, etwa so:
 ```
