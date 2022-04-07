@@ -67,11 +67,16 @@ Der Code des Hauptmoduls wird ausgeführt, nachdem der Code des importierten Mod
 ## Variablen
 Variablen in Bite sind dazu da, Daten zu speichern.
 Unterstützte Datentypen:
-zahlen
-string
-object 
-boolsch
-array
+
+Zahlen
+
+Zeichen
+
+Objekte
+
+Boolsche Werte
+
+Arrays
  
 Variablen werden wie folgt definiert:
 
