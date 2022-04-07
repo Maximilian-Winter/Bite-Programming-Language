@@ -266,7 +266,7 @@ The following command will compile the bite modules in `.\TestProgram` and start
   bitevm -p .\TestProgram
 ```
 
-Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method. The first argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(
@@ -276,7 +276,7 @@ Another way to get up and running is to use the Bite dll in C# to create an inst
 
         BITECompiler compiler = new BITECompiler();
 
-        BiteProgram program = compiler.Compile( "MainModule", files.Select(File.ReadAllText));
+        BiteProgram program = compiler.Compile( files.Select(File.ReadAllText));
 
         program.Run();
 ```
