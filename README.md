@@ -72,7 +72,7 @@ The main module code is executed after the imported module code is excecuted.
 
 # Example Code
 
-You can find the following Examples here:
+You can find the following Examples as Code here:
 
 [Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Example-Code)
 
