@@ -134,7 +134,7 @@ The easiest way to get up and running is to use the REPL(Read Evalue Print Loop)
 
 ```
 
-Another way to get up and running is to use the BiteDll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(
