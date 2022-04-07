@@ -15,36 +15,16 @@ internal class Program
 
     private static void Main( string[] args )
     {
+        Console.WriteLine( "Bite Programming Langauge v0.1 (c) 2022\r\n" );
         CommandLineArgs commandLine = new CommandLineArgs( args );
 
         commandLine.Parse < Options >(
             o =>
             {
-                if ( o.Interactive )
+                if ( o.Modules != null )
                 {
-
-                    BiteVm biteVm = new BiteVm();
-                    biteVm.InitVm();
-
-
-                    var statements = Console.ReadLine();
-
-                    BiteProgram program = null;
-
-                    BITECompiler compiler = new BITECompiler();
-
-                    program = compiler.Compile( "MainModule",
-                        new[] { "module MainModule; import System; using System;" } );
-
-                    while ( statements != "exit" )
-                    {
-                        compiler = new BITECompiler();
-                        program = compiler.CompileStatements( statements, program );
-                        BiteVmInterpretResult result = biteVm.Interpret( program, false );
-                        statements = Console.ReadLine();
-                    }
                 }
-                else
+                else if ( o.Path != null )
                 {
                     IEnumerable < string > files = Directory.EnumerateFiles(
                         o.Path,
@@ -53,9 +33,13 @@ internal class Program
 
                     BITECompiler compiler = new BITECompiler();
 
-                    BiteProgram program = compiler.Compile( o.MainModule, files.Select( File.ReadAllText ) );
+                    BiteProgram program = compiler.Compile( "MainModule", files.Select( File.ReadAllText ) );
 
                     program.Run();
+                }
+                else
+                {
+                    REPL.Start();
                 }
             } );
     }

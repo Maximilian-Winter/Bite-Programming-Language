@@ -2,8 +2,8 @@
   "profiles": {
     "Bite.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "-r",
-      "1-commandLineArgs": "-m MainModule -p .\\TestProgram"
+      "commandLineArgs": "",
+      "1-commandLineArgs": " -p .\\TestProgram"
     }
   }
 }
