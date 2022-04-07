@@ -28,6 +28,7 @@ ToDo:
 * Fertigstellung der Implementierung von statischen und abstrakten Modifikatoren
 * Mehr Tests
 * Bessere Fehlermeldungen für Benutzer
+# Syntax
 
 ## Module
 Module werden wie folgt definiert:
@@ -58,6 +59,79 @@ VariableName;        // ModuleName Variable
 ```
 
 Der Code des Hauptmoduls wird ausgeführt, nachdem der Code des importierten Moduls ausgeführt wurde.
+
+## Variablen
+Variablen in Bite sind dazu da, Daten zu speichern.
+Unterstützte Datentypen:
+zahlen
+string
+object 
+boolsch
+array
+ 
+Variablen werden wie folgt definiert:
+
+```
+var a = 42; // numeric data
+a = "Hello World!"; // now 'a' is a variable that holds string data
+a = new TestClass(); // now 'a' is a variable that holds object data from type TestClass
+
+var b = new TestClass() // created a new variable of type TestClass
+```
+
+## Functions
+
+Funktionen in Bite können Objekte aus Klassen erzeugen, Funktionen aufrufen, auf Objekte zugreifen und Werte zurückgeben. 
+
+Sie sind wie folgt definiert:
+```
+function FunctionName()
+{
+
+}
+```
+
+Sie können Parameter und Rückgabewerte hinzufügen, wie zum Beispiel:
+```
+function FunctionName(parameterOne, parameterTwo)
+{
+  return parameterOne * parameterTwo;
+}
+```
+
+
+## Klassen
+
+Klassen in Bite sind eine objektorientierte Methode, um Code in Entwürfe für Objekte und Datenstrukturen zu unterteilen. Klassen können Objekte, andere Variablen und Funktionen enthalten. Klassen können durch Vererbung Mitglieder von anderen Klassen übernehmen. Funktionen in Klassen und Funktionen im Allgemeinen können auch Objekte aus Klassen erzeugen, Funktionen aufrufen und auf Objekte zugreifen. 
+
+Klassen werden wie folgt definiert:
+```
+class ClassName
+{
+
+}
+```
+
+Sie können die Mitglieder anderer Klassen erben, etwa so:
+```
+class ClassName : OtherClassOne, OtherClassTwo
+{
+
+}
+```
+
+Sie können Mitglieder wie Variablen und Funktionen zu einer Klasse hinzufügen, etwa so:
+```
+class ClassName
+{
+  var MemberOne = 5;
+  function MethodOne(t)
+  {
+     return MemberOne * t;
+  }
+}
+```
+
 
 
 # Beispiel Code
