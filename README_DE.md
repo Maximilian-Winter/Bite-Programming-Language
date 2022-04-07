@@ -242,10 +242,10 @@ Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verw
 
 Der einfachste Weg, eine Skriptdatei auszuführen, ist die Verwendung der Bite CLI.
 
-Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung aus dem Modul `MainModule`.
+Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung.
 
 ```
-  bitevm -m MainModule -p .\TestProgram
+  bitevm -p .\TestProgram
 ```
 
 Ein anderer Weg, um loszulegen, besteht darin in C# mit der Bite Dll, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
@@ -258,14 +258,14 @@ Ein anderer Weg, um loszulegen, besteht darin in C# mit der Bite Dll, eine Insta
 
         BITECompiler compiler = new BITECompiler();
 
-        BiteProgram program = compiler.Compile( "MainModule", files.Select(File.ReadAllText));
+        BiteProgram program = compiler.Compile( files.Select(File.ReadAllText));
 
         program.Run();
 ```
 
 # CLI
 
-Das Projekt `Bite.Cli` gibt eine ausführbare Datei `bitevm.exe` aus, die eine Reihe von Dateien am angegebenen Ort kompiliert und ausführt oder eine interaktive REPL-Sitzung startet.
+Das Projekt `Bite.Cli` gibt eine ausführbare Datei `bitevm.exe` aus, die eine Reihe von Dateien am angegebenen Ort kompiliert und ausführt oder eine interaktive REPL-Sitzung startet, wenn man ohne optionen startet.
 
 ```
 USAGE:
@@ -274,16 +274,13 @@ USAGE:
 
 OPTIONS:
 
-  -m  (--main)  : The entry point of the program
   -p  (--path)  : The path containing the modules to be loaded
   -i  (--input) : A list of modules to be loaded
-  -r  (--repl)  : Start bitevm in interactive mode (REPL)
-
 ```
 
-Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung mit dem Modul `MainModule`.
+Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung.
 ```
-  bitevm -m MainModule -p .\TestProgram
+  bitevm -p .\TestProgram
 ```
 
 # Importieren und Verwenden von C#-Typen und -Objekten.
