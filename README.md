@@ -224,15 +224,26 @@ public class TestClassCSharp
 
 
 # Usage
-The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe without commandline options. Now you can input your code line wise into the REPL. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
+The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe without commandline options. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
 
 ```
-   var a = 5;     // Enter
-   Print(a);      // Enter
-   5              // Output
+     Bite Programming Langauge v0.1 (c) 2022
+
+     Bite REPL(Read Evaluate Print Loop)
+     
+     type 'declare' to declare functions, structs and classes
+     type 'reset' to reset the module
+     type 'help' for help.
+     type 'exit' or ^Z to quit. type 'help' for help.
+     > var a = 5;
+     > var b = 42;
+     > PrintLine(5 + 42);
+     47
+     >
 
 ```
-The easiest way to run a script file, is the use of the Bite CLI
+The easiest way to run a script file, is the use of the Bite CLI.
+
 The following command will compile the bite modules in `.\TestProgram` and start execution from the `MainModule` module.
 
 ```
