@@ -37,7 +37,6 @@ ToDo:
 * Finish implementation of static and abstract modifiers
 * More Testing
 * Better Error Messages for Users
-* Switch back to antlr based parser 
 
 # Modules
 Modules are defined like this:
