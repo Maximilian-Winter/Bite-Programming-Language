@@ -16,6 +16,17 @@ Bite kompiliert zu einem Bytecode, der auf einer virtuellen Maschine ausgeführt
 Die Referenz Implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
 
 
+
+# Features
+
+* Modulsystem
+* Dynamisch typisiert
+* Importieren und Verwenden von C#-Typen und -Objekten
+* Unterstützt .NET Framework 4.x und .NET Core 3.1 bis .NET 6.0 (netstandard2.0)
+* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
+
+
+
 # Syntax
 
 ## Module
@@ -125,14 +136,6 @@ class ClassName
 }
 ```
 
-
-# Features
-
-* Modulsystem
-* Dynamisch typisiert
-* Importieren und Verwenden von C#-Typen und -Objekten
-* Unterstützt .NET Framework 4.x und .NET Core 3.1 bis .NET 6.0 (netstandard2.0)
-* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
 
 
