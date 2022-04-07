@@ -174,12 +174,22 @@ Der folgende Code zeigt die entsprechende C#-Klasse, die für den obigen Typ Imp
 
 
 # Benutzung
-Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verwenden. Starten Sie einfach die bitevm.exe mit der Option `-r`. Nun können Sie Ihren Code zeilenweise in die REPL eingeben. Ein Hauptmodul ist bereits für Sie erstellt! Sie können also mit dem eigentlichen Code beginnen. Sie können die REPL-Sitzung durch Eingabe von `exit` beenden.
+Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verwenden. Starten Sie einfach die bitevm.exe ohne commandline optionen. Ein Hauptmodul ist bereits für Sie erstellt! Sie können also direk mit dem eigentlichen Code beginnen. Sie können die REPL-Sitzung durch Eingabe von `exit` beenden.
 
 ```
-   var a = 5;     // Enter
-   Print(a);      // Enter
-   5              // Output
+     Bite Programming Langauge v0.1 (c) 2022
+
+     Bite REPL(Read Evaluate Print Loop)
+     
+     type 'declare' to declare functions, structs and classes
+     type 'reset' to reset the module
+     type 'help' for help.
+     type 'exit' or ^Z to quit. type 'help' for help.
+     > var a = 5;
+     > var b = 42;
+     > PrintLine(5 + 42);
+     47
+     >
 
 ```
 
