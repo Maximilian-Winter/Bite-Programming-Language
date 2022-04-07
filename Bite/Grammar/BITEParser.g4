@@ -285,7 +285,6 @@ primary
     | OpeningRoundBracket expression ClosingRoundBracket
     | Identifier 
     | StringLiteral
-    | StringLiteral
     | interpolatedString
     ;
 
