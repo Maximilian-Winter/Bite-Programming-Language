@@ -1,7 +1,7 @@
 # Bite Programming Language
 [German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/README_DE.md)
 
-[The following information and more can be find here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
+[The following information and more can be found here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
 
 Bite is a dynamically typed programming language
 
