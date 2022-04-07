@@ -279,7 +279,6 @@ OPTIONS:
   -m  (--main)  : The entry point of the program
   -p  (--path)  : The path containing the modules to be loaded
   -i  (--input) : A list of modules to be loaded
-  -r  (--repl)  : Start bitevm in interactive mode (REPL)
 
 ```
 
