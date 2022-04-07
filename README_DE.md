@@ -1,9 +1,17 @@
 # Bite Programmiersprache
-Bite ist eine dynamische Programmiersprache. 
+Bite ist eine dynamisch typisierte Programmiersprache
 
-Sie verwendet Module, Klassen und Funktionen, um den Code zu trennen.
+Bite verwendet Module, Klassen und Funktionen, um den Code zu trennen.
 
-Meine Idee war es, eine dynamisch interpretierte Sprache in C# zu haben, um Modding-Funktionalität und einfaches Patching für die Unity Game Engine zu unterstützen.
+Module sind die grundlegende Basis eines Programms in Bite. Jedes Programm besteht aus mindestens einem Modul. 
+
+Der Code auf der Modulebene kann Funktionen, Klassen, Objekte und andere Variablen enthalten. Er kann auch Objekte aus Klassen erzeugen, Funktionen aufrufen und auf Objekte zugreifen. 
+Dies ist der Ort, an dem das eigentliche Bite-Programm geschrieben wird.
+Sie können ein Modul in ein anderes importieren, um auf seine Deklarationen zuzugreifen.
+
+Der Code auf der Modulebene wird in der Reihenfolge der Abhängigkeiten ausgeführt. 
+
+Klassen in Bite sind ein objektorientierter Weg, um den Code in Entwürfe für Objekte und Datenstrukturen zu unterteilen. Klassen können Objekte, andere Variablen und Funktionen enthalten. Diese Funktionen und Funktionen im Allgemeinen können auch Objekte aus Klassen erzeugen, Funktionen aufrufen und auf Objekte zugreifen. 
 
 # Features
 
