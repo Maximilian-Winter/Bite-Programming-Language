@@ -84,9 +84,9 @@ You can find the following Examples here:
 [Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite)
 
 
-The following code will calculate the first 36 fibonacci numbers 1000 times and print the 36-th fibonacci number:
+The following code will calculate the first 49 fibonacci numbers and print them on the console:
 
-![BiteFibo](https://user-images.githubusercontent.com/24946356/161903954-3d85e17d-34ef-4e60-aac6-f8a0fad8380d.PNG)
+![BiteFibo](https://user-images.githubusercontent.com/24946356/162203003-13b87476-4d38-4187-9b76-fbdcc2ae5c6a.PNG)
 
 
 
