@@ -170,20 +170,65 @@ Der folgende Code zeigt das C# Type Import System. Er zeigt, wie man ein C#-Obje
 
 Der folgende Code zeigt die entsprechende C#-Klasse, die für den obigen Typ Import verwendet wird. 
 
-![BiteFFICSharpClass](https://user-images.githubusercontent.com/24946356/161909903-f045b75f-734a-4de3-8203-d47644a8c8d4.PNG)
+```C#
+public class Foo
+{
+    public int i = 5;
+}
+
+public class TestClassCSharp
+{
+    private readonly int i = 5;
+
+    public Foo testfield { get; set; } = new Foo();
+
+    #region Public
+
+    public TestClassCSharp( int n )
+    {
+        i = n;
+    }
+
+    public void PrintVar()
+    {
+        Console.WriteLine( i );
+    }
+
+    #endregion
+}
+```
+
 
 
 # Benutzung
-Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verwenden. Starten Sie einfach die bitevm.exe mit der Option `-r`. Nun können Sie Ihren Code zeilenweise in die REPL eingeben. Ein Hauptmodul ist bereits für Sie erstellt! Sie können also mit dem eigentlichen Code beginnen. Sie können die REPL-Sitzung durch Eingabe von `exit` beenden.
+Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verwenden. Starten Sie einfach die bitevm.exe ohne commandline optionen. Ein Hauptmodul ist bereits für Sie erstellt! Sie können also direk mit dem eigentlichen Code beginnen. Sie können die REPL-Sitzung durch Eingabe von `exit` beenden.
 
 ```
-   var a = 5;     // Enter
-   Print(a);      // Enter
-   5              // Output
+     Bite Programming Langauge v0.1 (c) 2022
+
+     Bite REPL(Read Evaluate Print Loop)
+     
+     type 'declare' to declare functions, structs and classes
+     type 'reset' to reset the module
+     type 'help' for help.
+     type 'exit' or ^Z to quit. type 'help' for help.
+     > var a = 5;
+     > var b = 42;
+     > PrintLine(5 + 42);
+     47
+     >
 
 ```
 
-Ein anderer Weg, um loszulegen, besteht darin, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
+Der einfachste Weg, eine Skriptdatei auszuführen, ist die Verwendung der Bite CLI.
+
+Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung aus dem Modul `MainModule`.
+
+```
+  bitevm -m MainModule -p .\TestProgram
+```
+
+Ein anderer Weg, um loszulegen, besteht darin in C# mit der Bite Dll, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(

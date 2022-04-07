@@ -182,6 +182,16 @@ The following code show the use of classes, constructors and inheritance:
 
 
 
+The following code will create a function, that returns a function and call that function afterwards:
+
+![BiteFuncAsReturn](https://user-images.githubusercontent.com/24946356/162301361-dc4e0d2b-8d1a-450a-ac9f-ddf94d666230.PNG)
+
+
+
+
+## The following code will pass a function, to a function and call that passed function:
+
+![BiteFuncAsArg](https://user-images.githubusercontent.com/24946356/162301881-122c8cc9-dc18-4fcf-9102-65412efc6820.PNG)
 
 
 
@@ -224,13 +234,30 @@ public class TestClassCSharp
 
 
 # Usage
-The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe with the `-r` option. Now you can input your code line wise into the REPL. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
+The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe without commandline options. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
 
 ```
-   var a = 5;     // Enter
-   Print(a);      // Enter
-   5              // Output
+     Bite Programming Langauge v0.1 (c) 2022
 
+     Bite REPL(Read Evaluate Print Loop)
+     
+     type 'declare' to declare functions, structs and classes
+     type 'reset' to reset the module
+     type 'help' for help.
+     type 'exit' or ^Z to quit. type 'help' for help.
+     > var a = 5;
+     > var b = 42;
+     > PrintLine(5 + 42);
+     47
+     >
+
+```
+The easiest way to run a script file, is the use of the Bite CLI.
+
+The following command will compile the bite modules in `.\TestProgram` and start execution from the `MainModule` module.
+
+```
+  bitevm -m MainModule -p .\TestProgram
 ```
 
 Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
@@ -250,7 +277,7 @@ Another way to get up and running is to use the Bite dll in C# to create an inst
 
 # CLI
 
-The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session.
+The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session, when given no commandline options.
 
 ```
 USAGE:
@@ -262,7 +289,6 @@ OPTIONS:
   -m  (--main)  : The entry point of the program
   -p  (--path)  : The path containing the modules to be loaded
   -i  (--input) : A list of modules to be loaded
-  -r  (--repl)  : Start bitevm in interactive mode (REPL)
 
 ```
 
