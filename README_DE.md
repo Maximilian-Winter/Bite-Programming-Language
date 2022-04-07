@@ -11,6 +11,10 @@ Sie können ein Modul in ein anderes importieren, um auf seine Deklarationen zuz
 
 Klassen in Bite sind ein objektorientierter Weg, um Code in Entwürfe für Objekte und Datenstrukturen zu unterteilen. Klassen können Objekte, andere Variablen und Funktionen enthalten. Klassen können durch Vererbung Mitglieder von anderen Klassen übernehmen. Funktionen in Klassen und Funktionen im Allgemeinen können auch Objekte aus Klassen erstellen, Funktionen aufrufen und auf Objekte zugreifen. 
 
+Bite kompiliert zu einem Bytecode, der auf einer virtuellen Maschine ausgeführt wird.
+
+Die Referenz Implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
+
 # Features
 
 * Modulsystem
