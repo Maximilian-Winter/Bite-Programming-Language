@@ -23,6 +23,7 @@ The reference virtual machine, BiteVM, is a stack-based virtual machine written 
 
 * Module system
 * Dynamically typed
+* Functions are first class citizens and can you can pass functions as arguments and return them(Higher Order Functions)
 * Importing  and using C# Types and Objects
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
 * [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
