@@ -33,7 +33,7 @@ internal class Program
 
                     BITECompiler compiler = new BITECompiler();
 
-                    BiteProgram program = compiler.Compile( "MainModule", files.Select( File.ReadAllText ) );
+                    BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
 
                     program.Run();
                 }

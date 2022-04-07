@@ -24,7 +24,7 @@ public class Program
 
         BITECompiler compiler = new BITECompiler();
 
-        BiteProgram program = compiler.Compile( "MainModule", files.Select(File.ReadAllText));
+        BiteProgram program = compiler.Compile(files.Select(File.ReadAllText));
 
         int k = 1;
         long elapsedMillisecondsAccu = 0;

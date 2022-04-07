@@ -25,7 +25,7 @@ public class Benchmarks
         {
             string name = Path.GetFileNameWithoutExtension( file );
             BITECompiler compiler = new BITECompiler();
-            programs.Add( name, compiler.Compile( "MainModule", new[] { File.ReadAllText( file ) } ) );
+            programs.Add( name, compiler.Compile(  new[] { File.ReadAllText( file ) } ) );
         }
     }
 

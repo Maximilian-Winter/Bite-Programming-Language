@@ -8,15 +8,15 @@ namespace MemoizeSharp
 
 public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
 {
-    private ProgramNode ProgramNode = new ProgramNode( "MainModule" );
+    private ProgramNode ProgramNode = new ProgramNode();
 
     private bool m_IsLookingForAssingPart = false;
 
     #region Public
 
-    public ProgramNode CreateAst( BITEParser.ProgramContext programContext, string mainModule )
+    public ProgramNode CreateAst( BITEParser.ProgramContext programContext )
     {
-        ProgramNode = new ProgramNode( mainModule );
+        ProgramNode = new ProgramNode();
 
         return ( ProgramNode ) VisitProgram( programContext );
     }

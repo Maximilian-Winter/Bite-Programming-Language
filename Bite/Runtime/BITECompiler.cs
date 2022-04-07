@@ -12,9 +12,9 @@ namespace Bite.Runtime
 
 public class BITECompiler
 {
-    private ProgramNode ParseModules( string mainModule, IEnumerable < string > modules )
+    private ProgramNode ParseModules( IEnumerable < string > modules )
     {
-        ProgramNode program = new ProgramNode( mainModule );
+        ProgramNode program = new ProgramNode();
 
         foreach ( string biteModule in modules )
         {
@@ -62,9 +62,9 @@ public class BITECompiler
         return declarations.Statements;
     }
 
-    public BiteProgram Compile( string mainModule, IEnumerable < string > modules )
+    public BiteProgram Compile( IEnumerable < string > modules )
     {
-        ProgramNode program = new ProgramNode( mainModule );
+        ProgramNode program = new ProgramNode();
 
         foreach ( string biteModule in modules )
         {
@@ -116,7 +116,7 @@ public class BITECompiler
             moduleStrings.Add( moduleBuilder.ToString() );
         }
 
-        var program = ParseModules( modules.Single( m => m.MainModule ).Name, moduleStrings );
+        var program = ParseModules( moduleStrings );
 
         CodeGenerator generator = new CodeGenerator();
 

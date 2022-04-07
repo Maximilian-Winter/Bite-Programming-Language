@@ -54,15 +54,12 @@ public class ProgramNode : HeteroAstNode
 {
     private readonly Dictionary < string, ModuleNode > m_ModuleNodes;
 
-    public string MainModule { get; }
-
     public IEnumerable < ModuleNode > ModuleNodes => m_ModuleNodes.Values;
 
     #region Public
 
-    public ProgramNode( string mainModule )
+    public ProgramNode()
     {
-        MainModule = mainModule;
         m_ModuleNodes = new Dictionary < string, ModuleNode >();
     }
 
@@ -83,11 +80,6 @@ public class ProgramNode : HeteroAstNode
         {
             m_ModuleNodes[moduleKey].AddStatements( module.Statements );
         }
-    }
-
-    public ModuleNode GetMainModule()
-    {
-        return m_ModuleNodes.Values.FirstOrDefault( m => m.ModuleIdent.ModuleId.Id == MainModule );
     }
 
     public IEnumerable < ModuleNode > GetModulesInDepedencyOrder()

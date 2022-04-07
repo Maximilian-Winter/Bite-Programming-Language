@@ -10,6 +10,7 @@ public class REPL
 
     public static void Start()
     {
+        Console.WriteLine( "Bite REPL(Read Evaluate Print Loop)\r\n" );
         Console.WriteLine( "type 'declare' to declare functions, structs and classes" );
         Console.WriteLine( "type 'reset' to reset the module" );
         Console.WriteLine( "type 'help' for help." );
@@ -21,7 +22,7 @@ public class REPL
 
         BITECompiler compiler = new BITECompiler();
 
-        program = compiler.Compile( "MainModule", new[] { "module MainModule; import System; using System;" } );
+        program = compiler.Compile( new[] { "module MainModule; import System; using System;" } );
 
         bool running = true;
         bool declaring = false;
@@ -78,7 +79,7 @@ public class REPL
                     }
                     else if ( resetting )
                     {
-                        program = compiler.Compile( "MainModule",
+                        program = compiler.Compile( 
                             new[] { "module MainModule; import System; using System;" } );
 
                         Console.Clear();

@@ -33,7 +33,7 @@ public class Program
 
         Stopwatch stopwatch = new();
         stopwatch.Start();
-        BiteProgram program = compiler.Compile( "MainModule", files.Select( File.ReadAllText ) );
+        BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
         stopwatch.Stop();
         Console.WriteLine( $"Parsing completed in {stopwatch.ElapsedMilliseconds}ms" );
 
@@ -120,7 +120,7 @@ Console.WriteLine(greeting);"
             SearchOption.AllDirectories );
 
         BITECompiler compiler = new();
-        BiteProgram program = compiler.Compile( "MainModule", files.Select( File.ReadAllText ) );
+        BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
         BiteResult vm = program.Run();
     }
     
