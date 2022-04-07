@@ -15,7 +15,8 @@ You can import one module into another to access its declarations.
 
 Code on the module level will be executed in dependency order. 
 
-Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. These functions and functions in general can also create objects from classes, call functions and access objects. 
+Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. Classes can inherit members of other classes through inheritance. Functions in classes and functions in general can also create objects from classes, call functions and access objects. 
+
 
 Bite compiles to a bytecode that is run on a virtual machine.
 
