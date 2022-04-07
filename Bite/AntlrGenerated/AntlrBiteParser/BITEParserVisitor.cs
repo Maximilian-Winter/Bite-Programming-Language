@@ -356,17 +356,5 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitParametersIdentifier([NotNull] BITEParser.ParametersIdentifierContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="BITEParser.interpolatedString"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInterpolatedString([NotNull] BITEParser.InterpolatedStringContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="BITEParser.interpolatedStringContent"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInterpolatedStringContent([NotNull] BITEParser.InterpolatedStringContentContext context);
 }
 } // namespace AntlrBiteParser

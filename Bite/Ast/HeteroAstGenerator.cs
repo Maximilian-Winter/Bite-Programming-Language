@@ -1480,7 +1480,7 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                                                     context.StringLiteral().Symbol.Text.Length - 2 );
         }
         
-        if(context.interpolatedString() != null)
+        /*if(context.interpolatedString() != null)
         {
             primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.InterpolatedString;
             primaryNode.InterpolatedString = new InterpolatedString();
@@ -1506,7 +1506,7 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
             }
 
             primaryNode.InterpolatedString.TextAfterLastExpression = lastText;
-        }
+        }*/
         
         
         if ( context.Identifier() != null )

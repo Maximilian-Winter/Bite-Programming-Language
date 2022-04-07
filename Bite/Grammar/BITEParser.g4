@@ -285,7 +285,7 @@ primary
     | OpeningRoundBracket expression ClosingRoundBracket
     | Identifier 
     | StringLiteral
-    | interpolatedString
+    //| interpolatedString
     ;
 
 privateModifier         : DeclarePrivate;
@@ -300,13 +300,14 @@ elementAccess           : (SquarebracketLeft elementIdentifier SquarebracketRigh
 elementIdentifier       : (IntegerLiteral|StringLiteral|call);   
 argumentExpression      : (ReferenceOperator)? expression;
 parametersIdentifier    : Identifier;
+/*
 interpolatedString      : DOLLAR_DQUOTE interpolatedStringContent* DQUOTE
                         ;
 
 interpolatedStringContent  : TEXT
                            | ESCAPE_SEQUENCE
                            | LPAR expression RPAR
-                           ;
+                           ;*/
 
 
 

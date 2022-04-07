@@ -136,7 +136,7 @@ WS  :   [ \r\t\u000C\n]+ -> skip;
 LINE_COMMENT: '//' ~[\r\n]* '\r'? '\n' -> skip;
 
 DQUOTE: '"';
-DOLLAR_DQUOTE: '$"' -> pushMode(IN_STRING);
+/*DOLLAR_DQUOTE: '$"' -> pushMode(IN_STRING);
 LPAR: '{' {
     nesting++;
     PushMode(DEFAULT_MODE);
@@ -157,7 +157,7 @@ LPAR_IN_String: '{' {
     PushMode(DEFAULT_MODE);
 };
 ESCAPE_SEQUENCE: '{' . ;
-DQUOTE_IN_STRING: '"' -> type(DQUOTE), popMode;
+DQUOTE_IN_STRING: '"' -> type(DQUOTE), popMode;*/
 	
 
 
