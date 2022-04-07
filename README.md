@@ -5,6 +5,8 @@
 
 Bite is a dynamically typed programming language
 
+Which means that the type of the content of a variable can change at any time.
+
 Bite uses Modules, Classes and Functions to separate the code.
 
 Modules are the basic foundation of a program in Bite. Each program consists of at least one module. 
