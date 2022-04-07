@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 
@@ -9,9 +7,11 @@ namespace Bite.Cli
 
 public class REPL
 {
+
     public static void Start()
     {
         Console.WriteLine( "type 'declare' to declare functions, structs and classes" );
+        Console.WriteLine( "type 'reset' to reset the module" );
         Console.WriteLine( "type 'help' for help." );
         Console.WriteLine( "type 'exit' or ^Z to quit. type 'help' for help." );
         BiteVm biteVm = new BiteVm();
@@ -25,92 +25,73 @@ public class REPL
 
         bool running = true;
         bool declaring = false;
+        bool resetting = false;
 
         while ( running )
         {
-            var buffering = true;
-            var buffer = new StringBuilder();
-
             if ( !declaring )
             {
                 Console.Write( "> " );
             }
 
-            while ( buffering )
-                if ( Console.KeyAvailable )
-                {
-                    var keyInfo = Console.ReadKey( true );
+            var buffer = Console.Buffer( !declaring, out bool ctrlZPressed );
 
-                    if ( keyInfo.Key == ConsoleKey.Z && ( keyInfo.Modifiers & ConsoleModifiers.Control ) != 0 )
-                    {
-                        if ( declaring )
-                        {
-                            Console.WriteLine( "-- DECLARE END --" );
-                            buffering = false;
-                            declaring = false;
-                            compiler = new BITECompiler();
-                            program = compiler.CompileStatements( buffer.ToString(), program );
-                            BiteVmInterpretResult result = biteVm.Interpret( program, false );
-                        }
-                        else
-                        {
-                            running = false;
-                            Console.Write( "^Z" );
-                        }
-                    }
-                    else if ( keyInfo.Key == ConsoleKey.Enter )
-                    {
-                        if ( declaring )
-                        {
-                            buffer.Append( "\r\n" );
-                        }
-                        else
-                        {
-                            buffering = false;
-                        }
 
-                        Console.Write( "\r\n" );
-                    }
-                    else if ( keyInfo.Key == ConsoleKey.Backspace )
-                    {
-                        if ( buffer.Length > 0 )
-                        {
-                            buffer.Remove( buffer.Length - 1, 1 );
-                            Console.Write( "\x8 \x8" );
-                        }
-                    }
-                    else
-                    {
-                        Console.Write( keyInfo.KeyChar );
-                        buffer.Append( keyInfo.KeyChar );
-                    }
-                }
+            if ( declaring && ctrlZPressed )
+            {
+                System.Console.WriteLine( "-- DECLARE END --" );
+                declaring = false;
+            }
+
 
             if ( !declaring )
             {
-                switch ( buffer.ToString().ToLower().Trim() )
+                var bufferString = buffer.ToString();
+
+                if ( bufferString.Length > 0 )
                 {
-                    case "exit":
-                        running = false;
+                    switch ( bufferString.Trim().ToLower() )
+                    {
+                        case "exit":
+                            running = false;
 
-                        break;
+                            break;
 
-                    case "declare":
-                        declaring = true;
-                        buffer.Clear();
+                        case "reset":
+                            resetting = true;
+
+                            break;
+
+                        case "declare":
+                            declaring = true;
+
+                            break;
+                    }
+
+                    if ( declaring )
+                    {
                         Console.WriteLine( "-- DECLARE START --" );
-                        Console.WriteLine( "You are now declaring. Press ^Z to stop and compile your declaration." );
 
-                        break;
+                        Console.WriteLine(
+                            "You are now declaring. Press ^Z to stop and compile your declaration." );
+
+                    }
+                    else if ( resetting )
+                    {
+                        program = compiler.Compile( "MainModule",
+                            new[] { "module MainModule; import System; using System;" } );
+
+                        Console.Clear();
+                        Console.WriteLine( "-- MODULE RESET --" );
+                        resetting = false;
+                    }
+                    else if ( running )
+                    {
+                        compiler = new BITECompiler();
+                        program = compiler.CompileStatements( bufferString, program );
+                        BiteVmInterpretResult result = biteVm.Interpret( program, false );
+                    }
                 }
-
-                if ( running && !declaring )
-                {
-                    compiler = new BITECompiler();
-                    program = compiler.CompileStatements( buffer.ToString(), program );
-                    BiteVmInterpretResult result = biteVm.Interpret( program, false );
-                }
-
             }
 
         }

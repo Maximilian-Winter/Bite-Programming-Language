@@ -23,6 +23,30 @@ public class ModuleUnitTests
     }
 
     [Fact]
+    public void LoadModuleDependencyBehavior()
+    {
+        string moduleA = "module ModuleA; import ModuleC; import ModuleB; var a = 1; ModuleB.foo()";
+        string moduleB = "module ModuleB; import ModuleD; ModuleD.d = 11; function foo() { return ModuleD.d; };";
+        string moduleC = "module ModuleC; import ModuleD; ModuleD.d = 13; function foo() { return ModuleD.d; };";
+        string moduleD = "module ModuleD; var d = 7;";
+        BiteResult result = ExecModules( "ModuleA", new[] { moduleA, moduleC, moduleB, moduleD } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 11, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void LoadModuleDependencyBehaviorInvariant()
+    {
+        string moduleA = "module ModuleA; import ModuleC; import ModuleB; var a = 1; ModuleB.foo()";
+        string moduleB = "module ModuleB; import ModuleD; ModuleD.d = 11; function foo() { return ModuleD.d; };";
+        string moduleC = "module ModuleC; import ModuleD; ModuleD.d = 13; function foo() { return ModuleD.d; };";
+        string moduleD = "module ModuleD; var d = 7;";
+        BiteResult result = ExecModules( "", new[] { moduleC, moduleA, moduleD, moduleB } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 11, result.ReturnValue.NumberData );
+    }
+
+        [Fact]
     public void LoadModulesInDependencyOrder()
     {
         string mainModule = "module MainModule; import SubModule; using SubModule; var a = SubModule.a; a;";
