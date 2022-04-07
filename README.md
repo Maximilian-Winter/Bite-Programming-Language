@@ -19,6 +19,14 @@ Bite compiles to a bytecode that is run on a virtual machine.
 
 The reference virtual machine, BiteVM, is a stack-based virtual machine written in C#.
 
+# Features
+
+* Module system
+* Dynamically typed
+* Functions are first class citizens and allow Higher Order Functions 
+* Importing  and using C# Types and Objects
+* Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
+* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
 
 # Syntax
@@ -125,14 +133,6 @@ class ClassName
 ```
 
 
-# Features
-
-* Module system
-* Dynamically typed
-* Functions are first class citizens and allow Higher Order Functions 
-* Importing  and using C# Types and Objects
-* Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
-* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
 # Overall Status
 Most of Language Features are implemented.
