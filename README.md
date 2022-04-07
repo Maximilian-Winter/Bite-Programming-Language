@@ -3,11 +3,23 @@
 
 
 
-Bite is a dynamic programming language. 
+Bite is a dynamically typed programming language
 
-It uses Modules, Classes and Functions to separate the code.
+Bite uses Modules, Classes and Functions to separate the code.
 
-My idea was it to have a dynamically interpreted language in C# to support modding functionality and easy patching for the Unity Game Engine.
+Modules are the basic foundation of a program in Bite. Each program consists of at least one module. 
+
+The code on the module level can contain functions, classes, objects and other variables. It can also create objects from classes, call functions and access objects. 
+This is the place where the actual Bite program is written.
+You can import one module into another to access its declarations.
+
+Code on the module level will be executed in dependency order. 
+
+Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. These functions and functions in general can also create objects from classes, call functions and access objects. 
+
+Bite compiles to a bytecode that is run on a virtual machine.
+
+The reference virtual machine, BiteVM, is a stack-based virtual machine written in C#.
 
 # Features
 
