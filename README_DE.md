@@ -83,7 +83,7 @@ a = new TestClass(); // now 'a' is a variable that holds object data from type T
 var b = new TestClass() // created a new variable of type TestClass
 ```
 
-## Functions
+## Funktionen
 
 Funktionen in Bite können Objekte aus Klassen erzeugen, Funktionen aufrufen, auf Objekte zugreifen und Werte zurückgeben. 
 
