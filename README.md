@@ -13,8 +13,6 @@ The code on the module level can contain functions, classes, objects and other v
 This is the place where the actual Bite program is written.
 You can import one module into another to access its declarations.
 
-Code on the module level will be executed in dependency order. 
-
 Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. Classes can inherit members of other classes through inheritance. Functions in classes and functions in general can also create objects from classes, call functions and access objects. 
 
 
