@@ -64,7 +64,7 @@ Der Code des Hauptmoduls wird ausgeführt, nachdem der Code des importierten Mod
 
 Die folgenden Beispiele finden Sie hier:
 
-[Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite)
+[Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Example-Code)
 
 
 Der folgende Code berechnet die ersten 50 Fibonacci-Zahlen und gibt sie auf der Konsole aus:
