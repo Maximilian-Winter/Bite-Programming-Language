@@ -126,6 +126,15 @@ class ClassName
 ```
 
 
+# Features
+
+* Modulsystem
+* Dynamisch typisiert
+* Importieren und Verwenden von C#-Typen und -Objekten
+* Unterstützt .NET Framework 4.x und .NET Core 3.1 bis .NET 6.0 (netstandard2.0)
+* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
+
+
 
 # Gesamt Status
 Die meisten Features sind implementiert.
@@ -137,16 +146,6 @@ ToDo:
 * Fertigstellung der Implementierung von statischen und abstrakten Modifikatoren
 * Mehr Tests
 * Bessere Fehlermeldungen für Benutzer
-
-
-# Features
-
-* Modulsystem
-* Dynamisch typisiert
-* Importieren und Verwenden von C#-Typen und -Objekten
-* Unterstützt .NET Framework 4.x und .NET Core 3.1 bis .NET 6.0 (netstandard2.0)
-* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
-
 
 
 
