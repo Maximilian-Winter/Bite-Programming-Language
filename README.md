@@ -42,15 +42,10 @@ ToDo:
 * Switch back to antlr based parser 
 
 # Modules
-Bite modules encapsulate code, classes and functions similar to namespaces in C#. You can import one module into another to access its declarations.
-
-Modules are the basic foundation of a program in Bite. Each program consist of at least one module. The so called main module. Modules are defined like this:
+Modules are defined like this:
 ```
 module ModuleName;
 ```
-
-
-Modules can contain classes, functions and code.
 
 You can import other modules through the "import" keyword, like this:
 ```
