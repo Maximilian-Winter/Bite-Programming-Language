@@ -15,23 +15,7 @@ Bite kompiliert zu einem Bytecode, der auf einer virtuellen Maschine ausgeführt
 
 Die Referenz Implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
 
-# Features
 
-* Modulsystem
-* Dynamisch typisiert
-* Importieren und Verwenden von C#-Typen und -Objekten
-* Unterstützt .NET Framework 4.x und .NET Core 3.1 bis .NET 6.0 (netstandard2.0)
-* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
-
-# Gesamt Status
-Die meisten Features sind implementiert.
-Muss noch in Unity integriert werden.
-
-ToDo:
-* Fertigstellung der Implementierung von privaten und öffentlichen Zugriffsmodifikatoren
-* Fertigstellung der Implementierung von statischen und abstrakten Modifikatoren
-* Mehr Tests
-* Bessere Fehlermeldungen für Benutzer
 # Syntax
 
 ## Module
@@ -141,8 +125,6 @@ class ClassName
 }
 ```
 
-
-
 # Beispiel Code
 
 Die folgenden Beispiele finden Sie hier:
@@ -207,6 +189,24 @@ public class TestClassCSharp
 }
 ```
 
+# Features
+
+* Modulsystem
+* Dynamisch typisiert
+* Importieren und Verwenden von C#-Typen und -Objekten
+* Unterstützt .NET Framework 4.x und .NET Core 3.1 bis .NET 6.0 (netstandard2.0)
+* [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
+
+# Gesamt Status
+Die meisten Features sind implementiert.
+
+Muss noch in Unity integriert werden.
+
+ToDo:
+* Fertigstellung der Implementierung von privaten und öffentlichen Zugriffsmodifikatoren
+* Fertigstellung der Implementierung von statischen und abstrakten Modifikatoren
+* Mehr Tests
+* Bessere Fehlermeldungen für Benutzer
 
 
 # Benutzung
