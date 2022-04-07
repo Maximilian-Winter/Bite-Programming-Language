@@ -84,7 +84,7 @@ You can find the following Examples here:
 [Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite)
 
 
-The following code will calculate the first 49 fibonacci numbers and print them on the console:
+The following code will calculate the first 50 fibonacci numbers and print them on the console:
 
 ![BiteFibo](https://user-images.githubusercontent.com/24946356/162203003-13b87476-4d38-4187-9b76-fbdcc2ae5c6a.PNG)
 
