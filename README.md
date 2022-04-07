@@ -267,7 +267,7 @@ Another way to get up and running is to use the Bite dll in C# to create an inst
 
 # CLI
 
-The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session.
+The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session, when given no commandline options.
 
 ```
 USAGE:
