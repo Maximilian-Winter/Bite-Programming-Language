@@ -5,7 +5,7 @@ Bite verwendet Module, Klassen und Funktionen, um den Code zu trennen.
 
 Module sind die grundlegende Basis eines Programms in Bite. Jedes Programm besteht aus mindestens einem Modul. 
 
-Der Code auf der Modulebene kann Funktionen, Klassen, Objekte und andere Variablen enthalten. Er kann auch Objekte aus Klassen erzeugen, Funktionen aufrufen und auf Objekte zugreifen. 
+Der Code auf der Modulebene kann Funktionen, Klassen, Objekte und andere Variablen enthalten. Er kann Objekte aus Klassen erzeugen, Funktionen aufrufen und auf Objekte zugreifen. 
 Dies ist der Ort, an dem das eigentliche Bite-Programm geschrieben wird.
 Sie können ein Modul in ein anderes importieren, um auf seine Deklarationen zuzugreifen.
 
