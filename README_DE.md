@@ -170,7 +170,34 @@ Der folgende Code zeigt das C# Type Import System. Er zeigt, wie man ein C#-Obje
 
 Der folgende Code zeigt die entsprechende C#-Klasse, die für den obigen Typ Import verwendet wird. 
 
-![BiteFFICSharpClass](https://user-images.githubusercontent.com/24946356/161909903-f045b75f-734a-4de3-8203-d47644a8c8d4.PNG)
+```C#
+public class Foo
+{
+    public int i = 5;
+}
+
+public class TestClassCSharp
+{
+    private readonly int i = 5;
+
+    public Foo testfield { get; set; } = new Foo();
+
+    #region Public
+
+    public TestClassCSharp( int n )
+    {
+        i = n;
+    }
+
+    public void PrintVar()
+    {
+        Console.WriteLine( i );
+    }
+
+    #endregion
+}
+```
+
 
 
 # Benutzung
@@ -193,7 +220,15 @@ Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verw
 
 ```
 
-Ein anderer Weg, um loszulegen, besteht darin, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
+Der einfachste Weg, eine Skriptdatei auszuführen, ist die Verwendung der Bite CLI.
+
+Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung aus dem Modul `MainModule`.
+
+```
+  bitevm -m MainModule -p .\TestProgram
+```
+
+Ein anderer Weg, um loszulegen, besteht darin in C#, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(
