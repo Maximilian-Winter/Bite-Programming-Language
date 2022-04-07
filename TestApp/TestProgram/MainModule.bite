@@ -4,7 +4,6 @@ import System;
 using System;
 
 // Fibonacci Example
-
 function FindFibonacciNumber(n)
 {
     var count= 2;
@@ -26,10 +25,15 @@ function FindFibonacciNumber(n)
     return c;
 }
 
-for(var i = 0; i < 50; i++)
+function FuncCall(n)
 {
-    PrintLine(FindFibonacciNumber(i));
+    for(var i = 0; i < 50; i++)
+    {
+        PrintLine(n(i));
+    }
 }
+
+FuncCall(FindFibonacciNumber);
 
 
 /*

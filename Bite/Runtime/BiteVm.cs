@@ -349,6 +349,19 @@ public class BiteVm
                         break;
                     }
 
+                    case BiteVmOpCodes.OpSetFunctionParameterName:
+                    {
+                        int numberOfParameter = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+                        m_CurrentInstructionPointer += 4;
+                        for ( int i = numberOfParameter; i > 0; i-- )
+                        {
+                            m_CurrentMemorySpace.SetNameOfVariable( i - 1, m_VmStack.Pop().StringData );
+                        }
+                        break;
+                    }
                     case BiteVmOpCodes.OpCallFunction:
                     {
                         string method = ReadConstant().StringConstantValue;
@@ -3172,7 +3185,6 @@ public class BiteVm
 
                         if ( currentStack.DynamicType < DynamicVariableType.True )
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( currentStack.NumberData ) );
                             currentStack.NumberData -= 1;
                         }
                         else
@@ -3189,7 +3201,6 @@ public class BiteVm
 
                         if ( currentStack.DynamicType < DynamicVariableType.True )
                         {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( currentStack.NumberData ) );
                             currentStack.NumberData += 1;
                         }
                         else

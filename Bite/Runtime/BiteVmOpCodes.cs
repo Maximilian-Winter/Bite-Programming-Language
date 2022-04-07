@@ -67,6 +67,7 @@ public enum BiteVmOpCodes : byte
     OpGetElement,
     OpSetElement,
     OpCallFunction,
+    OpSetFunctionParameterName,
     OpCallMemberFunction,
     OpGetMember,
     OpGetMemberWithString,

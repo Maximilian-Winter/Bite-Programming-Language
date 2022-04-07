@@ -23,7 +23,9 @@ public class ObjectPoolFastMemory
         FastMemorySpace fastMemorySpace = m_FastCallMemorySpaces[m_FastMemorySpacePointer];
         fastMemorySpace.Properties = Array.Empty < DynamicBiteVariable >();
         fastMemorySpace.NamesToProperties.Clear();
-
+        fastMemorySpace.CallerChunk = null;
+        fastMemorySpace.CallerIntructionPointer = 0;
+        fastMemorySpace.StackCountAtBegin = 0;
         if ( m_FastMemorySpacePointer >= 1023 )
         {
             throw new IndexOutOfRangeException( "Memory Pool Overflow" );

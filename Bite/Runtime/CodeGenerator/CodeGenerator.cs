@@ -382,13 +382,15 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             m_BiteProgram.SaveCurrentChunk( symbol.QualifiedName );
         }
 
-        /*if ( node.Parameters != null )
+        if ( node.Parameters != null &&  node.Parameters.Identifiers != null )
         {
             foreach ( Identifier parametersIdentifier in node.Parameters.Identifiers )
             {
-                EmitByteCode( BiteVmOpCodes.OpDefineLocalVar, parametersIdentifier.Id );
+                EmitConstant(  new ConstantValue(parametersIdentifier.Id) );
             }
-        }*/
+
+            EmitByteCode( BiteVmOpCodes.OpSetFunctionParameterName, node.Parameters.Identifiers.Count, 0 );
+        }
 
         if ( node.FunctionBlock != null )
         {

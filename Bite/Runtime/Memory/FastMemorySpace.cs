@@ -53,6 +53,11 @@ public class FastMemorySpace
         CurrentMemoryPointer++;
     }
 
+    public void SetNameOfVariable(int varIndex,  string name)
+    {
+        NamesToProperties.Add( name, Properties[varIndex] );
+    }
+
     public virtual void Define( DynamicBiteVariable value, string idStr, bool addToProperties = true )
     {
         if ( addToProperties )
