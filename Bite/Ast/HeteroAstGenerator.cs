@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using Antlr4.Runtime.Tree;
 using AntlrBiteParser;
 using Bite.Ast;
@@ -1465,13 +1466,13 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
         if ( context.IntegerLiteral() != null )
         {
             primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.IntegerLiteral;
-            primaryNode.IntegerLiteral = int.Parse( context.IntegerLiteral().Symbol.Text );
+            primaryNode.IntegerLiteral = int.Parse( context.IntegerLiteral().Symbol.Text, NumberFormatInfo.InvariantInfo );
         }
 
         if ( context.FloatingLiteral() != null )
         {
             primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.FloatLiteral;
-            primaryNode.FloatLiteral = double.Parse( context.FloatingLiteral().Symbol.Text );
+            primaryNode.FloatLiteral = double.Parse( context.FloatingLiteral().Symbol.Text, NumberFormatInfo.InvariantInfo );
         }
 
         if ( context.StringLiteral() != null )

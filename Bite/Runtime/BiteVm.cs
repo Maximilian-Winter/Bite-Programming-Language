@@ -1,4 +1,4 @@
-﻿//#define BITE_VM_DEBUG_TRACE_EXECUTION
+﻿#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -693,6 +693,9 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
 
+                        BiteVmOpCodes biteVmOpCode = ReadInstruction();
+                        string instanceName = ReadConstant().StringConstantValue;
+                        
                         if ( m_CurrentMemorySpace.Get( moduleIdClass, depthClass, -1, idClass ).ObjectData is
                             BiteChunkWrapper classWrapper )
                         {
@@ -721,6 +724,8 @@ public class BiteVm
                             m_CurrentInstructionPointer = 0;
 
                             m_CallStack.Push( classInstanceMemorySpace );
+                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( classInstanceMemorySpace ) );
+                            
                         }
 
                         break;
