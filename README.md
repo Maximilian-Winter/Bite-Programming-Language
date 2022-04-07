@@ -224,13 +224,19 @@ public class TestClassCSharp
 
 
 # Usage
-The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe with the `-r` option. Now you can input your code line wise into the REPL. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
+The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe without commandline options. Now you can input your code line wise into the REPL. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
 
 ```
    var a = 5;     // Enter
    Print(a);      // Enter
    5              // Output
 
+```
+The easiest way to run a script file, is the use of the Bite CLI
+The following command will compile the bite modules in `.\TestProgram` and start execution from the `MainModule` module.
+
+```
+  bitevm -m MainModule -p .\TestProgram
 ```
 
 Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
