@@ -1,7 +1,7 @@
 # Bite Programming Language
 [German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/README_DE.md)
 
-[The following information and more can be found here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
+[Most of the following information can also be found here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
 
 Bite is a dynamically typed programming language
 
@@ -15,10 +15,9 @@ You can import one module into another to access its declarations.
 
 Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. Classes can inherit members of other classes through inheritance. Functions in classes and functions in general can also create objects from classes, call functions and access objects. 
 
+Bite compiles to a bytecode that is run on a virtual machine.
 
-Bite kompiliert zu einem Bytecode, der auf einer virtuellen Maschine ausgeführt wird.
-
-Die Referenz implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
+The reference virtual machine, BiteVM, is a stack-based virtual machine written in C#.
 
 # Features
 
@@ -38,7 +37,8 @@ ToDo:
 * More Testing
 * Better Error Messages for Users
 
-# Modules
+# Syntax
+## Modules
 Modules are defined like this:
 ```
 module ModuleName;
@@ -66,7 +66,77 @@ FunctioName();       // ModuleName Function
 VariableName;        // ModuleName Variable
 ```
 
-The main module code is executed after the imported module code is excecuted.
+## Variables
+Variables in Bite are there to hold data.
+Supported data types:
+numeric
+string
+object 
+boolean
+array
+ 
+Variables are defined like this:
+
+```
+var a = 42; // numeric data
+a = "Hello World!"; // now 'a' is a variable that holds string data
+a = new TestClass(); // now 'a' is a variable that holds object data from type TestClass
+
+var b = new TestClass() // created a new variable of type TestClass
+```
+
+## Functions
+
+Functions in Bite can create objects from classes, call functions, access objects and return values. 
+
+They are defined, like that:
+```
+function FunctionName()
+{
+
+}
+```
+
+You can add parameters and return values, like that:
+```
+function FunctionName(parameterOne, parameterTwo)
+{
+  return parameterOne * parameterTwo;
+}
+```
+
+## Classes
+
+Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. Classes can inherit members of other classes through inheritance. Functions in classes and functions in general can also create objects from classes, call functions and access objects. 
+
+Classes are defined like this:
+```
+class ClassName
+{
+
+}
+```
+
+You can inherit the members of other classes, like this:
+```
+class ClassName : OtherClassOne, OtherClassTwo
+{
+
+}
+```
+
+You can add members like variables and functions to a class, like this:
+```
+class ClassName
+{
+  var MemberOne = 5;
+  function MethodOne(t)
+  {
+     return MemberOne * t;
+  }
+}
+```
+
 
 
 # Example Code
