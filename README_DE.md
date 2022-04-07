@@ -10,6 +10,7 @@ Dies ist der Ort, an dem das eigentliche Bite-Programm geschrieben wird.
 Sie können ein Modul in ein anderes importieren, um auf seine Deklarationen zuzugreifen.
 
 Der Code auf der Modulebene wird in der Reihenfolge der Abhängigkeiten ausgeführt. 
+
 Klassen in Bite sind ein objektorientierter Weg, um Code in Entwürfe für Objekte und Datenstrukturen zu unterteilen. Klassen können Objekte, andere Variablen und Funktionen enthalten. Klassen können durch Vererbung Mitglieder von anderen Klassen übernehmen. Funktionen in Klassen und Funktionen im Allgemeinen können auch Objekte aus Klassen erstellen, Funktionen aufrufen und auf Objekte zugreifen. 
 
 # Features
