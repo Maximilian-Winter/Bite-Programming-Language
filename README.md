@@ -132,7 +132,7 @@ The following code shows the corresponding C# Class used for type import above.
 
 
 # Usage
-The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe with the `-r` option. Now you can input your code line wise into the REPL. A main module is already created for you! So you can start with the actual code.
+The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe with the `-r` option. Now you can input your code line wise into the REPL. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
 
 ```
    var a = 5;     // Enter
