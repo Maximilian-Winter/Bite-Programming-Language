@@ -16,9 +16,9 @@ You can import one module into another to access its declarations.
 Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. Classes can inherit members of other classes through inheritance. Functions in classes and functions in general can also create objects from classes, call functions and access objects. 
 
 
-Bite compiles to a bytecode that is run on a virtual machine.
+Bite kompiliert zu einem Bytecode, der auf einer virtuellen Maschine ausgeführt wird.
 
-The reference virtual machine, BiteVM, is a stack-based virtual machine written in C#.
+Die referenz implementierung der virtuellen Maschine, BiteVM, ist eine stapelbasierte virtuelle Maschine, die in C# geschrieben wurde.
 
 # Features
 
