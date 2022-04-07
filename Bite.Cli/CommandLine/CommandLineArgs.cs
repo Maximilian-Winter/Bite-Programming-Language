@@ -27,7 +27,7 @@ public class CommandLineArgs
         m_Args = args;
     }
 
-    public void Parse < T >( Action < T > success ) where T : new()
+    public void Parse<T>( Action < T > success ) where T : new()
     {
         T options = new T();
 
@@ -45,73 +45,81 @@ public class CommandLineArgs
 
             PropertyOption currentPropertyOption = null;
 
-            foreach ( string arg in m_Args )
+            try
             {
-                switch ( state )
+                foreach ( string arg in m_Args )
                 {
-                    case ArgState.ReadOption:
-                        currentPropertyOption = null;
+                    switch ( state )
+                    {
+                        case ArgState.ReadOption:
+                            currentPropertyOption = null;
 
-                        if ( arg.StartsWith( "-" ) && arg.Length == 2 )
-                        {
-                            if ( !propertyLookupByShortName.TryGetValue( arg[1], out currentPropertyOption ) )
+                            if ( arg.StartsWith( "-" ) && arg.Length == 2 )
                             {
-                                throw new Exception( $"Unknown option {arg}" );
+                                if ( !propertyLookupByShortName.TryGetValue( arg[1], out currentPropertyOption ) )
+                                {
+                                    throw new Exception( $"Unknown option {arg}" );
+                                }
+
+                                if ( currentPropertyOption.Property.PropertyType == typeof( bool ) )
+                                {
+                                    currentPropertyOption.Property.SetValue( options, true );
+                                }
+
+                                state = ArgState.ReadValue;
+                            }
+                            else if ( arg.StartsWith( "--" ) )
+                            {
+                                if ( !propertyLookupByLongName.TryGetValue(
+                                        arg.Substring( 2 ),
+                                        out currentPropertyOption ) )
+                                {
+                                    throw new Exception( $"Unknown option {arg}" );
+                                }
+
+                                state = ArgState.ReadValue;
+                            }
+                            else
+                            {
+                                throw new Exception( $"Invalid option {arg}" );
                             }
 
-                            if ( currentPropertyOption.Property.PropertyType == typeof( bool ) )
+                            break;
+
+                        case ArgState.ReadValue:
+                            Type propertyType = currentPropertyOption.Property.PropertyType;
+                            PropertyInfo property = currentPropertyOption.Property;
+
+                            if ( propertyType == typeof( string ) )
                             {
-                                currentPropertyOption.Property.SetValue( options, true );
+                                property.SetValue( options, arg );
+                            }
+                            else if ( propertyType == typeof( int ) )
+                            {
+                                property.SetValue( options, int.Parse( arg ) );
+                            }
+                            else if ( propertyType == typeof( double ) )
+                            {
+                                property.SetValue( options, double.Parse( arg ) );
                             }
 
-                            state = ArgState.ReadValue;
-                        }
-                        else if ( arg.StartsWith( "--" ) )
-                        {
-                            if ( !propertyLookupByLongName.TryGetValue(
-                                    arg.Substring( 2 ),
-                                    out currentPropertyOption ) )
-                            {
-                                throw new Exception( $"Unknown option {arg}" );
-                            }
+                            state = ArgState.ReadOption;
 
-                            state = ArgState.ReadValue;
-                        }
-                        else
-                        {
-                            throw new Exception( $"Invalid option {arg}" );
-                        }
-
-                        break;
-
-                    case ArgState.ReadValue:
-                        Type propertyType = currentPropertyOption.Property.PropertyType;
-                        PropertyInfo property = currentPropertyOption.Property;
-
-                        if ( propertyType == typeof( string ) )
-                        {
-                            property.SetValue( options, arg );
-                        }
-                        else if ( propertyType == typeof( int ) )
-                        {
-                            property.SetValue( options, int.Parse( arg ) );
-                        }
-                        else if ( propertyType == typeof( double ) )
-                        {
-                            property.SetValue( options, double.Parse( arg ) );
-                        }
-
-                        state = ArgState.ReadOption;
-
-                        break;
+                            break;
+                    }
                 }
+
+                success( options );
+            }
+            catch
+            {
+                OnFail( propertyOptions );
             }
 
-            success( options );
         }
         else
         {
-            OnFail( propertyOptions );
+            success( options );
         }
     }
 

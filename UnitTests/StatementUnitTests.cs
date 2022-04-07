@@ -145,26 +145,67 @@ public class StatementUnitTests
     }
 
     [Fact]
-    public void DynamicMemberAccess()
+    public void ClassFunctionCall()
     {
         string statements = @"class TestClass
             {
                 var x = 5;
-                function TestClass(n)
+
+                function TestClass()
                 {
-                    x = n;
+                }
+
+                function foo() {
+                    x++;
+                }
+
+                function bar() {
+                    x--;
                 }
             }
 
-            var a = new TestClass(150);
-            
-            a[""x""] = 10;
+            var a = new TestClass();
 
+            a.foo();
+            a.foo();
+            a.bar();
+            
             a.x;";
 
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( 10, result.ReturnValue.NumberData );
+        Assert.Equal( 6, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void DynamicMemberFunctionCall()
+    {
+        string statements = @"class TestClass
+            {
+                var x = 5;
+
+                function TestClass()
+                {
+                }
+
+                function foo() {
+                    x++;
+                }
+
+                function bar() {
+                    x--;
+                }
+            }
+
+            var a = new TestClass();
+
+            a[""TestClass.foo""]();
+            
+            a.x;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 6, result.ReturnValue.NumberData );
     }
 
     [Fact]
@@ -188,7 +229,54 @@ public class StatementUnitTests
         Assert.Equal( 150, result.ReturnValue.NumberData );
     }
 
-        [Fact]
+    [Fact]
+    public void DynamicMemberSet()
+    {
+        string statements = @"class TestClass
+            {
+                var x = 5;
+                function TestClass(n)
+                {
+                    x = n;
+                }
+            }
+
+            var a = new TestClass(150);
+            
+            a[""x""] = 10;
+
+            a.x;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void DynamicMemberSetWithVariable()
+    {
+        string statements = @"class TestClass
+            {
+                var x = 5;
+                function TestClass(n)
+                {
+                    x = n;
+                }
+            }
+
+            var a = new TestClass(150);
+            var propName = ""x"";
+
+            a[propName] = 10;
+
+            a.x;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
     public void ForEverLoopBreak()
     {
         BiteResult result = ExecStatements( "var i = 0; for (;;) { i++; if (i == 10) { break; } } i;" );
