@@ -69,9 +69,9 @@ Die folgenden Beispiele finden Sie hier:
 [Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/TestApp/TestProgram/MainModule.bite)
 
 
-Der folgende Code berechnet die ersten 36 Fibonacci-Zahlen 1000 Mal und druckt die 36-te Fibonacci-Zahl:
+Der folgende Code berechnet die ersten 50 Fibonacci-Zahlen und gibt sie auf der Konsole aus:
 
-![BiteFibo](https://user-images.githubusercontent.com/24946356/161903954-3d85e17d-34ef-4e60-aac6-f8a0fad8380d.PNG)
+![BiteFibo](https://user-images.githubusercontent.com/24946356/162203003-13b87476-4d38-4187-9b76-fbdcc2ae5c6a.PNG)
 
 
 
