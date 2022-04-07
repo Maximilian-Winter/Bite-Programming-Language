@@ -99,3 +99,70 @@ Der folgende Code zeigt das C# Type Import System. Er zeigt, wie man ein C#-Obje
 Der folgende Code zeigt die entsprechende C#-Klasse, die für den obigen Typ Import verwendet wird. 
 
 ![BiteFFICSharpClass](https://user-images.githubusercontent.com/24946356/161909903-f045b75f-734a-4de3-8203-d47644a8c8d4.PNG)
+
+
+# Benutzung
+Am einfachsten ist es, die REPL (Read Evalue Print Loop) in der Bite CLI zu verwenden. Starten Sie einfach die bitevm.exe mit der Option `-r`. Nun können Sie Ihren Code zeilenweise in die REPL eingeben. Ein Hauptmodul ist bereits für Sie erstellt! Sie können also mit dem eigentlichen Code beginnen. Sie können die REPL-Sitzung durch Eingabe von `exit` beenden.
+
+```
+   var a = 5;     // Enter
+   Print(a);      // Enter
+   5              // Output
+
+```
+
+Ein anderer Weg, um loszulegen, besteht darin, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
+
+```c#
+        IEnumerable < string > files = Directory.EnumerateFiles(
+            ".\\TestProgram",
+            "*.bite",
+            SearchOption.AllDirectories );
+
+        BITECompiler compiler = new BITECompiler();
+
+        BiteProgram program = compiler.Compile( "MainModule", files.Select(File.ReadAllText));
+
+        program.Run();
+```
+
+# CLI
+
+Das Projekt `Bite.Cli` gibt eine ausführbare Datei `bitevm.exe` aus, die eine Reihe von Dateien am angegebenen Ort kompiliert und ausführt oder eine interaktive REPL-Sitzung startet.
+
+```
+USAGE:
+
+  bitevm.exe <OPTIONS>
+
+OPTIONS:
+
+  -m  (--main)  : The entry point of the program
+  -p  (--path)  : The path containing the modules to be loaded
+  -i  (--input) : A list of modules to be loaded
+  -r  (--repl)  : Start bitevm in interactive mode (REPL)
+
+```
+
+Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet die Ausführung mit dem Modul `MainModule`.
+```
+  bitevm -m MainModule -p .\TestProgram
+```
+
+# Importieren und Verwenden von C#-Typen und -Objekten.
+
+Sie können C#-Typen in ein Modul importieren. Um zum Beispiel in die Konsole zu schreiben, können Sie das `CSharpInterface` Objekt wie folgt verwenden:
+
+```
+Modul CSharpSystem;
+
+importieren System;
+using System;
+
+var CSharpInterfaceObject = new CSharpInterface();
+
+CSharpInterfaceObject.Type = "System.Console";
+
+var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+```
+Jetzt können Sie die Variable Console wie die statische Klasse Console in C# verwenden.
