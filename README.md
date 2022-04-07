@@ -120,7 +120,33 @@ The following code shows the C# Type Import System. It shows how to create an C#
 
 The following code shows the corresponding C# Class used for type import above. 
 
-![BiteFFICSharpClass](https://user-images.githubusercontent.com/24946356/161909903-f045b75f-734a-4de3-8203-d47644a8c8d4.PNG)
+```C#
+public class Foo
+{
+    public int i = 5;
+}
+
+public class TestClassCSharp
+{
+    private readonly int i = 5;
+
+    public Foo testfield { get; set; } = new Foo();
+
+    #region Public
+
+    public TestClassCSharp( int n )
+    {
+        i = n;
+    }
+
+    public void PrintVar()
+    {
+        Console.WriteLine( i );
+    }
+
+    #endregion
+}
+```
 
 
 
