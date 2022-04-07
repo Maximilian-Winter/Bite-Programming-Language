@@ -29,7 +29,7 @@ ToDo:
 * Mehr Tests
 * Bessere Fehlermeldungen für Benutzer
 
-# Module
+## Module
 Module werden wie folgt definiert:
 ```
 module ModuleName;
@@ -60,7 +60,7 @@ VariableName;        // ModuleName Variable
 Der Code des Hauptmoduls wird ausgeführt, nachdem der Code des importierten Moduls ausgeführt wurde.
 
 
-# Example Code
+# Beispiel Code
 
 Die folgenden Beispiele finden Sie hier:
 
