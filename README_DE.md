@@ -248,7 +248,7 @@ Der folgende Befehl kompiliert die Bite-Module in `.\TestProgram` und startet di
   bitevm -p .\TestProgram
 ```
 
-Ein anderer Weg, um loszulegen, besteht darin in C# mit der Bite Dll, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen.  Das erste Argument ist der Name des Hauptmoduls oder des Einstiegspunktes, wie er in der `module`-Anweisung deklariert ist. Das nächste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
+Ein anderer Weg, um loszulegen, besteht darin in C# mit der Bite Dll, eine Instanz der Klasse `BITECompiler` zu erzeugen und die Methode `Compile()` aufzurufen. Das erste Argument ist ein `IEnumerable<string>`, das eine Sammlung von Strings aufnimmt, die den Bite-Code jedes Moduls enthalten. In diesem Beispiel werden die Module von der Festplatte geladen, aber sie können auch aus dem Speicher kommen, wenn sie während der Laufzeit kompiliert werden.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(
