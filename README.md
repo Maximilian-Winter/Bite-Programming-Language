@@ -144,14 +144,16 @@ The easiest way to get up and running is to use the REPL(Read Evalue Print Loop)
 Another way to get up and running is to create an instance of the `BITECompiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 ```c#
-   var files = Directory.EnumerateFiles(o.Path, "*.bite", SearchOption.AllDirectories);
-   
-    var compiler = new BITECompiler();
+        IEnumerable < string > files = Directory.EnumerateFiles(
+            ".\\TestProgram",
+            "*.bite",
+            SearchOption.AllDirectories );
 
-    var program = compiler.Compile(o.MainModule, files.Select(File.ReadAllText));
+        BITECompiler compiler = new BITECompiler();
 
-    // Executes the program
-    program.Run();
+        BiteProgram program = compiler.Compile( "MainModule", files.Select(File.ReadAllText));
+
+        program.Run();
 ```
 
 # CLI
