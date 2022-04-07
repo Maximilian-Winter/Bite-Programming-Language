@@ -182,6 +182,16 @@ The following code show the use of classes, constructors and inheritance:
 
 
 
+The following code will create a function, that returns a function and call that function afterwards:
+
+![BiteFuncAsReturn](https://user-images.githubusercontent.com/24946356/162301361-dc4e0d2b-8d1a-450a-ac9f-ddf94d666230.PNG)
+
+
+
+
+## The following code will pass a function, to a function and call that passed function:
+
+![BiteFuncAsArg](https://user-images.githubusercontent.com/24946356/162301881-122c8cc9-dc18-4fcf-9102-65412efc6820.PNG)
 
 
 
