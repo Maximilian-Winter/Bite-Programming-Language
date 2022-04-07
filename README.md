@@ -144,6 +144,7 @@ ToDo:
 * Finish implementation of private and public access modifiers
 * Finish implementation of static and abstract modifiers
 * More Testing
+* Virtual Inheritance
 * Better Error Messages for Users
 
 
