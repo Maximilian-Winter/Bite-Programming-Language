@@ -1,7 +1,7 @@
 # Bite Programmiersprache
 Bite ist eine dynamisch typisierte Programmiersprache
 
-Was bedeutet das sich der Typ des Inhalts einer Variable jederzeit, während der Laufzeit eines Programms, ändern kann.
+Was bedeutet, das sich der Typ des Inhalts, einer Variable jederzeit, während der Laufzeit eines Programms, ändern kann.
 
 Bite verwendet Module, Klassen und Funktionen, um den Code zu trennen.
 
