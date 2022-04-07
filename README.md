@@ -132,8 +132,8 @@ The following code shows the corresponding C# Class used for type import above.
 
 
 # Usage
-
-The easiest way to get up and running is to create an instance of the `Compiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe with the `-r` option.
+Another way to get up and running is to create an instance of the `BITECompiler` class and call the `Compile()` method.  The first argument is the name of the main module or entrypoint as declared by the `module` statement. The next argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 ```c#
    var files = Directory.EnumerateFiles(o.Path, "*.bite", SearchOption.AllDirectories);
@@ -149,7 +149,7 @@ The easiest way to get up and running is to create an instance of the `Compiler`
 
 # CLI
 
-The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location.
+The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session.
 
 ```
 USAGE:
@@ -161,6 +161,8 @@ OPTIONS:
   -m  (--main)  : The entry point of the program
   -p  (--path)  : The path containing the modules to be loaded
   -i  (--input) : A list of modules to be loaded
+  -r  (--repl)  : Start bitevm in interactive mode (REPL)
+
 ```
 
 The following command will compile the bite modules in `.\TestProgram` and start execution from the `MainModule` module.
