@@ -189,7 +189,7 @@ The following code will create a function, that returns a function and call that
 
 
 
-## The following code will pass a function, to a function and call that passed function:
+The following code will pass a function, to a function and call that passed function:
 
 ![BiteFuncAsArg](https://user-images.githubusercontent.com/24946356/162301881-122c8cc9-dc18-4fcf-9102-65412efc6820.PNG)
 
