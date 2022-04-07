@@ -39,6 +39,9 @@ ToDo:
 
 # Syntax
 ## Modules
+Modules are the basic foundation of a program in Bite. Each program consists of at least one module. 
+
+The code on the module level can contain functions, classes, objects and other variables. It can also create objects from classes, call functions and access objects. 
 Modules are defined like this:
 ```
 module ModuleName;
