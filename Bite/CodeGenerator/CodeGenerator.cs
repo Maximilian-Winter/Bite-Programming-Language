@@ -365,6 +365,8 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         FunctionSymbol symbol =
             node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref d ) as FunctionSymbol;
 
+        EmitConstant( new ConstantValue(node.FunctionId.Id) );
+        
         if ( m_BiteProgram.HasChunk( symbol.QualifiedName ) )
         {
             EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
@@ -484,7 +486,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
                     EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.Arguments.Expressions.Count, 0 );
                     EmitByteCode( byteCode );
-                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
+                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
                 }
             }
         }
@@ -542,11 +544,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.IsFunctionCall )
         {
-            //EmitByteCode( BiteVmOpCodes.OpCallFunction );
             int d = 0;
-
-            FunctionSymbol functionSymbol =
-                node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as FunctionSymbol;
 
             if ( node.ElementAccess != null )
             {
@@ -625,26 +623,28 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
                     EmitByteCode( byteCode );
                 }
+
+                int dObject = 0;
+
+                Symbol objectToCall = node.AstScopeNode.resolve(
+                    node.Primary.PrimaryId.Id,
+                    out int moduleIdObject,
+                    ref dObject );
                 
-                if ( functionSymbol != null )
-                {
-                    EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
-                }
-                else
-                {
-                    EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
-                }
+                ByteCode byteCodeObj = new ByteCode(
+                    BiteVmOpCodes.OpGetVar,
+                    moduleIdObject,
+                    dObject,
+                    -1,
+                    objectToCall.InsertionOrderNumber );
+
+                EmitByteCode( byteCodeObj );
+                
+                EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
             }
             else
             {
-                if ( functionSymbol != null )
-                {
-                    EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( functionSymbol.QualifiedName ) );
-                }
-                else
-                {
-                    EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
-                }
+                EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
             }
         }
         else
@@ -783,47 +783,16 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 {
                     if ( isModuleSymbol )
                     {
-                        int d4 = 0;
 
-                        FunctionSymbol memberSymbol = moduleSymbol.resolve(
-                            terminalNode.Primary.PrimaryId.Id,
-                            out int moduleId4,
-                            ref d4 ) as FunctionSymbol;
-
-                        if ( memberSymbol == null )
-                        {
-                            EmitByteCode(
-                                BiteVmOpCodes.OpCallMemberFunction,
-                                new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
-                        }
-                        else
-                        {
-                            EmitByteCode(
-                                BiteVmOpCodes.OpCallMemberFunction,
-                                new ConstantValue( memberSymbol.QualifiedName ) );
-                        }
+                        EmitByteCode(
+                            BiteVmOpCodes.OpCallMemberFunction,
+                            new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
                     }
                     else if ( isClassSymbol )
                     {
-                        int d4 = 0;
-
-                        FunctionSymbol memberSymbol = classSymbol.resolve(
-                            terminalNode.Primary.PrimaryId.Id,
-                            out int moduleId4,
-                            ref d4 ) as FunctionSymbol;
-
-                        if ( memberSymbol == null )
-                        {
-                            EmitByteCode(
-                                BiteVmOpCodes.OpCallMemberFunction,
-                                new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
-                        }
-                        else
-                        {
-                            EmitByteCode(
-                                BiteVmOpCodes.OpCallMemberFunction,
-                                new ConstantValue( memberSymbol.QualifiedName ) );
-                        }
+                        EmitByteCode(
+                            BiteVmOpCodes.OpCallMemberFunction,
+                            new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
                     }
                     else
                     {
@@ -1268,6 +1237,14 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             }
         }
 
+        if ( node.Iterators != null )
+        {
+            foreach ( var iterator in node.Iterators )
+            {
+                EmitByteCode( BiteVmOpCodes.OpPopStack );
+            }
+        }
+        
         m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
         BiteVmOpCodes.OpWhileLoop,
         jumpCodeWhileBegin,

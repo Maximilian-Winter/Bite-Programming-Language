@@ -8,7 +8,6 @@ using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
 using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Runtime.Memory;
-using Bite.SymbolTable;
 using Type = System.Type;
 
 namespace Bite.Runtime
@@ -156,11 +155,11 @@ public class BiteVm
 
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new PrintFunctionVm() ),
-            "System.Print" );
+            "Print" );
 
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new PrintLineFunctionVm() ),
-            "System.PrintLine" );
+            "PrintLine" );
 
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
@@ -309,10 +308,12 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpDefineMethod:
                     {
-                        string methodName = ReadConstant().StringConstantValue;
+                        string fullQualifiedMethodName = ReadConstant().StringConstantValue;
 
+                        string methodName = m_VmStack.Pop().StringData;
+                        
                         BiteChunkWrapper chunkWrapper = new BiteChunkWrapper(
-                            CompiledChunks[methodName] );
+                            CompiledChunks[fullQualifiedMethodName] );
 
                         m_CurrentMemorySpace.Define(
                             DynamicVariableExtension.ToDynamicVariable( chunkWrapper ),
@@ -394,11 +395,12 @@ public class BiteVm
                     
                      case BiteVmOpCodes.OpCallFunctionFromStack:
                     {
+                        FastMemorySpace fastMemorySpace = m_VmStack.Pop().ObjectData as FastMemorySpace;
 
+                        m_CurrentMemorySpace = fastMemorySpace;
                         if ( m_VmStack.Count > 0 &&
                              m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
                         {
-                            m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
                             callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
@@ -408,9 +410,9 @@ public class BiteVm
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
 
-                            for ( int i = 0; i < m_FunctionArguments.Count; i++ )
+                            foreach ( DynamicBiteVariable functionArgument in m_FunctionArguments )
                             {
-                                m_CurrentMemorySpace.Define( m_FunctionArguments[i] );
+                                m_CurrentMemorySpace.Define( functionArgument );
                             }
                             m_FunctionArguments.Clear();
                             m_CurrentChunk = functionFromStack.ChunkToWrap;
@@ -3476,7 +3478,7 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpPostfixDecrement:
                     {
-                        DynamicBiteVariable currentStack = m_VmStack.Pop();
+                        DynamicBiteVariable currentStack = m_VmStack.Peek();
 
                         if ( currentStack.DynamicType < DynamicVariableType.True )
                         {
@@ -3492,7 +3494,7 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpPostfixIncrement:
                     {
-                        DynamicBiteVariable currentStack = m_VmStack.Pop();
+                        DynamicBiteVariable currentStack = m_VmStack.Peek();
 
                         if ( currentStack.DynamicType < DynamicVariableType.True )
                         {

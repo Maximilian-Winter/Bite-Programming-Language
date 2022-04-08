@@ -199,7 +199,7 @@ public class StatementUnitTests
 
             var a = new TestClass();
 
-            a[""TestClass.foo""]();
+            a[""foo""]();
             
             a.x;";
 
@@ -282,6 +282,7 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( "var i = 0; for (;;) { i++; if (i == 10) { break; } } i;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( 10, result.ReturnValue.NumberData );
+
     }
 
     [Fact]
