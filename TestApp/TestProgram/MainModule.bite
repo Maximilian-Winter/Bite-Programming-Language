@@ -3,17 +3,21 @@ module MainModule;
 import System;
 using System;
 
-var a = 0;
-for (var i = 0;;) 
-{ 
-    i++;
-    a++;
-    if (i == 10)
-    { 
-        break;
-    }
+import CSharpSystem;
+using CSharpSystem;
+
+
+function foo(a, b)
+{
+    return a + b;
 }
-Print(a);
+var a = 1;
+var b = 2;
+Console.WriteLine(foo(a++, b++));
+Console.WriteLine(a);
+Console.WriteLine(b);
+
+
 /*
 // Fibonacci function returned as return value example
 module MainModule;

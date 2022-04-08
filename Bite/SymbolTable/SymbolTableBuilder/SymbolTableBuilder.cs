@@ -682,9 +682,9 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
                     {
                         int d = 0;
-                        DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
+                        /*DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
                         ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
-                        classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
+                        classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );*/
                         Resolve( terminalNode.Primary);
                     }
 
@@ -695,7 +695,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
                     {
                         int d = 0;
-                        DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
+                        /*DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
 
                         if ( symbol == null )
                         {
@@ -708,7 +708,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                         {
                             ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
                             classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
-                        }
+                        }*/
                         
                         Resolve( terminalNode.Primary );
                     }

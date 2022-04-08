@@ -73,7 +73,7 @@ public class ModuleSymbol : SymbolWithScope
                             }
 
                             m_SearchedModules.Add( importedModule.ToString() );
-                            symbol = module.resolve( name, out moduleid, ref d, throwErrorWhenNotFound );
+                            symbol = module.resolve( name, out moduleid, ref d, false );
 
                             if ( symbol != null )
                             {

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Bite.Runtime.Bytecode;
 using Bite.Runtime.Memory;
 
 namespace Bite.Runtime
@@ -73,6 +75,54 @@ public class DynamicBiteVariableStack
     public void Push( DynamicBiteVariable dynamicVar )
     {
         m_DynamicVariables[Count] = dynamicVar;
+
+        if ( Count >= 1023 )
+        {
+            throw new IndexOutOfRangeException( "Stack Overflow" );
+        }
+
+        Count++;
+    }
+
+    #endregion
+}
+
+public class BytecodeList
+{
+    public List < ByteCode > ByteCodes = new List < ByteCode >();
+}
+public class BytecodeListStack
+{
+    private readonly BytecodeList[] m_BytecodeLists = new BytecodeList[1024];
+
+    public int Count { get; set; } = 0;
+
+    #region Public
+
+    public BytecodeList Peek()
+    {
+        BytecodeList bytecodeList = m_BytecodeLists[Count - 1];
+
+        return bytecodeList;
+    }
+
+    public BytecodeList Peek( int i )
+    {
+        BytecodeList bytecodeList = m_BytecodeLists[i];
+
+        return bytecodeList;
+    }
+
+    public BytecodeList Pop()
+    {
+        BytecodeList bytecodeList = m_BytecodeLists[--Count];
+
+        return bytecodeList;
+    }
+
+    public void Push( BytecodeList dynamicVar )
+    {
+        m_BytecodeLists[Count] = dynamicVar;
 
         if ( Count >= 1023 )
         {
