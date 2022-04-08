@@ -3,12 +3,27 @@ module MainModule;
 import System;
 using System;
 
-function foo(a)
+class TestClass
 {
-    return a + 1;
+    var x = 5;
+    function TestClass(n)
+    {
+        x = n;
+    }
 }
 
-PrintLine(foo(1));
+function TestFunction(n)
+{
+    n.x = 10;
+}
+
+var a = new TestClass(150);
+
+PrintLine(a.x);
+
+TestFunction(a);
+
+PrintLine(a.x);
 /*
 // Fibonacci function returned as return value example
 module MainModule;

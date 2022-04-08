@@ -695,8 +695,12 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     {
                         int d = 0;
                         DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
-                        ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
-                        classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
+
+                        if ( !(symbol is ParameterSymbol) )
+                        {
+                            ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
+                            classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
+                        }
                         
                         Resolve( terminalNode.Primary);
                     }
