@@ -3,16 +3,28 @@ module MainModule;
 import System;
 using System;
 
-var i = 0;
-for (;;)
-{ 
-    i++;
-    if (i == 10)
-    { 
-        break;
-    } 
-} 
-PrintLine(i);
+class TestClass
+{
+    var x = 5;
+
+    function TestClass()
+    {
+    }
+
+    function foo() {
+        x++;
+    }
+
+    function bar() {
+        x--;
+    }
+}
+
+var a = new TestClass();
+
+a["foo"]();
+
+a;
 
 /*
 // Fibonacci function returned as return value example

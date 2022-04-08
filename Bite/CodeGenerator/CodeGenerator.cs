@@ -504,7 +504,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         variableSymbol.InsertionOrderNumber );
 
                     EmitByteCode( byteCode );
-                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
+                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
                 }
             }
         }
