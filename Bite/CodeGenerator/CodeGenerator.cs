@@ -482,11 +482,14 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 if ( methodSymbol.IsConstructor && node.Arguments.Expressions.Count == methodSymbol.NumberOfParameters )
                 {
                     ByteCode byteCode = new ByteCode(
-                        BiteVmOpCodes.OpGetVarRef,
+                        BiteVmOpCodes.OpGetVar,
                         moduleId,
                         d,
                         -1,
                         variableSymbol.InsertionOrderNumber );
+                    
+                    ByteCode byteCode2 = new ByteCode(
+                        BiteVmOpCodes.OpGetNextVarByRef );
 
                     m_ArgumentsPostfixInstructions.Push( new List < ByteCode >() );
                     foreach ( ExpressionNode argument in node.Arguments.Expressions )
@@ -502,7 +505,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     {
                         EmitByteCode( code );
                     }
-                    
+                    EmitByteCode( byteCode2 );
                     EmitByteCode( byteCode );
                     EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
                 }
@@ -515,12 +518,15 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 if ( methodSymbol.IsConstructor && methodSymbol.NumberOfParameters == 0 )
                 {
                     ByteCode byteCode = new ByteCode(
-                        BiteVmOpCodes.OpGetVarRef,
+                        BiteVmOpCodes.OpGetVar,
                         moduleId,
                         d,
                         -1,
                         variableSymbol.InsertionOrderNumber );
 
+                    ByteCode byteCode2 = new ByteCode(
+                        BiteVmOpCodes.OpGetNextVarByRef );
+                    EmitByteCode( byteCode2 );
                     EmitByteCode( byteCode );
                     EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
                 }
@@ -606,7 +612,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         {
                             if ( var != null )
                             {
-                                BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVarCopy );
+                                BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
                                 Compile( node.Primary );
                                
                             }
@@ -659,12 +665,15 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     ref dObject );
                 
                 ByteCode byteCodeObj = new ByteCode(
-                    BiteVmOpCodes.OpGetVarRef,
+                    BiteVmOpCodes.OpGetVar,
                     moduleIdObject,
                     dObject,
                     -1,
                     objectToCall.InsertionOrderNumber );
 
+                ByteCode byteCode2 = new ByteCode(
+                    BiteVmOpCodes.OpGetNextVarByRef );
+                EmitByteCode( byteCode2 );
                 EmitByteCode( byteCodeObj );
                 
                 EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
@@ -708,7 +717,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     {
                         if ( var != null )
                         {
-                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVarCopy );
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
                             Compile( node.Primary );
                         }
                         else
@@ -1595,6 +1604,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
                 if ( m_ArgumentsPostfixInstructions.Count == 0 && m_AssignmentPostfixInstructions.Count == 0 && m_VariableInitializerPostfixInstructions.Count == 0 )
                 {
+                    m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
+                        BiteVmOpCodes.OpGetNextVarByRef );
+                    
                     EmitByteCode( BiteVmOpCodes.OpPostfixDecrement );
                 }
                 else
@@ -1826,45 +1838,14 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_BiteProgram.CurrentChunk.WriteToChunk( byCode, m_ConstructingLine );
         if ( m_ArgumentsPostfixInstructions.Count > 0 )
         {
-            if ( byCode.OpCode == BiteVmOpCodes.OpGetVarCopy )
-            {
-                ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetVarRef );
-                byCodeAlt.OpCodeData = m_ConstructingOpCodeData.ToArray();
-                m_ArgumentsPostfixInstructions.Peek().Add( byCodeAlt );
-            }
-            else
-            {
-                m_ArgumentsPostfixInstructions.Peek().Add( byCode );
-            }
-            
+            m_ArgumentsPostfixInstructions.Peek().Add( byCode );
         }
-        if ( m_AssignmentPostfixInstructions.Count > 0 )
+        else if ( m_AssignmentPostfixInstructions.Count > 0 )
         {
-            if ( byCode.OpCode == BiteVmOpCodes.OpGetVarCopy )
-            {
-                ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetVarRef );
-                byCodeAlt.OpCodeData = m_ConstructingOpCodeData.ToArray();
-                m_AssignmentPostfixInstructions.Peek().Add( byCodeAlt );
-            }
-            else
-            {
-                m_AssignmentPostfixInstructions.Peek().Add( byCode );
-            }
             m_AssignmentPostfixInstructions.Peek().Add( byCode );
         }
-        
-        if ( m_VariableInitializerPostfixInstructions.Count > 0 )
+        else if ( m_VariableInitializerPostfixInstructions.Count > 0 )
         {
-            if ( byCode.OpCode == BiteVmOpCodes.OpGetVarCopy )
-            {
-                ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetVarRef );
-                byCodeAlt.OpCodeData = m_ConstructingOpCodeData.ToArray();
-                m_VariableInitializerPostfixInstructions.Peek().Add( byCodeAlt );
-            }
-            else
-            {
-                m_VariableInitializerPostfixInstructions.Peek().Add( byCode );
-            }
             m_VariableInitializerPostfixInstructions.Peek().Add( byCode );
         }
         

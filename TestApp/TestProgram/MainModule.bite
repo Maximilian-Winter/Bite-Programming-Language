@@ -3,15 +3,7 @@ module MainModule;
 import System;
 using System;
 
-function foo(a, b)
-{
-    return a + b;
-}
-var a = 1;
-var b = 2;
-PrintLine(foo(a++, b++));
-PrintLine(a);
-PrintLine(b);
+var j = 0; for (var i = 10; i > 0; i--) { j++; } PrintLine(j);
 
 /*
 // Fibonacci function returned as return value example
