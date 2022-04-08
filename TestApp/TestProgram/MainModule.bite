@@ -3,23 +3,45 @@ module MainModule;
 import System;
 using System;
 
-import CSharpSystem;
-using CSharpSystem;
+class A
+{
+ var i = 5;
+}
 
-// C# Foreign Library Type Import System Example
+class B
+{
+    var testfield = new A();
+}
+
+var TestCSharp = new B();
+
+PrintLine(TestCSharp.testfield.i);
+for(var i = 0; i < 5000; i++)
+{
+    TestCSharp.testfield.i = TestCSharp.testfield.i + 25;
+    PrintLine(TestCSharp.testfield.i);
+}
+
+
+
+/*
+
 var testClassInterface = new CSharpInterface();
 testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
 
-testClassInterface.ConstructorArguments[0] = 42;
+testClassInterface.ConstructorArguments[0] = 0;
 testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
 
 
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
-TestCSharp.PrintVar();
 PrintLine(TestCSharp.testfield.i);
-TestCSharp.testfield.i = 58;
-PrintLine(TestCSharp.testfield.i.t);
+for(var i = 0; i < 5000; i++)
+{
+    TestCSharp.testfield.i += 25;
+    PrintLine(TestCSharp.testfield.i);
+}
+*/
 
 /*
 // Fibonacci function returned as return value example

@@ -629,7 +629,7 @@ public class BiteVm
                             FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
                                 $"$class_{moduleIdClass}",
                                 m_CurrentMemorySpace,
-                                m_VmStack.Count,
+                                m_VmStack.Count + 1,
                                 m_CurrentChunk,
                                 m_CurrentInstructionPointer,
                                 classMemberCount );
@@ -1207,171 +1207,60 @@ public class BiteVm
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
                                 bool valuePushed = false;
+
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
-                               
 
-                                if ( m_CachedProperties.ContainsKey( type ) )
-                                {
-                                    for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
                                         {
-                                            if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
                                             {
-                                                m_CachedProperties[type][i].SetValue( obj, m_VmStack.Pop().NumberData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                      m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                            {
-                                                m_CachedProperties[type][i].
-                                                    SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                      m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                            {
-                                                m_CachedProperties[type][i].
-                                                    SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( string ) &&
-                                                      m_VmStack.Peek().DynamicType == DynamicVariableType.String )
-                                            {
-                                                m_CachedProperties[type][i].SetValue( obj, m_VmStack.Pop().StringData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( bool ) &&
-                                                      ( m_VmStack.Peek().DynamicType == DynamicVariableType.True ||
-                                                        m_VmStack.Peek().DynamicType == DynamicVariableType.False ) )
-                                            {
-                                                if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].SetValue( obj, true );
-                                                }
-
-                                                if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
-                                                {
-                                                    m_CachedProperties[type][i].SetValue( obj, false );
-                                                }
-                                            }
-                                            else
-                                            {
-                                                m_CachedProperties[type][i].SetValue( obj, m_VmStack.Pop().ObjectData );
-                                            }
-
-                                            valuePushed = true;
-
-                                            break;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    m_CachedProperties.Add( type, type.GetProperties() );
-
-                                    for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
-                                    {
-                                        if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
-                                        {
-                                            if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                 m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                            {
-                                                m_CachedProperties[type][i].SetValue( obj, m_VmStack.Pop().NumberData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                      m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                            {
-                                                m_CachedProperties[type][i].
-                                                    SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                      m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                            {
-                                                m_CachedProperties[type][i].
-                                                    SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( string ) &&
-                                                      m_VmStack.Peek().DynamicType == DynamicVariableType.String )
-                                            {
-                                                m_CachedProperties[type][i].SetValue( obj, m_VmStack.Pop().StringData );
-                                            }
-                                            else if ( m_CachedProperties[type][i].PropertyType == typeof( bool ) &&
-                                                      ( m_VmStack.Peek().DynamicType == DynamicVariableType.True ||
-                                                        m_VmStack.Peek().DynamicType == DynamicVariableType.False ) )
-                                            {
-                                                if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].SetValue( obj, true );
-                                                }
-
-                                                if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
-                                                {
-                                                    m_CachedProperties[type][i].SetValue( obj, false );
-                                                }
-                                            }
-                                            else
-                                            {
-                                                m_CachedProperties[type][i].SetValue( obj, m_VmStack.Pop().ObjectData );
-                                            }
-
-                                            valuePushed = true;
-
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if ( !valuePushed )
-                                {
-                                    if ( m_CachedFields.ContainsKey( type ) )
-                                    {
-                                        for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                        {
-                                            if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                            {
-                                                if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
                                                      m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, m_VmStack.Pop().NumberData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
                                                           m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
                                                           m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType ==
+                                                else if ( m_CachedProperties[type][i].PropertyType ==
                                                           typeof( string ) &&
                                                           m_VmStack.Peek().DynamicType == DynamicVariableType.String )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, m_VmStack.Pop().StringData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType == typeof( bool ) &&
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( bool ) &&
                                                           ( m_VmStack.Peek().DynamicType == DynamicVariableType.True ||
                                                             m_VmStack.Peek().DynamicType ==
                                                             DynamicVariableType.False ) )
                                                 {
                                                     if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
                                                     {
-                                                        m_CachedFields[type][i].SetValue( obj, true );
+                                                        m_CachedProperties[type][i].SetValue( obj, true );
                                                     }
 
                                                     if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
                                                     {
-                                                        m_CachedFields[type][i].SetValue( obj, false );
+                                                        m_CachedProperties[type][i].SetValue( obj, false );
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, m_VmStack.Pop().ObjectData );
                                                 }
 
@@ -1383,55 +1272,55 @@ public class BiteVm
                                     }
                                     else
                                     {
-                                        m_CachedFields.Add( type, type.GetFields() );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                        for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
                                         {
-                                            if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
                                             {
-                                                if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
                                                      m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, m_VmStack.Pop().NumberData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
                                                           m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
                                                           m_VmStack.Peek().DynamicType < DynamicVariableType.True )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType ==
+                                                else if ( m_CachedProperties[type][i].PropertyType ==
                                                           typeof( string ) &&
                                                           m_VmStack.Peek().DynamicType == DynamicVariableType.String )
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, m_VmStack.Pop().StringData );
                                                 }
-                                                else if ( m_CachedFields[type][i].FieldType == typeof( bool ) &&
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( bool ) &&
                                                           ( m_VmStack.Peek().DynamicType == DynamicVariableType.True ||
                                                             m_VmStack.Peek().DynamicType ==
                                                             DynamicVariableType.False ) )
                                                 {
                                                     if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
                                                     {
-                                                        m_CachedFields[type][i].SetValue( obj, true );
+                                                        m_CachedProperties[type][i].SetValue( obj, true );
                                                     }
 
                                                     if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
                                                     {
-                                                        m_CachedFields[type][i].SetValue( obj, false );
+                                                        m_CachedProperties[type][i].SetValue( obj, false );
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    m_CachedFields[type][i].
+                                                    m_CachedProperties[type][i].
                                                         SetValue( obj, m_VmStack.Pop().ObjectData );
                                                 }
 
@@ -1441,9 +1330,133 @@ public class BiteVm
                                             }
                                         }
                                     }
+
+                                    if ( !valuePushed )
+                                    {
+                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        {
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType ==
+                                                              typeof( string ) &&
+                                                              m_VmStack.Peek().DynamicType ==
+                                                              DynamicVariableType.String )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, m_VmStack.Pop().StringData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( bool ) &&
+                                                              ( m_VmStack.Peek().DynamicType ==
+                                                                DynamicVariableType.True ||
+                                                                m_VmStack.Peek().DynamicType ==
+                                                                DynamicVariableType.False ) )
+                                                    {
+                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
+                                                        {
+                                                            m_CachedFields[type][i].SetValue( obj, true );
+                                                        }
+
+                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
+                                                        {
+                                                            m_CachedFields[type][i].SetValue( obj, false );
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, m_VmStack.Pop().ObjectData );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType ==
+                                                              typeof( string ) &&
+                                                              m_VmStack.Peek().DynamicType ==
+                                                              DynamicVariableType.String )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, m_VmStack.Pop().StringData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( bool ) &&
+                                                              ( m_VmStack.Peek().DynamicType ==
+                                                                DynamicVariableType.True ||
+                                                                m_VmStack.Peek().DynamicType ==
+                                                                DynamicVariableType.False ) )
+                                                    {
+                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
+                                                        {
+                                                            m_CachedFields[type][i].SetValue( obj, true );
+                                                        }
+
+                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
+                                                        {
+                                                            m_CachedFields[type][i].SetValue( obj, false );
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue( obj, m_VmStack.Pop().ObjectData );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                }
-                                
 
                                 if ( !valuePushed )
                                 {
@@ -1570,68 +1583,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( double ) field.GetValue( obj ) / m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( float ) field.GetValue( obj ) / ( float ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) / ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) /
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) /
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) /
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) /
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) /
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) /
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( double ) propertyInfo.GetValue( obj ) / m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( float ) propertyInfo.GetValue( obj ) /
-                                                ( float ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) /
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) /
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) /
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) /
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) /
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) /
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) /
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -1774,68 +1925,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( double ) field.GetValue( obj ) * m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( float ) field.GetValue( obj ) * ( float ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) * ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) *
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) *
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) *
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) *
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) *
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) *
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( double ) propertyInfo.GetValue( obj ) * m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( float ) propertyInfo.GetValue( obj ) *
-                                                ( float ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) *
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) *
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) *
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) *
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) *
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) *
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) *
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -1978,68 +2267,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( double ) field.GetValue( obj ) + m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( float ) field.GetValue( obj ) + ( float ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) + ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) +
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) +
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) +
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) +
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) +
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) +
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( double ) propertyInfo.GetValue( obj ) + m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( float ) propertyInfo.GetValue( obj ) +
-                                                ( float ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) +
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) +
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) +
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) +
+                                                                ( int ) m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) +
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float )m_CachedFields[type][i].GetValue( obj ) +
+                                                                 ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int )m_CachedFields[type][i].GetValue( obj ) +
+                                                                 ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -2182,68 +2609,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( double ) field.GetValue( obj ) - m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( float ) field.GetValue( obj ) - ( float ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) - ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) -
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) -
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) -
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) -
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) -
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) -
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( double ) propertyInfo.GetValue( obj ) - m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( float ) propertyInfo.GetValue( obj ) -
-                                                ( float ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) -
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) -
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) -
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) -
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) -
+                                                                ( double )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) -
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) -
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -2386,68 +2951,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( double ) field.GetValue( obj ) % m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( float ) field.GetValue( obj ) % ( float ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) % ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) %
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) %
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) %
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( double ) m_CachedProperties[type][i].GetValue( obj ) %
+                                                            m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( float ) m_CachedProperties[type][i].GetValue( obj ) %
+                                                            ( float )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) %
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( double ) propertyInfo.GetValue( obj ) % m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( float ) propertyInfo.GetValue( obj ) %
-                                                ( float ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) %
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) %
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) %
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) %
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( double ) m_CachedFields[type][i].GetValue( obj ) %
+                                                                m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( float ) m_CachedFields[type][i].GetValue( obj ) %
+                                                                ( float )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) %
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -2590,69 +3293,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) & ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) & ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) & ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) &
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) &
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) &
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) &
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) &
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) &
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) &
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) &
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) &
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) &
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) &
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) &
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) &
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) &
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) &
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -2795,69 +3635,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) | ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) | ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) | ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) |
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) |
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) |
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) |
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) |
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) |
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) |
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) |
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) |
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) |
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) |
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) |
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) |
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) |
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) |
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -3000,69 +3977,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) ^ ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) ^ ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) ^ ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) ^
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) ^
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) ^
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) ^
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) ^
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) ^
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) ^
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) ^
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) ^
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) ^
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) ^
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) ^
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) ^
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) ^
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) ^
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -3205,69 +4319,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) << ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) << ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) << ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) <<
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) <<
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) <<
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) <<
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) <<
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) <<
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) <<
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) <<
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) <<
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) <<
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) <<
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) <<
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) <<
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) <<
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) <<
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -3410,69 +4661,206 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
+                                bool valuePushed = false;
 
-                                FieldInfo field = obj.GetType().GetField( m_MemberWithStringToSet );
-
-                                if ( field != null )
+                                if ( obj != null )
                                 {
-                                    if ( field.FieldType == typeof( double ) )
+                                    Type type = obj.GetType();
+
+                                    if ( m_CachedProperties.ContainsKey( type ) )
                                     {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) >> ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( float ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) >> ( int ) m_VmStack.Pop().NumberData );
-                                    }
-                                    else if ( field.FieldType == typeof( int ) )
-                                    {
-                                        field.SetValue(
-                                            obj,
-                                            ( int ) field.GetValue( obj ) >> ( int ) m_VmStack.Pop().NumberData );
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) >>
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) >>
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) >>
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException(
-                                            "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyInfo propertyInfo =
-                                        obj.GetType().GetProperty( m_MemberWithStringToSet );
+                                        m_CachedProperties.Add( type, type.GetProperties() );
 
-                                    if ( propertyInfo != null )
+                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        {
+                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            {
+                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
+                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) >>
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) >>
+                                                            ( int ) m_VmStack.Pop().NumberData );
+                                                }
+                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
+                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                {
+                                                    m_CachedProperties[type][i].
+                                                        SetValue(
+                                                            obj,
+                                                            ( int ) m_CachedProperties[type][i].GetValue( obj ) >>
+                                                            ( int )m_VmStack.Pop().NumberData );
+                                                }
+                                                else
+                                                {
+                                                    throw new BiteVmRuntimeException(
+                                                        "Runtime Error: Invalid types for arithmetic operation!" );
+                                                }
+
+                                                valuePushed = true;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ( !valuePushed )
                                     {
-                                        if ( propertyInfo.PropertyType == typeof( double ) )
+                                        if ( m_CachedFields.ContainsKey( type ) )
                                         {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) >>
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( float ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) >>
-                                                ( int ) m_VmStack.Pop().NumberData );
-                                        }
-                                        else if ( propertyInfo.PropertyType == typeof( int ) )
-                                        {
-                                            propertyInfo.SetValue(
-                                                obj,
-                                                ( int ) propertyInfo.GetValue( obj ) >>
-                                                ( int ) m_VmStack.Pop().NumberData );
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) >>
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) >>
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) >>
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                         else
                                         {
-                                            throw new BiteVmRuntimeException(
-                                                "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                            m_CachedFields.Add( type, type.GetFields() );
+
+                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            {
+                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
+                                                {
+                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
+                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) >>
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) >>
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
+                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                    {
+                                                        m_CachedFields[type][i].
+                                                            SetValue(
+                                                                obj,
+                                                                ( int ) m_CachedFields[type][i].GetValue( obj ) >>
+                                                                ( int )m_VmStack.Pop().NumberData );
+                                                    }
+                                                    else
+                                                    {
+                                                        throw new BiteVmRuntimeException(
+                                                            "Runtime Error: Invalid types for arithmetic operation!" );
+                                                    }
+
+                                                    valuePushed = true;
+
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                if ( !valuePushed )
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
 
@@ -4336,7 +5724,7 @@ public class BiteVm
                 {
                     if ( m_VmStack.Count > 0 )
                     {
-                        ReturnValue = m_VmStack.Pop();
+                        ReturnValue = m_VmStack.Peek();
                     }
 
                     if ( m_CurrentMemorySpace.StackCountAtBegin < m_VmStack.Count )
