@@ -386,7 +386,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Error Function " + method + " not found!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
                         }
 
                         break;
@@ -418,7 +418,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Error Function not found!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Function not found!" );
                         }
 
                         break;
@@ -495,7 +495,7 @@ public class BiteVm
                             }
                             else
                             {
-                                throw new BiteVmRuntimeException( "Error Function " + constant.StringConstantValue + " not found!" );
+                                throw new BiteVmRuntimeException( "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
                             }
                         }
                         else if ( dynamicBiteVariable.ObjectData is object obj )
@@ -560,7 +560,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        "Error Function " + constant.StringConstantValue + " not found!" );
+                                        "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
                                 }
                                 
                                 m_FunctionArguments.Clear();
@@ -569,7 +569,7 @@ public class BiteVm
                         else
                         {
                             throw new BiteVmRuntimeException(
-                                "Error Function " + constant.StringConstantValue + " not found!" );
+                                "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
                         }
 
                         break;
@@ -957,7 +957,7 @@ public class BiteVm
                                 break;
 
                             default:
-                                throw new ArgumentOutOfRangeException();
+                                throw new BiteVmRuntimeException($"Runtime Error: Wrong constant value type: {(int)constantValue.ConstantType}");
                         }
 
                         break;
@@ -3035,7 +3035,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only perform bitwise or on integers!" );
                         }
 
                         break;
@@ -3055,7 +3055,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only perform bitwise xor on integers!" );
                         }
 
                         break;
@@ -3075,7 +3075,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only perform bitwise and on integers!" );
                         }
 
                         break;
@@ -3095,7 +3095,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only perform bitwise left shift on integers!" );
                         }
 
                         break;
@@ -3115,7 +3115,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only perform bitwise right shift on integers!" );
                         }
 
                         break;
@@ -3131,7 +3131,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only negate Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only negate integers and floating point numbers!" );
                         }
 
                         break;
@@ -3147,7 +3147,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only negate Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only affirm integers and floating point numbers!" );
                         }
 
                         break;
@@ -3163,7 +3163,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only complement Integer Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only complement integer numbers!" );
                         }
 
                         break;
@@ -3179,7 +3179,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only decrement Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only decrement integers and floating point numbers!" );
                         }
 
                         break;
@@ -3195,7 +3195,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only increment Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only increment integers and floating point numbers!" );
                         }
 
                         break;
@@ -3211,7 +3211,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only decrement Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only decrement integers and floating point numbers!" );
                         }
 
                         break;
@@ -3227,7 +3227,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only increment Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only increment integers and floating point numbers!" );
                         }
 
                         break;
@@ -3247,7 +3247,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only compare integers and floating point numbers!" );
                         }
 
                         break;
@@ -3267,7 +3267,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only compare integers and floating point numbers!" );
                         }
 
                         break;
@@ -3287,7 +3287,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only compare integers and floating point numbers!" );
                         }
 
                         break;
@@ -3307,7 +3307,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only compare integers and floating point numbers!" );
                         }
 
                         break;
@@ -3344,6 +3344,13 @@ public class BiteVm
                                 DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.StringData == valueRhs.StringData ) );
                         }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.Object &&
+                                  valueRhs.DynamicType == DynamicVariableType.Object )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    valueLhs.ObjectData == valueRhs.ObjectData ) );
+                        }
                         else if ( valueLhs.DynamicType == DynamicVariableType.False &&
                                   valueRhs.DynamicType == DynamicVariableType.True )
                         {
@@ -3358,7 +3365,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only check equality with Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only check equality on integers, floating point numbers, strings, objects and boolean values!" );
                         }
 
                         break;
@@ -3369,16 +3376,54 @@ public class BiteVm
                         DynamicBiteVariable valueRhs = m_VmStack.Pop();
                         DynamicBiteVariable valueLhs = m_VmStack.Pop();
 
-                        if ( valueLhs.DynamicType < DynamicVariableType.True &&
+                                              if ( valueLhs.DynamicType < DynamicVariableType.True &&
                              valueRhs.DynamicType < DynamicVariableType.True )
                         {
                             m_VmStack.Push(
                                 DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData != valueRhs.NumberData ) );
                         }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.True &&
+                                  valueRhs.DynamicType == DynamicVariableType.True )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable( false ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.False &&
+                                  valueRhs.DynamicType == DynamicVariableType.False )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable( false ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.String &&
+                                  valueRhs.DynamicType == DynamicVariableType.String )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    valueLhs.StringData != valueRhs.StringData ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.Object &&
+                                  valueRhs.DynamicType == DynamicVariableType.Object )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    valueLhs.ObjectData != valueRhs.ObjectData ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.False &&
+                                  valueRhs.DynamicType == DynamicVariableType.True )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable( true ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.True &&
+                                  valueRhs.DynamicType == DynamicVariableType.False )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable( true ) );
+                        }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only check equality with Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only check equality on integers, floating point numbers, strings, objects and boolean values!" );
                         }
 
                         break;
@@ -3392,9 +3437,13 @@ public class BiteVm
                         {
                             value.DynamicType = DynamicVariableType.True;
                         }
-                        else
+                        else if(value.DynamicType == DynamicVariableType.True )
                         {
                             value.DynamicType = DynamicVariableType.False;
+                        }
+                        else
+                        {
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only perform not-operation on boolean values!" );
                         }
 
                         m_VmStack.Push( value );
@@ -3433,7 +3482,7 @@ public class BiteVm
                             else
                             {
                                 throw new BiteVmRuntimeException(
-                                    "Can only concatenate Strings with Integers and Floating Point Numbers!" );
+                                    "Runtime Error: Can only concatenate strings with integers and floating point numbers!" );
                             }
                         }
                         else if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -3445,7 +3494,8 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only add Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException(
+                                "Runtime Error: Can only concatenate strings with integers and floating point numbers. Or add integers and floating point numbers!" );
                         }
 
                         break;
@@ -3465,7 +3515,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only subtract Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only subtract integers and floating point numbers!" );
                         }
 
                         break;
@@ -3485,7 +3535,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only multiply Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only multiply integers and floating point numbers!" );
                         }
 
                         break;
@@ -3505,7 +3555,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only divide Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only divide integers and floating point numbers!" );
                         }
 
                         break;
@@ -3525,7 +3575,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Can only modulo Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Runtime Error: Can only modulo integers and floating point numbers!" );
                         }
 
                         break;
