@@ -6,9 +6,20 @@ using System;
 import CSharpSystem;
 using CSharpSystem;
 
+// C# Foreign Library Type Import System Example
+var testClassInterface = new CSharpInterface();
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
 
-var j = 0; for (var i = 0; i < 10; i++) { j++; } Console.WriteLine(j);
+testClassInterface.ConstructorArguments[0] = 42;
+testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
 
+
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+TestCSharp.PrintVar();
+PrintLine(TestCSharp.testfield.i);
+TestCSharp.testfield.i = 58;
+PrintLine(TestCSharp.testfield.i.t);
 
 /*
 // Fibonacci function returned as return value example
