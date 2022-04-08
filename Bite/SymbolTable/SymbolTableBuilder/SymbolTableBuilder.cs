@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Bite.Ast;
+using Bite.Runtime.CodeGen;
 using Bite.SymbolTable;
 
 namespace Bite.Runtime.SymbolTable
@@ -696,13 +697,20 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                         int d = 0;
                         DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
 
+                        if ( symbol == null )
+                        {
+                            throw new CompilerException(
+                                $"Failed to resolve symbol '{node.Primary.PrimaryId.Id}' in scope '{node.AstScopeNode.Name}'",
+                                node );
+                        }
+
                         if ( !(symbol is ParameterSymbol) )
                         {
                             ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
                             classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
                         }
                         
-                        Resolve( terminalNode.Primary);
+                        Resolve( terminalNode.Primary );
                     }
                     
                 }
