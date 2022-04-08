@@ -1557,6 +1557,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
     public override object Visit( UnaryPostfixOperation node )
     {
         m_IsCompilingPostfixOperation = true;
+        int toFix = 0;
+        if ( m_ArgumentsPostfixInstructions.Count == 0 && m_AssignmentPostfixInstructions.Count == 0 && m_VariableInitializerPostfixInstructions.Count == 0 )
+        {
+            toFix = EmitByteCode( BiteVmOpCodes.OpNone );
+        }
+        
         Compile( node.Primary );
         m_IsCompilingPostfixOperation = false;
         switch ( node.Operator )
@@ -1564,6 +1570,8 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
                 if ( m_ArgumentsPostfixInstructions.Count == 0 && m_AssignmentPostfixInstructions.Count == 0 && m_VariableInitializerPostfixInstructions.Count == 0 )
                 {
+                    m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
+                        BiteVmOpCodes.OpGetNextVarByRef );
                     EmitByteCode( BiteVmOpCodes.OpPostfixIncrement );
                 }
                 else
@@ -1836,11 +1844,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             {
                 ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetVarRef );
                 byCodeAlt.OpCodeData = m_ConstructingOpCodeData.ToArray();
-                m_ArgumentsPostfixInstructions.Peek().Add( byCodeAlt );
+                m_AssignmentPostfixInstructions.Peek().Add( byCodeAlt );
             }
             else
             {
-                m_ArgumentsPostfixInstructions.Peek().Add( byCode );
+                m_AssignmentPostfixInstructions.Peek().Add( byCode );
             }
             m_AssignmentPostfixInstructions.Peek().Add( byCode );
         }
@@ -1851,11 +1859,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             {
                 ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetVarRef );
                 byCodeAlt.OpCodeData = m_ConstructingOpCodeData.ToArray();
-                m_ArgumentsPostfixInstructions.Peek().Add( byCodeAlt );
+                m_VariableInitializerPostfixInstructions.Peek().Add( byCodeAlt );
             }
             else
             {
-                m_ArgumentsPostfixInstructions.Peek().Add( byCode );
+                m_VariableInitializerPostfixInstructions.Peek().Add( byCode );
             }
             m_VariableInitializerPostfixInstructions.Peek().Add( byCode );
         }

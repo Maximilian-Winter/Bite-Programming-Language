@@ -1,4 +1,4 @@
-﻿#define BITE_VM_DEBUG_TRACE_EXECUTION
+﻿//#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ public class BiteVm
     private bool m_KeepLastItemOnStackToReturn = false;
     private bool m_SetVarWithExternalName = false;
     private string m_SetVarExternalName = "";
-
+    private bool m_GetNextVarByRef = false;
     private bool m_HasInitCSharpInterfaceObjectBytecode = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
@@ -742,6 +742,13 @@ public class BiteVm
                         break;
                     }
 
+                    case BiteVmOpCodes.OpGetNextVarByRef:
+                    {
+                        m_GetNextVarByRef = true;
+
+                        break;
+                    }
+                    
                     case BiteVmOpCodes.OpGetVarCopy:
                     {
                         m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
@@ -771,14 +778,26 @@ public class BiteVm
                                               ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                         m_CurrentInstructionPointer += 4;
+
+                        if ( m_GetNextVarByRef )
+                        {
+                            m_VmStack.Push(
+                                               m_CurrentMemorySpace.Get(
+                                                   m_LastGetLocalVarModuleId,
+                                                   m_LastGetLocalVarDepth,
+                                                   m_LastGetLocalClassId,
+                                                   m_LastGetLocalVarId ));
+                        }
+                        else
+                        {
+                            m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(
+                                               m_CurrentMemorySpace.Get(
+                                                   m_LastGetLocalVarModuleId,
+                                                   m_LastGetLocalVarDepth,
+                                                   m_LastGetLocalClassId,
+                                                   m_LastGetLocalVarId )) );
+                        }
                         
-                        
-                        m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(
-                            m_CurrentMemorySpace.Get(
-                                m_LastGetLocalVarModuleId,
-                                m_LastGetLocalVarDepth,
-                                m_LastGetLocalClassId,
-                                m_LastGetLocalVarId )) );
 
                         break;
                     }
