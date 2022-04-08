@@ -3,8 +3,17 @@ module MainModule;
 import System;
 using System;
 
-var j = 0; for (var i = 10; i > 0; i--) { j++; } PrintLine(j);
-
+var a = 0;
+for (var i = 0;;) 
+{ 
+    i++;
+    a++;
+    if (i == 10)
+    { 
+        break;
+    }
+}
+Print(a);
 /*
 // Fibonacci function returned as return value example
 module MainModule;

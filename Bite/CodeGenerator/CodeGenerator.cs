@@ -1567,20 +1567,18 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
     {
         m_IsCompilingPostfixOperation = true;
         int toFix = 0;
-        if ( m_ArgumentsPostfixInstructions.Count == 0 && m_AssignmentPostfixInstructions.Count == 0 && m_VariableInitializerPostfixInstructions.Count == 0 )
-        {
-            toFix = EmitByteCode( BiteVmOpCodes.OpNone );
-        }
+        toFix = EmitByteCode( BiteVmOpCodes.OpNone );
         
         Compile( node.Primary );
         m_IsCompilingPostfixOperation = false;
+        
+        m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
+            BiteVmOpCodes.OpGetNextVarByRef );
         switch ( node.Operator )
         {
             case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
                 if ( m_ArgumentsPostfixInstructions.Count == 0 && m_AssignmentPostfixInstructions.Count == 0 && m_VariableInitializerPostfixInstructions.Count == 0 )
                 {
-                    m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
-                        BiteVmOpCodes.OpGetNextVarByRef );
                     EmitByteCode( BiteVmOpCodes.OpPostfixIncrement );
                 }
                 else
@@ -1604,9 +1602,6 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
                 if ( m_ArgumentsPostfixInstructions.Count == 0 && m_AssignmentPostfixInstructions.Count == 0 && m_VariableInitializerPostfixInstructions.Count == 0 )
                 {
-                    m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
-                        BiteVmOpCodes.OpGetNextVarByRef );
-                    
                     EmitByteCode( BiteVmOpCodes.OpPostfixDecrement );
                 }
                 else
