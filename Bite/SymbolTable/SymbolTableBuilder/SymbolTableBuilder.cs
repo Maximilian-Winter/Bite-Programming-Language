@@ -500,7 +500,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         popScope();
 
-        if ( node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref depth ) == null )
+        if ( node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref depth, false ) == null )
         {
             CurrentScope.define( f );
         }
@@ -629,13 +629,23 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             /* LocalScope l = new LocalScope( CurrentScope );
              CurrentScope.nest( l );
              pushScope( l );*/
-            Resolve( node.Primary );
+            if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+            {
+                int d = 0;
+                node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
+                Resolve( node.Primary );
+            }
 
             //popScope();
         }
         else
         {
-            Resolve( node.Primary );
+            if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+            {
+                int d = 0;
+                node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
+                Resolve( node.Primary );
+            }
         }
 
         if ( node.CallEntries != null )
@@ -668,7 +678,14 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     /* LocalScope l = new LocalScope( CurrentScope );
                      CurrentScope.nest( l );
                      pushScope( l );*/
-                    Resolve( node.Primary );
+                    if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                    {
+                        int d = 0;
+                        DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
+                        ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
+                        classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
+                        Resolve( terminalNode.Primary);
+                    }
 
                     //popScope();
                 }
@@ -680,6 +697,8 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                         DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
                         ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
                         classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
+                        
+                        Resolve( terminalNode.Primary);
                     }
                     
                 }
@@ -946,12 +965,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
     public override object Visit( PrimaryNode node )
     {
         node.AstScopeNode = CurrentScope;
-
-        if ( node.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
-        {
-            int d = 0;
-            node.AstScopeNode.resolve( node.PrimaryId.Id, out int moduleId, ref d );
-        }
+        
         if ( node.PrimaryType == PrimaryNode.PrimaryTypes.Expression )
         {
             Resolve( node.Expression );

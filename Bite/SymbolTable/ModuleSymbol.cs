@@ -36,7 +36,7 @@ public class ModuleSymbol : SymbolWithScope
         UsedModules = new List < ModuleIdentifier >();
     }
 
-    public override Symbol resolve( string name, out int moduleid, ref int depth )
+    public override Symbol resolve( string name, out int moduleid, ref int depth, bool throwErrorWhenNotFound = true )
     {
         if ( symbols.ContainsKey( name ) )
         {
@@ -50,7 +50,7 @@ public class ModuleSymbol : SymbolWithScope
 
         if ( parent != null )
         {
-            Symbol symbol = parent.resolve( name, out moduleid, ref depth );
+            Symbol symbol = parent.resolve( name, out moduleid, ref depth, throwErrorWhenNotFound );
 
             if ( symbol == null )
             {
@@ -73,7 +73,7 @@ public class ModuleSymbol : SymbolWithScope
                             }
 
                             m_SearchedModules.Add( importedModule.ToString() );
-                            symbol = module.resolve( name, out moduleid, ref d );
+                            symbol = module.resolve( name, out moduleid, ref d, throwErrorWhenNotFound );
 
                             if ( symbol != null )
                             {
@@ -91,7 +91,7 @@ public class ModuleSymbol : SymbolWithScope
             depth++;
             m_SearchedModules.Clear();
 
-            if ( symbol == null )
+            if ( symbol == null && throwErrorWhenNotFound )
             {
                 throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
             }

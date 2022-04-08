@@ -216,7 +216,7 @@ public class ClassSymbol : DataAggregateSymbol
     {
     }
 
-    public override Symbol resolve( string name, out int moduleId, ref int depth )
+    public override Symbol resolve( string name, out int moduleId, ref int depth, bool throwErrorWhenNotFound = true )
     {
         Symbol s = resolveMember( name );
 
@@ -233,12 +233,17 @@ public class ClassSymbol : DataAggregateSymbol
         {
             depth++;
 
-            return parent.resolve( name, out moduleId, ref depth );
+            return parent.resolve( name, out moduleId, ref depth, throwErrorWhenNotFound );
         }
 
         moduleId = -2;
 
-        throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
+        if ( s == null && throwErrorWhenNotFound )
+        {
+            throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
+        }
+
+        return s;
     }
 
     public override Symbol resolveField( string name )

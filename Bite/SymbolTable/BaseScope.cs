@@ -118,7 +118,7 @@ public abstract class BaseScope : Scope
         nestedScopesNotSymbols.Add( scope );
     }
 
-    public virtual Symbol resolve( string name, out int moduleId, ref int depth )
+    public virtual Symbol resolve( string name, out int moduleId, ref int depth, bool throwErrorWhenNotFound = true )
     {
         if ( symbols.ContainsKey( name ) )
         {
@@ -133,7 +133,7 @@ public abstract class BaseScope : Scope
         {
             depth++;
 
-            return parent.resolve( name, out moduleId, ref depth );
+            return parent.resolve( name, out moduleId, ref depth, throwErrorWhenNotFound );
         }
 
         moduleId = -2;

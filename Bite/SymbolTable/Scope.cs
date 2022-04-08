@@ -17,7 +17,7 @@ public interface Scope
 
     void nest( Scope scope );
 
-    Symbol resolve( string name, out int moduleId, ref int depth );
+    Symbol resolve( string name, out int moduleId, ref int depth, bool throwErrorWhenNotFound = true );
 }
 
 }
