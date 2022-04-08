@@ -66,8 +66,6 @@ public class Program
             ChunkDebugHelper.InstructionCounter.Clear();
 
         }
-
-        Console.ReadLine();
     }
 
     #endregion

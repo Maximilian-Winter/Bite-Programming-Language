@@ -647,6 +647,10 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                 node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
                 Resolve( node.Primary );
             }
+            else
+            {
+                Resolve( node.Primary );
+            }
         }
 
         if ( node.CallEntries != null )
@@ -977,6 +981,14 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
     public override object Visit( PrimaryNode node )
     {
         node.AstScopeNode = CurrentScope;
+        
+        if ( node.PrimaryType == PrimaryNode.PrimaryTypes.InterpolatedString )
+        {
+            foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
+            {
+                Resolve( interpolatedStringStringPart.ExpressionNode );
+            }
+        }
         
         if ( node.PrimaryType == PrimaryNode.PrimaryTypes.Expression )
         {

@@ -1536,6 +1536,23 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 EmitConstant( new ConstantValue( node.StringLiteral ) );
 
                 return null;
+            
+            case PrimaryNode.PrimaryTypes.InterpolatedString:
+                int i = 0;
+                foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
+                {
+                    EmitConstant( new ConstantValue( interpolatedStringStringPart.TextBeforeExpression ) );
+                    if ( i > 0 )
+                    {
+                        EmitByteCode( BiteVmOpCodes.OpAdd );
+                    }
+                    Compile( interpolatedStringStringPart.ExpressionNode );
+                    EmitByteCode( BiteVmOpCodes.OpAdd );
+                    i++;
+                }
+                EmitConstant( new ConstantValue( node.InterpolatedString.TextAfterLastExpression ) );
+                EmitByteCode( BiteVmOpCodes.OpAdd );
+                return null;
 
             case PrimaryNode.PrimaryTypes.Expression:
                 node.Expression.Accept( this );

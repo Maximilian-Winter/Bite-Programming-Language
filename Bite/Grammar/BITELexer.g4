@@ -77,8 +77,7 @@ BitwiseOrOperator:'|';
   
 OpeningRoundBracket: '(';
 ClosingRoundBracket: ')';
-OpeningCurlyBracket: '{';
-ClosingCurlyBracket: '}';
+
 SquarebracketLeft : '[';
 SquarebracketRight: ']';
 
@@ -97,15 +96,6 @@ IntegerLiteral:
 FloatingLiteral:
 	Fractionalconstant Exponentpart?
 	| Digitsequence Exponentpart;
-
-
-StringLiteral
-  : UnterminatedStringLiteral '"'
-  ;
-
-UnterminatedStringLiteral
-  : '"' (~["\\\r\n] | '\\' (. | EOF))*
-  ;
 
 fragment DIGIT: [0-9];
 
@@ -135,29 +125,23 @@ WS  :   [ \r\t\u000C\n]+ -> skip;
 
 LINE_COMMENT: '//' ~[\r\n]* '\r'? '\n' -> skip;
 
-DQUOTE: '"';
-/*DOLLAR_DQUOTE: '$"' -> pushMode(IN_STRING);
-LPAR: '{' {
-    nesting++;
-    PushMode(DEFAULT_MODE);
-};
-RPAR: '}' {
-    if (nesting > 0) {
-        nesting--;
-        PopMode();
-    }
-};
+CURLY_L: '{';
+CURLY_R: '}' -> popMode; // When we see this, revert to the previous context.
 
+OPEN_STRING: '"' -> pushMode(STRING); // Switch context
 
-mode IN_STRING;
+// Define rules on how tokens are recognized within a string.
+// Note that complex escapes, like Unicode, are not illustrated here.
+mode STRING;
 
-TEXT: ~[\\"]+ ;
-LPAR_IN_String: '{' {
-    nesting++;
-    PushMode(DEFAULT_MODE);
-};
-ESCAPE_SEQUENCE: '{' . ;
-DQUOTE_IN_STRING: '"' -> type(DQUOTE), popMode;*/
+ENTER_EXPR_INTERP: '${' -> pushMode(DEFAULT_MODE); // When we see this, start parsing program tokens.
+
+ID_INTERP: '$'[A-Za-z_][A-Za-z0-9_]*;
+ESCAPED_DOLLAR: '\\$';
+ESCAPED_QUOTE: '\\"';
+TEXT: ~('$'|'\n'|'"')+; // This doesn't cover escapes, FYI.
+
+CLOSE_STRING: '"' -> popMode; // Revert to the previous mode; our string is closed.
 	
 
 
