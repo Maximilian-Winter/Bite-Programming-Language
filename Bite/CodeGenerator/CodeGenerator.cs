@@ -1286,13 +1286,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             }
         }
 
-        if ( node.Iterators != null )
+        /*if ( node.Iterators != null )
         {
             foreach ( var iterator in node.Iterators )
             {
                 EmitByteCode( BiteVmOpCodes.OpPopStack );
             }
-        }
+        }*/
         
         m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
         BiteVmOpCodes.OpWhileLoop,

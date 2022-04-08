@@ -7,15 +7,7 @@ import CSharpSystem;
 using CSharpSystem;
 
 
-function foo(a, b)
-{
-    return a + b;
-}
-var a = 1;
-var b = 2;
-Console.WriteLine(foo(a++, b++));
-Console.WriteLine(a);
-Console.WriteLine(b);
+var j = 0; for (var i = 0; i < 10; i++) { j++; } Console.WriteLine(j);
 
 
 /*
