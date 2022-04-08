@@ -20,22 +20,7 @@ public class BiteCompiler
 
         foreach ( string biteModule in modules )
         {
-            ModuleNode module = null;
-            try
-            {
-                module = ParseModule( biteModule );
-            }
-            catch ( BiteCompilerException e )
-            {
-                Console.WriteLine(e.BiteCompilerExceptionMessage);
-                foreach ( BiteCompilerSyntaxError syntaxError in e.SyntaxErrors )
-                {
-                    Console.WriteLine($"Compiler Error: {syntaxError.Message} at line: {syntaxError.Line} at position: {syntaxError.CharPositionInLine}.");
-                }
-
-                return null;
-            }
-            
+            ModuleNode module = ParseModule( biteModule );
             program.AddModule( module );
         }
 
@@ -56,7 +41,10 @@ public class BiteCompiler
 
         if ( biteCompilerSyntaxErrorListener.Errors.Count > 0 )
         {
-            throw new BiteCompilerException( $"Error found while compiling!\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}", biteCompilerSyntaxErrorListener.Errors );
+            module = module.Trim();
+            int start = module.IndexOf( "module" ) + "module ".Length;
+            var moduleName = module.Substring( start, module.IndexOf( ';' ) - start );
+            throw new BiteCompilerException( $"Error occured while parsing module '{moduleName}' .\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}", biteCompilerSyntaxErrorListener.Errors );
         }
 
         return ( ModuleNode ) gen.VisitModule( tree );
@@ -75,7 +63,7 @@ public class BiteCompiler
         BITEParser.ExpressionContext tree = biteParser.expression();
         if ( biteCompilerSyntaxErrorListener.Errors.Count > 0 )
         {
-            throw new BiteCompilerException( $"Error found while compiling!\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}", biteCompilerSyntaxErrorListener.Errors );
+            throw new BiteCompilerException( $"Error occured while parsing expression.\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}", biteCompilerSyntaxErrorListener.Errors );
         }
 
         return ( ExpressionNode ) gen.VisitExpression( tree );
@@ -94,7 +82,7 @@ public class BiteCompiler
         BITEParser.StatementsContext tree = biteParser.statements();
         if ( biteCompilerSyntaxErrorListener.Errors.Count > 0 )
         {
-            throw new BiteCompilerException( $"Error found while compiling!\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}", biteCompilerSyntaxErrorListener.Errors );
+            throw new BiteCompilerException( $"Error occured while parsing statement.\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}", biteCompilerSyntaxErrorListener.Errors );
         }
         DeclarationsNode declarations = ( DeclarationsNode ) gen.VisitStatements( tree );
 
@@ -107,105 +95,27 @@ public class BiteCompiler
 
         foreach ( string biteModule in modules )
         {
-            ModuleNode module = null;
-            try
-            {
-                module = ParseModule( biteModule );
-            }
-            catch ( BiteCompilerException e )
-            {
-                Console.WriteLine(e.BiteCompilerExceptionMessage);
-                foreach ( BiteCompilerSyntaxError syntaxError in e.SyntaxErrors )
-                {
-                    Console.WriteLine($"Compiler Error: {syntaxError.Message} at line: {syntaxError.Line} at position: {syntaxError.CharPositionInLine}.");
-                }
-
-                return null;
-            }
-            
+            ModuleNode module = ParseModule( biteModule );
             program.AddModule( module );
         }
 
         CodeGenerator generator = new CodeGenerator();
 
-        BiteProgram biteProgram = null;
-        try
-        {
-            biteProgram = generator.CompileProgram( program );
-        }
-        catch ( BiteSymbolTableException e )
-        {
-            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
-            return null;
-        }
-
-        return biteProgram;
+        return generator.CompileProgram( program );
     }
 
     public BiteProgram CompileExpression( string expression )
     {
-        ExpressionNode expressionNode = null;
-        try
-        {
-            expressionNode = ParseExpression( expression );
-        }
-        catch ( BiteCompilerException e )
-        {
-            Console.WriteLine(e.BiteCompilerExceptionMessage);
-            foreach ( BiteCompilerSyntaxError syntaxError in e.SyntaxErrors )
-            {
-                Console.WriteLine($"Compiler Error: {syntaxError.Message} at line: {syntaxError.Line} at position: {syntaxError.CharPositionInLine}.");
-            }
-
-            return null;
-        }
+        ExpressionNode expressionNode = ParseExpression( expression );
         CodeGenerator generator = new CodeGenerator();
-        BiteProgram biteProgram = null;
-        try
-        {
-            biteProgram = generator.CompileExpression( expressionNode );
-        }
-        catch ( BiteSymbolTableException e )
-        {
-            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
-            return null;
-        }
-
-        return biteProgram;
+        return generator.CompileExpression( expressionNode );
     }
 
     public BiteProgram CompileStatements( string statements, BiteProgram previousBiteProgram = null )
     {
-        IReadOnlyCollection < StatementNode > statementNodes = null;
-        
-        try
-        {
-            statementNodes = ParseStatements( statements );
-        }
-        catch ( BiteCompilerException e )
-        {
-            Console.WriteLine(e.BiteCompilerExceptionMessage);
-            foreach ( BiteCompilerSyntaxError syntaxError in e.SyntaxErrors )
-            {
-                Console.WriteLine($"Compiler Error: {syntaxError.Message} at line: {syntaxError.Line} at position: {syntaxError.CharPositionInLine}.");
-            }
-
-            return null;
-        }
-        
+        IReadOnlyCollection < StatementNode> statementNodes = ParseStatements( statements );
         CodeGenerator generator = new CodeGenerator();
-        BiteProgram biteProgram = null;
-        try
-        {
-            biteProgram = generator.CompileStatements( statementNodes, previousBiteProgram );
-        }
-        catch ( BiteSymbolTableException e )
-        {
-            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
-            return null;
-        }
-
-        return biteProgram;
+        return generator.CompileStatements( statementNodes, previousBiteProgram );
     }
 
     public BiteProgram Compile( IReadOnlyCollection < Module > modules )
@@ -229,37 +139,12 @@ public class BiteCompiler
             moduleStrings.Add( moduleBuilder.ToString() );
         }
 
-        ProgramNode program = null;
-        
-        try
-        {
-            program = ParseModules( moduleStrings );
-        }
-        catch ( BiteCompilerException e )
-        {
-            Console.WriteLine(e.BiteCompilerExceptionMessage);
-            foreach ( BiteCompilerSyntaxError syntaxError in e.SyntaxErrors )
-            {
-                Console.WriteLine($"Compiler Error: {syntaxError.Message} at line: {syntaxError.Line} at position: {syntaxError.CharPositionInLine}.");
-            }
+        ProgramNode program = ParseModules( moduleStrings );
 
-            return null;
-        }
-        
+
         CodeGenerator generator = new CodeGenerator();
 
-        BiteProgram biteProgram = null;
-        try
-        {
-            biteProgram = generator.CompileProgram( program );
-        }
-        catch ( BiteSymbolTableException e )
-        {
-            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
-            return null;
-        }
-
-        return biteProgram;
+        return generator.CompileProgram( program );
     }
 }
 

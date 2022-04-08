@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 
@@ -89,13 +90,16 @@ public class REPL
                     else if ( running )
                     {
                         compiler = new BiteCompiler();
-                        program = compiler.CompileStatements( bufferString, program );
 
-                        if ( program == null )
+                        try
                         {
-                            continue;
+                            program = compiler.CompileStatements( bufferString, program );
+                            BiteVmInterpretResult result = biteVm.Interpret( program, false );
                         }
-                        BiteVmInterpretResult result = biteVm.Interpret( program, false );
+                        catch (Exception e)
+                        {
+                            System.Console.WriteLine( e.Message );
+                        }
                     }
                 }
             }

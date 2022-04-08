@@ -1491,7 +1491,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 if ( symbol == null )
                 {
                     throw new CompilerException(
-                        $"Failed to resolve symbol '{node.PrimaryId.Id}' in scope '{node.AstScopeNode.Name}'" );
+                        $"Failed to resolve symbol '{node.PrimaryId.Id}' in scope '{node.AstScopeNode.Name}'", node );
                 }
 
                 if ( symbol.SymbolScope is ClassSymbol s )

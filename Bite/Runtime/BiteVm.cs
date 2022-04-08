@@ -99,19 +99,10 @@ public class BiteVm
             }
         }
 
-        try
-        {
-            return Run();
-        }
-        catch ( BiteVmRuntimeException e )
-        {
-            Console.WriteLine( e.BiteVmRuntimeExceptionMessage );
-
-            return BiteVmInterpretResult.InterpretRuntimeError;
-        }
+        return Run();
     }
 
-    public void RegisterExternalGlobalObject( string varName, object data )
+        public void RegisterExternalGlobalObject( string varName, object data )
     {
         m_ExternalObjects.Add( varName, data );
     }
