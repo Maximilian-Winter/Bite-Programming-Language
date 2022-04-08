@@ -562,7 +562,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         }
                         else
                         {
-                            EmitByteCode( BiteVmOpCodes.OpSetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                            EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
                         }
                     
                     
@@ -661,7 +661,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     }
                     else
                     {
-                        EmitByteCode( BiteVmOpCodes.OpSetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                        EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
                     }
                     
                     

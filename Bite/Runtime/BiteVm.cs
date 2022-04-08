@@ -46,8 +46,8 @@ public class BiteVm
     private string m_MemberWithStringToSet = "";
     private bool m_SetMemberWithString = false;
     private bool m_KeepLastItemOnStackToReturn = false;
-    private bool m_SetVarWithName = false;
-    private string m_SetVarName = "";
+    private bool m_SetVarWithExternalName = false;
+    private string m_SetVarExternalName = "";
 
     private bool m_HasInitCSharpInterfaceObjectBytecode = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
@@ -918,10 +918,10 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpSetVarByName:
+                    case BiteVmOpCodes.OpSetVarExternal:
                     {
-                        m_SetVarName = ReadConstant().StringConstantValue;
-                        m_SetVarWithName = true;
+                        m_SetVarExternalName = ReadConstant().StringConstantValue;
+                        m_SetVarWithExternalName = true;
 
                         break;
                     }
@@ -1040,11 +1040,11 @@ public class BiteVm
 
                             m_SetMember = false;
                         }
-                        else if ( m_SetVarWithName )
+                        else if ( m_SetVarWithExternalName )
                         {
-                            m_ExternalObjects[m_SetVarName] = m_VmStack.Pop().ToObject();
+                            m_ExternalObjects[m_SetVarExternalName] = m_VmStack.Pop().ToObject();
 
-                            m_SetVarWithName = false;
+                            m_SetVarWithExternalName = false;
                         }
                         else if ( m_SetElement )
                         {
@@ -1221,6 +1221,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData / m_VmStack.Pop().NumberData ) );
                             }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
 
                             m_SetMember = false;
                         }
@@ -1244,6 +1248,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData / m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -1257,6 +1265,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData / m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -1307,6 +1319,10 @@ public class BiteVm
                                             obj,
                                             ( int ) field.GetValue( obj ) / ( int ) m_VmStack.Pop().NumberData );
                                     }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                    }
                                 }
                                 else
                                 {
@@ -1335,6 +1351,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) /
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -1361,6 +1381,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData / m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -1390,7 +1414,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData * m_VmStack.Pop().NumberData ) );
                             }
-
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
                             m_SetMember = false;
                         }
                         else if ( m_SetElement )
@@ -1413,6 +1440,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData * m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -1426,6 +1457,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData * m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -1448,6 +1483,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData * m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -1475,6 +1514,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) * ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -1504,6 +1547,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) *
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -1530,6 +1577,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData * m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -1559,7 +1610,11 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData + m_VmStack.Pop().NumberData ) );
                             }
-
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
+                            
                             m_SetMember = false;
                         }
                         else if ( m_SetElement )
@@ -1582,6 +1637,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData + m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -1595,6 +1654,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData + m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -1617,6 +1680,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData + m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -1644,6 +1711,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) + ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -1673,6 +1744,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) +
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -1699,6 +1774,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData + m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -1728,6 +1807,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData - m_VmStack.Pop().NumberData ) );
                             }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
 
                             m_SetMember = false;
                         }
@@ -1751,6 +1834,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData - m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -1764,6 +1851,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData - m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -1786,6 +1877,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData - m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -1813,6 +1908,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) - ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -1842,6 +1941,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) -
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -1868,6 +1971,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData - m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -1897,7 +2004,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData % m_VmStack.Pop().NumberData ) );
                             }
-
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
                             m_SetMember = false;
                         }
                         else if ( m_SetElement )
@@ -1920,6 +2030,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData % m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -1933,6 +2047,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData % m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -1955,6 +2073,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             valueLhs.NumberData % m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -1982,6 +2104,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) % ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -2011,6 +2137,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) %
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -2037,6 +2167,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         valueLhs.NumberData % m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -2066,6 +2200,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
                             }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
 
                             m_SetMember = false;
                         }
@@ -2089,6 +2227,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -2102,6 +2244,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -2124,6 +2270,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -2151,6 +2301,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) & ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -2181,6 +2335,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) &
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -2207,6 +2365,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData & ( int ) m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -2236,6 +2398,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
                             }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
 
                             m_SetMember = false;
                         }
@@ -2259,6 +2425,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -2272,6 +2442,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -2294,6 +2468,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -2321,6 +2499,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) | ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -2351,6 +2533,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) |
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -2377,6 +2563,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData | ( int ) m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -2406,6 +2596,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
                             }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
 
                             m_SetMember = false;
                         }
@@ -2429,6 +2623,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -2442,6 +2640,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -2464,6 +2666,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -2491,6 +2697,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) ^ ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -2521,6 +2731,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) ^
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -2547,6 +2761,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData ^ ( int ) m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -2576,6 +2794,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
                             }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
 
                             m_SetMember = false;
                         }
@@ -2599,6 +2821,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -2612,6 +2838,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -2634,6 +2864,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -2661,6 +2895,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) << ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -2691,6 +2929,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) <<
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -2717,6 +2959,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData << ( int ) m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 
@@ -2746,7 +2992,10 @@ public class BiteVm
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
                             }
-
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                            }
                             m_SetMember = false;
                         }
                         else if ( m_SetElement )
@@ -2769,6 +3018,10 @@ public class BiteVm
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
                                 }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                }
                             }
                             else
                             {
@@ -2782,6 +3035,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
 
@@ -2804,6 +3061,10 @@ public class BiteVm
                                         m_LastElement,
                                         DynamicVariableExtension.ToDynamicVariable(
                                             ( int ) valueLhs.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
                             }
                             else
@@ -2831,6 +3092,10 @@ public class BiteVm
                                         field.SetValue(
                                             obj,
                                             ( int ) field.GetValue( obj ) >> ( int ) m_VmStack.Pop().NumberData );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                     }
                                 }
                                 else
@@ -2861,6 +3126,10 @@ public class BiteVm
                                                 ( int ) propertyInfo.GetValue( obj ) >>
                                                 ( int ) m_VmStack.Pop().NumberData );
                                         }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
+                                        }
                                     }
                                 }
                             }
@@ -2887,6 +3156,10 @@ public class BiteVm
                                     m_LastGetLocalVarId,
                                     DynamicVariableExtension.ToDynamicVariable(
                                         ( int ) valueLhs.NumberData >> ( int ) m_VmStack.Pop().NumberData ) );
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                             }
                         }
 

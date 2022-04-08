@@ -51,7 +51,7 @@ public enum BiteVmOpCodes : byte
     OpDefineVar,
     OpDeclareVar,
     OpSetVar,
-    OpSetVarByName,
+    OpSetVarExternal,
     OpGetVar,
     OpGetVarExternal,
     OpGetModule,
