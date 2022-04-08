@@ -1,4 +1,4 @@
-﻿//#define BITE_VM_DEBUG_TRACE_EXECUTION
+﻿#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -333,7 +333,7 @@ public class BiteVm
 
                         for ( int i = 0; i < numberOfArguments; i++ )
                         {
-                            m_FunctionArguments.Add( DynamicVariableExtension.ToDynamicVariable(m_VmStack.Pop()) );
+                            m_FunctionArguments.Add( m_VmStack.Pop() );
                         }
 
                         break;
@@ -742,7 +742,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpGetVar:
+                    case BiteVmOpCodes.OpGetVarCopy:
                     {
                         m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                     ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -771,13 +771,55 @@ public class BiteVm
                                               ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                         m_CurrentInstructionPointer += 4;
-
+                        
+                        
                         m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(
                             m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
                                 m_LastGetLocalVarId )) );
+
+                        break;
+                    }
+                    
+                    case BiteVmOpCodes.OpGetVarRef:
+                    {
+                        m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalVarDepth = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalClassId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalVarId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+                        
+                        
+                        m_VmStack.Push(
+                            m_CurrentMemorySpace.Get(
+                                m_LastGetLocalVarModuleId,
+                                m_LastGetLocalVarDepth,
+                                m_LastGetLocalClassId,
+                                m_LastGetLocalVarId ) );
 
                         break;
                     }

@@ -3,9 +3,16 @@ module MainModule;
 import System;
 using System;
 
+function foo(a, b)
+{
+    return a + b;
+}
 var a = 1;
-var b = a++;
+var b = 2;
+PrintLine(foo(a++, b++));
+PrintLine(a);
 PrintLine(b);
+
 /*
 // Fibonacci function returned as return value example
 module MainModule;
