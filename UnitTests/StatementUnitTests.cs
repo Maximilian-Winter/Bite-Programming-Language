@@ -12,7 +12,7 @@ public class StatementUnitTests
     private BiteResult ExecStatements( string statements )
     {
 #if USE_NEW_PARSER
-        var compiler = new BITECompiler();
+        var compiler = new BiteCompiler();
 #else
         var compiler = new Compiler( true );
 #endif

@@ -24,7 +24,7 @@ public class Benchmarks
         foreach ( string file in files )
         {
             string name = Path.GetFileNameWithoutExtension( file );
-            BITECompiler compiler = new BITECompiler();
+            BiteCompiler compiler = new BiteCompiler();
             programs.Add( name, compiler.Compile(  new[] { File.ReadAllText( file ) } ) );
         }
     }

@@ -20,7 +20,7 @@ public class REPL
 
         BiteProgram program = null;
 
-        BITECompiler compiler = new BITECompiler();
+        BiteCompiler compiler = new BiteCompiler();
 
         program = compiler.Compile( new[] { "module MainModule; import System; using System;" } );
 
@@ -88,8 +88,13 @@ public class REPL
                     }
                     else if ( running )
                     {
-                        compiler = new BITECompiler();
+                        compiler = new BiteCompiler();
                         program = compiler.CompileStatements( bufferString, program );
+
+                        if ( program == null )
+                        {
+                            continue;
+                        }
                         BiteVmInterpretResult result = biteVm.Interpret( program, false );
                     }
                 }

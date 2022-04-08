@@ -24,7 +24,7 @@ public class Program
 
     public static void PerfTests()
     {
-        BITECompiler compiler = new();
+        BiteCompiler compiler = new();
 
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
@@ -105,7 +105,7 @@ Console.WriteLine(greeting);"
             }
         };
 
-        BITECompiler compiler = new();
+        BiteCompiler compiler = new();
 
         BiteProgram program = compiler.Compile( modules );
 
@@ -119,7 +119,7 @@ Console.WriteLine(greeting);"
             "*.bite",
             SearchOption.AllDirectories );
 
-        BITECompiler compiler = new();
+        BiteCompiler compiler = new();
         BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
         BiteResult vm = program.Run();
     }
