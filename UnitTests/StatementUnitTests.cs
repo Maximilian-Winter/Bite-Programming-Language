@@ -286,7 +286,7 @@ public class StatementUnitTests
 
     }
 
-    //[Fact]
+    [Fact]
     public void ForInitLoopBreak()
     {
         var result = ExecStatements( "var a = 0; for (var i = 0;;) { i++; a++; if (i == 10) { break; } } a;" );

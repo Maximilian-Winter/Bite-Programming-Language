@@ -154,7 +154,7 @@ public class BiteVm
 
         callSpace.Define(
             DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
-            "System.CSharpInterfaceCall" );
+            "CSharpInterfaceCall" );
 
         if ( csharpInterfaceObjectBytecodeChunk != null && !m_HasInitCSharpInterfaceObjectBytecode )
         {
@@ -3491,7 +3491,7 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpPostfixDecrement:
                     {
-                        DynamicBiteVariable currentStack = m_VmStack.Peek();
+                        DynamicBiteVariable currentStack = m_VmStack.Pop();
 
                         if ( currentStack.DynamicType < DynamicVariableType.True )
                         {
@@ -3507,7 +3507,7 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpPostfixIncrement:
                     {
-                        DynamicBiteVariable currentStack = m_VmStack.Peek();
+                        DynamicBiteVariable currentStack = m_VmStack.Pop();
 
                         if ( currentStack.DynamicType < DynamicVariableType.True )
                         {
