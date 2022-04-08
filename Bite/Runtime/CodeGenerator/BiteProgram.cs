@@ -58,10 +58,18 @@ public class BiteProgram
     ///     Creates a new <see cref="BiteVm" /> and executes the <see cref="BiteProgram" />
     /// </summary>
     /// <returns></returns>
-    public BiteResult Run()
+    public BiteResult Run(Dictionary <string, object> externalCSharpObjects = null)
     {
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
+
+        if ( externalCSharpObjects != null )
+        {
+            foreach ( KeyValuePair<string,object> externalCSharpObject in externalCSharpObjects )
+            {
+                biteVm.RegisterExternalGlobalObject( externalCSharpObject.Key, externalCSharpObject.Value );
+            }
+        }
         BiteVmInterpretResult result = biteVm.Interpret( this );
 
         return new BiteResult { InterpretResult = result, ReturnValue = biteVm.ReturnValue };
