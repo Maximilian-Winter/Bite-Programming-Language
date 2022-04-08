@@ -6,6 +6,7 @@ using Antlr4.Runtime;
 using AntlrBiteParser;
 using Bite.Ast;
 using Bite.Runtime.CodeGen;
+using Bite.Runtime.SymbolTable;
 using MemoizeSharp;
 
 namespace Bite.Runtime
@@ -127,7 +128,18 @@ public class BiteCompiler
 
         CodeGenerator generator = new CodeGenerator();
 
-        return generator.CompileProgram( program );
+        BiteProgram biteProgram = null;
+        try
+        {
+            biteProgram = generator.CompileProgram( program );
+        }
+        catch ( BiteSymbolTableException e )
+        {
+            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
+            return null;
+        }
+
+        return biteProgram;
     }
 
     public BiteProgram CompileExpression( string expression )
@@ -148,8 +160,18 @@ public class BiteCompiler
             return null;
         }
         CodeGenerator generator = new CodeGenerator();
+        BiteProgram biteProgram = null;
+        try
+        {
+            biteProgram = generator.CompileExpression( expressionNode );
+        }
+        catch ( BiteSymbolTableException e )
+        {
+            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
+            return null;
+        }
 
-        return generator.CompileExpression( expressionNode );
+        return biteProgram;
     }
 
     public BiteProgram CompileStatements( string statements, BiteProgram previousBiteProgram = null )
@@ -172,8 +194,18 @@ public class BiteCompiler
         }
         
         CodeGenerator generator = new CodeGenerator();
+        BiteProgram biteProgram = null;
+        try
+        {
+            biteProgram = generator.CompileStatements( statementNodes, previousBiteProgram );
+        }
+        catch ( BiteSymbolTableException e )
+        {
+            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
+            return null;
+        }
 
-        return generator.CompileStatements( statementNodes, previousBiteProgram );
+        return biteProgram;
     }
 
     public BiteProgram Compile( IReadOnlyCollection < Module > modules )
@@ -216,7 +248,18 @@ public class BiteCompiler
         
         CodeGenerator generator = new CodeGenerator();
 
-        return generator.CompileProgram( program );
+        BiteProgram biteProgram = null;
+        try
+        {
+            biteProgram = generator.CompileProgram( program );
+        }
+        catch ( BiteSymbolTableException e )
+        {
+            Console.WriteLine(e.BiteSymbolTableExceptionMessage);
+            return null;
+        }
+
+        return biteProgram;
     }
 }
 

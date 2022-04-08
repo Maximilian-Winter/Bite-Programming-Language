@@ -5,7 +5,15 @@ using Bite.SymbolTable;
 
 namespace Bite.Runtime.SymbolTable
 {
-
+public class BiteSymbolTableException : Exception
+{
+    public BiteSymbolTableException(string message): base(message)
+    {
+        BiteSymbolTableExceptionMessage = message;
+    }
+    
+    public string BiteSymbolTableExceptionMessage { get; }
+}
 public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 {
     public enum ClassType
@@ -666,7 +674,14 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                 }
                 else
                 {
-                    Resolve( terminalNode.Primary );
+                    if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                    {
+                        int d = 0;
+                        DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
+                        ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
+                        classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
+                    }
+                    
                 }
 
                 i++;
@@ -932,6 +947,11 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
     {
         node.AstScopeNode = CurrentScope;
 
+        if ( node.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+        {
+            int d = 0;
+            node.AstScopeNode.resolve( node.PrimaryId.Id, out int moduleId, ref d );
+        }
         if ( node.PrimaryType == PrimaryNode.PrimaryTypes.Expression )
         {
             Resolve( node.Expression );

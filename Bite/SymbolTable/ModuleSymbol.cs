@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Bite.Ast;
+using Bite.Runtime.SymbolTable;
 
 namespace Bite.SymbolTable
 {
@@ -90,6 +91,10 @@ public class ModuleSymbol : SymbolWithScope
             depth++;
             m_SearchedModules.Clear();
 
+            if ( symbol == null )
+            {
+                throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
+            }
             return symbol;
         }
 

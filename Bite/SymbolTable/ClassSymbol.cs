@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Bite.Runtime.SymbolTable;
 
 namespace Bite.SymbolTable
 {
@@ -237,7 +238,7 @@ public class ClassSymbol : DataAggregateSymbol
 
         moduleId = -2;
 
-        return null;
+        throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
     }
 
     public override Symbol resolveField( string name )
