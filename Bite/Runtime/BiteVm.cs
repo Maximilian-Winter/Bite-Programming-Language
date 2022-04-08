@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -15,25 +14,14 @@ using Type = System.Type;
 namespace Bite.Runtime
 {
 
-[StructLayout( LayoutKind.Explicit )]
-internal struct IntByteStruct
+public class BiteVmRuntimeException : ApplicationException
 {
-    [FieldOffset( 0 )]
-    public byte byte0;
-
-    [FieldOffset( 1 )]
-    public byte byte1;
-
-    [FieldOffset( 2 )]
-    public byte byte2;
-
-    [FieldOffset( 3 )]
-    public byte byte3;
-
-    [FieldOffset( 0 )]
-    public int integer;
+    public BiteVmRuntimeException( string message ): base(message)
+    {
+        BiteVmRuntimeExceptionMessage = message;
+    }
+    public string BiteVmRuntimeExceptionMessage { get; }
 }
-
 public class BiteVm
 {
     private BinaryChunk m_CurrentChunk;
@@ -43,11 +31,10 @@ public class BiteVm
     private readonly List < DynamicBiteVariable > m_FunctionArguments = new List < DynamicBiteVariable >();
     private ObjectPoolFastMemory m_PoolFastMemoryFastMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
-    private Scope m_CurrentScope;
     private FastMemorySpace m_CurrentMemorySpace;
     private FastMemoryStack m_CallStack = new FastMemoryStack();
     private UsingStatementStack m_UsingStatementStack;
-    private readonly Dictionary < string, FastMethodInfo > CachedMethods = new Dictionary < string, FastMethodInfo >();
+    private readonly Dictionary < string, FastMethodInfo > m_CachedMethods = new Dictionary < string, FastMethodInfo >();
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
     private int m_LastGetLocalVarDepth = -1;
@@ -62,7 +49,7 @@ public class BiteVm
     private bool m_SetVarWithName = false;
     private string m_SetVarName = "";
 
-    private bool HasInitCSharpInterfaceObjectBytecode = false;
+    private bool m_HasInitCSharpInterfaceObjectBytecode = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
@@ -91,7 +78,6 @@ public class BiteVm
         m_CurrentChunk = context.CompiledMainChunk;
         CompiledChunks = context.CompiledChunks;
         m_CurrentInstructionPointer = 0;
-        m_CurrentScope = context.BaseScope;
 
         if ( initVm )
         {
@@ -103,7 +89,7 @@ public class BiteVm
                 }
             }
         }
-        else if ( !HasInitCSharpInterfaceObjectBytecode )
+        else if ( !m_HasInitCSharpInterfaceObjectBytecode )
         {
             if ( CompiledChunks != null )
             {
@@ -114,7 +100,16 @@ public class BiteVm
             }
         }
 
-        return Run();
+        try
+        {
+            return Run();
+        }
+        catch ( BiteVmRuntimeException e )
+        {
+            Console.WriteLine( e.BiteVmRuntimeExceptionMessage );
+
+            return BiteVmInterpretResult.InterpretRuntimeError;
+        }
     }
 
     public void RegisterExternalGlobalObject( string varName, object data )
@@ -132,7 +127,7 @@ public class BiteVm
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
 
-        HasInitCSharpInterfaceObjectBytecode = false;
+        m_HasInitCSharpInterfaceObjectBytecode = false;
 
         InitMemorySpaces( csharpInterfaceObjectBytecodeChunk );
     }
@@ -144,7 +139,6 @@ public class BiteVm
     protected void InitMemorySpaces( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
     {
         m_CurrentMemorySpace = m_GlobalMemorySpace;
-        string moduleName = "System";
 
         FastMemorySpace callSpace = new FastMemorySpace(
             "$system",
@@ -172,7 +166,7 @@ public class BiteVm
             DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
             "System.CSharpInterfaceCall" );
 
-        if ( csharpInterfaceObjectBytecodeChunk != null && !HasInitCSharpInterfaceObjectBytecode )
+        if ( csharpInterfaceObjectBytecodeChunk != null && !m_HasInitCSharpInterfaceObjectBytecode )
         {
             AddCSharpInterfaceObjectBytecode( csharpInterfaceObjectBytecodeChunk );
         }
@@ -188,7 +182,7 @@ public class BiteVm
 
         if ( !biteSystemMemorySpace.NamesToProperties.ContainsKey( "System.CSharpInterface" ) )
         {
-            HasInitCSharpInterfaceObjectBytecode = true;
+            m_HasInitCSharpInterfaceObjectBytecode = true;
 
             biteSystemMemorySpace.Define(
                 DynamicVariableExtension.ToDynamicVariable(
@@ -264,11 +258,6 @@ public class BiteVm
                     {
                         string moduleName = ReadConstant().StringConstantValue;
                         int depth = 0;
-
-                        m_CurrentScope = ( BaseScope ) m_CurrentScope.resolve(
-                            moduleName,
-                            out int moduleId,
-                            ref depth );
 
                         int numberOfMembers = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                               ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -362,7 +351,7 @@ public class BiteVm
                         }
                         break;
                     }
-                    case BiteVmOpCodes.OpCallFunction:
+                    case BiteVmOpCodes.OpCallFunctionByName:
                     {
                         string method = ReadConstant().StringConstantValue;
                         DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
@@ -395,8 +384,19 @@ public class BiteVm
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
                             }
                         }
-                        else if ( m_VmStack.Count > 0 &&
-                                  m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
+                        else
+                        {
+                            throw new BiteVmRuntimeException( "Error Function " + method + " not found!" );
+                        }
+
+                        break;
+                    }
+                    
+                     case BiteVmOpCodes.OpCallFunctionFromStack:
+                    {
+
+                        if ( m_VmStack.Count > 0 &&
+                             m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
                         {
                             m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
@@ -415,6 +415,10 @@ public class BiteVm
                             m_FunctionArguments.Clear();
                             m_CurrentChunk = functionFromStack.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
+                        }
+                        else
+                        {
+                            throw new BiteVmRuntimeException( "Error Function not found!" );
                         }
 
                         break;
@@ -491,14 +495,14 @@ public class BiteVm
                             }
                             else
                             {
-                                throw new Exception( "Error expected Function, got null!" );
+                                throw new BiteVmRuntimeException( "Error Function " + constant.StringConstantValue + " not found!" );
                             }
                         }
                         else if ( dynamicBiteVariable.ObjectData is object obj )
                         {
                             string callString = obj + "." + constant.StringConstantValue;
 
-                            if ( CachedMethods.ContainsKey( callString ) )
+                            if ( m_CachedMethods.ContainsKey( callString ) )
                             {
                                 object[] functionArguments = new object[m_FunctionArguments.Count];
 
@@ -513,7 +517,7 @@ public class BiteVm
                                     it++;
                                 }
 
-                                object returnVal = CachedMethods[callString].
+                                object returnVal = m_CachedMethods[callString].
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
                                 m_FunctionArguments.Clear();
                                 if ( returnVal != null )
@@ -542,7 +546,7 @@ public class BiteVm
                                 if ( method != null )
                                 {
                                     FastMethodInfo fastMethodInfo = new FastMethodInfo( method );
-                                    CachedMethods.Add( callString, fastMethodInfo );
+                                    m_CachedMethods.Add( callString, fastMethodInfo );
 
                                     object returnVal = fastMethodInfo.Invoke(
                                         dynamicBiteVariable.ObjectData,
@@ -555,12 +559,17 @@ public class BiteVm
                                 }
                                 else
                                 {
-                                    throw new Exception(
+                                    throw new BiteVmRuntimeException(
                                         "Error Function " + constant.StringConstantValue + " not found!" );
                                 }
                                 
                                 m_FunctionArguments.Clear();
                             }
+                        }
+                        else
+                        {
+                            throw new BiteVmRuntimeException(
+                                "Error Function " + constant.StringConstantValue + " not found!" );
                         }
 
                         break;
@@ -771,12 +780,20 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpGetVarByName:
+                    case BiteVmOpCodes.OpGetVarExternal:
                     {
                         string varName = ReadConstant().StringConstantValue;
 
-                        m_VmStack.Push(
-                            DynamicVariableExtension.ToDynamicVariable( m_ExternalObjects[varName] ) );
+                        if ( m_ExternalObjects.ContainsKey( varName ) )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable( m_ExternalObjects[varName] ) );
+                        }
+                        else
+                        {
+                            throw new BiteVmRuntimeException( $"Runtime Error: External object: {varName} not found!" );
+                        }
+                        
 
                         break;
                     }
@@ -3018,7 +3035,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3038,7 +3055,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3058,7 +3075,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3078,7 +3095,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3098,7 +3115,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3114,7 +3131,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only negate Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3130,7 +3147,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only negate Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only negate Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3146,7 +3163,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only complement Integer Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only complement Integer Numbers!" );
                         }
 
                         break;
@@ -3162,7 +3179,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only decrement Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only decrement Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3178,7 +3195,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only increment Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only increment Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3194,7 +3211,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only decrement Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only decrement Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3210,7 +3227,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only increment Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only increment Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3230,7 +3247,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3250,7 +3267,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3270,7 +3287,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3290,7 +3307,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only compare Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only compare Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3341,7 +3358,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only check equality with Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only check equality with Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3361,7 +3378,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only check equality with Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only check equality with Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3415,7 +3432,7 @@ public class BiteVm
                             }
                             else
                             {
-                                throw new Exception(
+                                throw new BiteVmRuntimeException(
                                     "Can only concatenate Strings with Integers and Floating Point Numbers!" );
                             }
                         }
@@ -3428,7 +3445,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only add Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only add Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3448,7 +3465,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only subtract Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only subtract Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3468,7 +3485,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only multiply Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only multiply Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3488,7 +3505,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only divide Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only divide Integers and Floating Point Numbers!" );
                         }
 
                         break;
@@ -3508,7 +3525,7 @@ public class BiteVm
                         }
                         else
                         {
-                            throw new Exception( "Can only modulo Integers and Floating Point Numbers!" );
+                            throw new BiteVmRuntimeException( "Can only modulo Integers and Floating Point Numbers!" );
                         }
 
                         break;

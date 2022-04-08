@@ -24,9 +24,13 @@ function FindFibonacciNumber(n)
     return c;
 }
 
+var a = new Object();
+
+a["fibo"] = abc;
+
 for(var i = 0; i < 50; i++)
 {
-    PrintLine(FindFibonacciNumber(i));
+    PrintLine(a["fibo"](i));
 }
 
 /*

@@ -587,7 +587,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                             }
                             else
                             {
-                                EmitByteCode( BiteVmOpCodes.OpGetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                                EmitByteCode( BiteVmOpCodes.OpGetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
                             }
                      
                         }
@@ -597,45 +597,54 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 {
                     Compile( node.Primary );
                 }
-                if ( node.ElementAccess != null )
+                foreach ( CallElementEntry callElementEntry in node.ElementAccess )
                 {
-                    foreach ( CallElementEntry callElementEntry in node.ElementAccess )
+                    if ( callElementEntry.CallElementType == CallElementTypes.Call )
                     {
-                        if ( callElementEntry.CallElementType == CallElementTypes.Call )
-                        {
-                            Compile( callElementEntry.Call );
-                        }
-                        else
-                        {
-                            EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
-                        }
-                    }
-
-                    if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
-                    {
-                        ByteCode byteCode = new ByteCode(
-                            BiteVmOpCodes.OpSetElement,
-                            node.ElementAccess.Count );
-
-                        EmitByteCode( byteCode );
+                        Compile( callElementEntry.Call );
                     }
                     else
                     {
-                        ByteCode byteCode = new ByteCode(
-                            BiteVmOpCodes.OpGetElement,
-                            node.ElementAccess.Count );
-
-                        EmitByteCode( byteCode );
+                        EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
                     }
                 }
-            }
-            if ( functionSymbol != null )
-            {
-                EmitByteCode( BiteVmOpCodes.OpCallFunction, new ConstantValue( functionSymbol.QualifiedName ) );
+
+                if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
+                {
+                    ByteCode byteCode = new ByteCode(
+                        BiteVmOpCodes.OpSetElement,
+                        node.ElementAccess.Count );
+
+                    EmitByteCode( byteCode );
+                }
+                else
+                {
+                    ByteCode byteCode = new ByteCode(
+                        BiteVmOpCodes.OpGetElement,
+                        node.ElementAccess.Count );
+
+                    EmitByteCode( byteCode );
+                }
+                
+                if ( functionSymbol != null )
+                {
+                    EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
+                }
+                else
+                {
+                    EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
+                }
             }
             else
             {
-                EmitByteCode( BiteVmOpCodes.OpCallFunction, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                if ( functionSymbol != null )
+                {
+                    EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( functionSymbol.QualifiedName ) );
+                }
+                else
+                {
+                    EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                }
             }
         }
         else
@@ -677,7 +686,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         }
                         else
                         {
-                            EmitByteCode( BiteVmOpCodes.OpGetVarByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                            EmitByteCode( BiteVmOpCodes.OpGetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
                         }
                      
                     }
