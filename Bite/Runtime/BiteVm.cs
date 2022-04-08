@@ -333,7 +333,7 @@ public class BiteVm
 
                         for ( int i = 0; i < numberOfArguments; i++ )
                         {
-                            m_FunctionArguments.Add( m_VmStack.Pop() );
+                            m_FunctionArguments.Add( DynamicVariableExtension.ToDynamicVariable(m_VmStack.Pop()) );
                         }
 
                         break;
@@ -772,12 +772,12 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
 
-                        m_VmStack.Push(
+                        m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(
                             m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
                                 m_LastGetLocalVarDepth,
                                 m_LastGetLocalClassId,
-                                m_LastGetLocalVarId ) );
+                                m_LastGetLocalVarId )) );
 
                         break;
                     }

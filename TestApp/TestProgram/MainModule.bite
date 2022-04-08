@@ -3,29 +3,9 @@ module MainModule;
 import System;
 using System;
 
-class TestClass
-{
-    var x = 5;
-
-    function TestClass()
-    {
-    }
-
-    function foo() {
-        x++;
-    }
-
-    function bar() {
-        x--;
-    }
-}
-
-var a = new TestClass();
-
-a["foo"]();
-
-a;
-
+var a = 1;
+var b = a++;
+PrintLine(b);
 /*
 // Fibonacci function returned as return value example
 module MainModule;
