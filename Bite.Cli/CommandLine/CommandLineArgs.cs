@@ -164,14 +164,20 @@ public class CommandLineArgs
 
         Console.WriteLine( "OPTIONS:\r\n" );
 
+        string spaces = new string( ' ', longestNameLength - "help".Length );
+
+        Console.WriteLine($"  -h  (--help){spaces} : this help screen" );
+            
         foreach ( PropertyOption propertyOption in propertyOptions )
         {
             string longName = propertyOption.LongName;
-            string spaces = new string( ' ', longestNameLength - propertyOption.LongName.Length );
+            spaces = new string( ' ', longestNameLength - propertyOption.LongName.Length );
 
             Console.WriteLine(
                 $"  -{propertyOption.ShortName}  (--{longName}){spaces} : {propertyOption.Description}" );
         }
+
+
     }
 
     #endregion

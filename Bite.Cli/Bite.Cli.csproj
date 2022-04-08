@@ -10,7 +10,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Bite\Bite.csproj"/>
+      <PackageReference Include="ILMerge" Version="3.0.41" />
+      <PackageReference Include="ILMerge.MSBuild.Task" Version="1.0.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Bite\Bite.csproj">
+          <CopyLocal>False</CopyLocal>
+          <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
+        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>

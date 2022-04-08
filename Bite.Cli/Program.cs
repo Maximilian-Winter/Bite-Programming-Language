@@ -23,6 +23,12 @@ internal class Program
             {
                 if ( o.Modules != null )
                 {
+
+                    BITECompiler compiler = new BITECompiler();
+
+                    BiteProgram program = compiler.Compile( o.Modules.Select( File.ReadAllText ) );
+
+                    program.Run();
                 }
                 else if ( o.Path != null )
                 {
