@@ -1,4 +1,6 @@
-﻿namespace Bite.Runtime.Memory
+﻿using System;
+
+namespace Bite.Runtime.Memory
 {
 
 public static class DynamicVariableExtension
@@ -131,6 +133,45 @@ public static class DynamicVariableExtension
                 biteVariable.ArrayData = null;
                 biteVariable.ObjectData = fastMemorySpace;
                 biteVariable.DynamicType = DynamicVariableType.Object;
+
+                break;
+            
+            case DynamicBiteVariable dynamicBiteVariable:
+                switch ( dynamicBiteVariable.DynamicType )
+                {
+                    case DynamicVariableType.Null:
+                        biteVariable.DynamicType = DynamicVariableType.Null;
+                        break;
+
+                    case DynamicVariableType.True:
+                        biteVariable.DynamicType = DynamicVariableType.True;
+                        break;
+
+                    case DynamicVariableType.False:
+                        biteVariable.DynamicType = DynamicVariableType.False;
+                        break;
+
+                    case DynamicVariableType.String:
+                        biteVariable.StringData = dynamicBiteVariable.StringData;
+                        biteVariable.DynamicType = DynamicVariableType.String;
+                        break;
+
+                    case DynamicVariableType.Array:
+                        biteVariable.ArrayData = dynamicBiteVariable.ArrayData;
+                        biteVariable.DynamicType = DynamicVariableType.Array;
+                        break;
+
+                    case DynamicVariableType.Object:
+                        biteVariable.ObjectData = dynamicBiteVariable.ObjectData;
+                        biteVariable.DynamicType = DynamicVariableType.Object;
+                        break;
+
+                    default:
+                        biteVariable.DynamicType = 0;
+                        biteVariable.NumberData = dynamicBiteVariable.NumberData;
+                        break;
+                }
+                
 
                 break;
 

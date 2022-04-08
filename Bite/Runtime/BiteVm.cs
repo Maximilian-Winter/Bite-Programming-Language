@@ -1,4 +1,4 @@
-﻿//#define BITE_VM_DEBUG_TRACE_EXECUTION
+﻿#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -99,19 +99,10 @@ public class BiteVm
             }
         }
 
-        try
-        {
-            return Run();
-        }
-        catch ( BiteVmRuntimeException e )
-        {
-            Console.WriteLine( e.BiteVmRuntimeExceptionMessage );
-
-            return BiteVmInterpretResult.InterpretRuntimeError;
-        }
+        return Run();
     }
 
-    public void RegisterExternalGlobalObject( string varName, object data )
+        public void RegisterExternalGlobalObject( string varName, object data )
     {
         m_ExternalObjects.Add( varName, data );
     }
@@ -742,7 +733,7 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpGetVar:
+                    case BiteVmOpCodes.OpGetVarCopy:
                     {
                         m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                     ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -771,7 +762,49 @@ public class BiteVm
                                               ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                         m_CurrentInstructionPointer += 4;
+                        
+                        
+                        m_VmStack.Push(DynamicVariableExtension.ToDynamicVariable(
+                            m_CurrentMemorySpace.Get(
+                                m_LastGetLocalVarModuleId,
+                                m_LastGetLocalVarDepth,
+                                m_LastGetLocalClassId,
+                                m_LastGetLocalVarId )) );
 
+                        break;
+                    }
+                    
+                    case BiteVmOpCodes.OpGetVarRef:
+                    {
+                        m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalVarDepth = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalClassId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalVarId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+                        
+                        
                         m_VmStack.Push(
                             m_CurrentMemorySpace.Get(
                                 m_LastGetLocalVarModuleId,
