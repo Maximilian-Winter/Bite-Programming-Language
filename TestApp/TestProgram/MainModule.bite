@@ -3,12 +3,64 @@ module MainModule;
 import System;
 using System;
 
-import CSharpSystem;
-using CSharpSystem;
+var name = "Max";
+PrintLine("Hello: ${name}");
+
+/*
 
 
-var j = 0; for (var i = 0; i < 10; i++) { j++; } Console.WriteLine(j);
+var testClassInterface = new CSharpInterface();
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
 
+testClassInterface.ConstructorArguments[0] = 0;
+testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+PrintLine(TestCSharp.testfield.i);
+for(var i = 0; i < 5000; i++)
+{
+    TestCSharp.testfield.i += 25;
+}
+PrintLine(TestCSharp.testfield.i);*/
+/*
+class A
+{
+ var i = 5;
+}
+
+class B
+{
+    var testfield = new A();
+}
+
+var TestCSharp = new B();
+
+PrintLine(TestCSharp.testfield.i);
+for(var i = 0; i < 5000; i++)
+{
+    TestCSharp.testfield.i = TestCSharp.testfield.i + 25;
+}
+PrintLine(TestCSharp.testfield.i);
+*/
+
+/*
+
+var testClassInterface = new CSharpInterface();
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
+
+testClassInterface.ConstructorArguments[0] = 0;
+testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
+
+
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+PrintLine(TestCSharp.testfield.i);
+for(var i = 0; i < 5000; i++)
+{
+    TestCSharp.testfield.i += 25;
+    PrintLine(TestCSharp.testfield.i);
+}
+*/
 
 /*
 // Fibonacci function returned as return value example

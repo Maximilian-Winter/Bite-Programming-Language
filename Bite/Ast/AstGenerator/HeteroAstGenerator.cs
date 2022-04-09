@@ -606,9 +606,9 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                                         CallElementTypes.Call;
                                 }
 
-                                if ( elementIdentifierContext.StringLiteral() != null )
+                                if ( elementIdentifierContext.@string() != null && elementIdentifierContext.@string().stringPart(0).TEXT() != null )
                                 {
-                                    string literal = elementIdentifierContext.StringLiteral().Symbol.Text;
+                                    string literal = elementIdentifierContext.@string().stringPart(0).TEXT().Symbol.Text;
 
                                     callElementEntry.Identifier = literal.Substring( 1, literal.Length - 2 );
 
@@ -644,9 +644,9 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                                         CallElementTypes.Call;
                                 }
 
-                                if ( elementIdentifierContext.StringLiteral() != null )
+                                if ( elementIdentifierContext.@string() != null )
                                 {
-                                    string literal = elementIdentifierContext.StringLiteral().Symbol.Text;
+                                    string literal = elementIdentifierContext.@string().stringPart(0).TEXT().Symbol.Text;
 
                                     callElementEntry.Identifier = literal.Substring( 1, literal.Length - 2 );
 
@@ -1475,28 +1475,22 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
             primaryNode.FloatLiteral = double.Parse( context.FloatingLiteral().Symbol.Text, NumberFormatInfo.InvariantInfo );
         }
 
-        if ( context.StringLiteral() != null )
+        if(context.@string() != null)
         {
             primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.StringLiteral;
-
-            primaryNode.StringLiteral = context.StringLiteral().
-                                                Symbol.Text.Substring(
-                                                    1,
-                                                    context.StringLiteral().Symbol.Text.Length - 2 );
-        }
-        
-        /*if(context.interpolatedString() != null)
-        {
-            primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.InterpolatedString;
-            primaryNode.InterpolatedString = new InterpolatedString();
+            
             string lastText = "";
-            foreach ( BITEParser.InterpolatedStringContentContext stringContent in context.interpolatedString().interpolatedStringContent() )
+            foreach ( BITEParser.StringPartContext stringContent in context.@string().stringPart() )
             {
-                ExpressionNode expressionNode = null;
-
                 if ( stringContent.expression() != null )
                 {
-                    expressionNode = ( ExpressionNode ) VisitExpression( stringContent.expression() );
+                    if ( primaryNode.InterpolatedString == null )
+                    {
+                        primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.InterpolatedString;
+                        primaryNode.InterpolatedString = new InterpolatedString();
+                        primaryNode.InterpolatedString.StringParts = new List < InterpolatedStringPart >();
+                    }
+                    ExpressionNode expressionNode = ( ExpressionNode ) VisitExpression( stringContent.expression() );
                     if ( expressionNode != null )
                     {
                         primaryNode.InterpolatedString.StringParts.Add( new InterpolatedStringPart(lastText, expressionNode) );
@@ -1507,11 +1501,17 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                 if ( stringContent.TEXT() != null )
                 {
                     lastText = stringContent.TEXT().Symbol.Text;
+                    primaryNode.StringLiteral += lastText;
                 }
             }
-
-            primaryNode.InterpolatedString.TextAfterLastExpression = lastText;
-        }*/
+            if ( primaryNode.PrimaryType == PrimaryNode.PrimaryTypes.InterpolatedString )
+            {
+                primaryNode.InterpolatedString.TextAfterLastExpression = lastText;
+            }
+            
+        }
+        
+        /**/
         
         
         if ( context.Identifier() != null )

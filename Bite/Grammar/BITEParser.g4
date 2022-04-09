@@ -199,7 +199,7 @@ whileStatement
     ;
 
 block
-    : OpeningCurlyBracket declaration* ClosingCurlyBracket 
+    : CURLY_L declaration* CURLY_R 
     ;
 
 
@@ -284,8 +284,7 @@ primary
     | FloatingLiteral 
     | OpeningRoundBracket expression ClosingRoundBracket
     | Identifier 
-    | StringLiteral
-    //| interpolatedString
+    | string
     ;
 
 privateModifier         : DeclarePrivate;
@@ -297,17 +296,20 @@ arguments               : argumentExpression ( CommaSeperator argumentExpression
 inheritance             : Identifier ( CommaSeperator Identifier )* ;                  
 callArguments           : OpeningRoundBracket arguments? ClosingRoundBracket;
 elementAccess           : (SquarebracketLeft elementIdentifier SquarebracketRight)+;    
-elementIdentifier       : (IntegerLiteral|StringLiteral|call);   
+elementIdentifier       : (IntegerLiteral|string|call);   
 argumentExpression      : (ReferenceOperator)? expression;
 parametersIdentifier    : Identifier;
-/*
-interpolatedString      : DOLLAR_DQUOTE interpolatedStringContent* DQUOTE
-                        ;
 
-interpolatedStringContent  : TEXT
-                           | ESCAPE_SEQUENCE
-                           | LPAR expression RPAR
-                           ;*/
+string: OPEN_STRING stringPart* CLOSE_STRING;
+
+stringPart:
+  TEXT
+  | ID_INTERP
+  | ENTER_EXPR_INTERP expression CURLY_R
+;
+                           
+                           
+
 
 
 

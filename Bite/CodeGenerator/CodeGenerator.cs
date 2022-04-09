@@ -583,7 +583,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                     {
                         int d2 = 0;
-                        if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2 ) != null )
+                        if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2, false ) != null )
                         {
                             BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
                             Compile( node.Primary );
@@ -598,7 +598,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     else
                     {
                         int d2 = 0;
-                        Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2 );
+                        Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2, false );
 
                         if ( var is ModuleSymbol m )
                         {
@@ -660,7 +660,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 Symbol objectToCall = node.AstScopeNode.resolve(
                     node.Primary.PrimaryId.Id,
                     out int moduleIdObject,
-                    ref dObject );
+                    ref dObject, false );
                 
                 ByteCode byteCodeObj = new ByteCode(
                     BiteVmOpCodes.OpGetVar,
@@ -688,7 +688,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                 {
                     int d = 0;
-                    if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) != null )
+                    if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d , false) != null )
                     {
                         BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
                         Compile( node.Primary );
@@ -703,7 +703,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 else
                 {
                     int d = 0;
-                    Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
+                    Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d, false );
 
                     if ( var is ModuleSymbol m )
                     {
@@ -772,7 +772,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             int d2 = 0;
             bool isModuleSymbol = false;
             bool isClassSymbol = false;
-            Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
+            Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d, false );
             ModuleSymbol moduleSymbol = null;
             ClassSymbol classSymbol = null;
 
@@ -789,7 +789,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         node.AstScopeNode.resolve(
                             dynamicVariable.Type.Name,
                             out int moduleId2,
-                            ref d2 ) as ClassSymbol;
+                            ref d2, false ) as ClassSymbol;
 
                     isClassSymbol = true;
                 }
@@ -856,7 +856,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = moduleSymbol.resolve(
                                     terminalNode.Primary.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4 );
+                                    ref d4,false );
 
                                 ByteCode byteCode = new ByteCode(
                                     BiteVmOpCodes.OpSetMember,
@@ -871,7 +871,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = classSymbol.resolve(
                                     terminalNode.Primary.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4 );
+                                    ref d4, false );
 
                                 if ( memberSymbol == null )
                                 {
@@ -904,7 +904,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = moduleSymbol.resolve(
                                     terminalNode.Primary.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4 );
+                                    ref d4, false );
 
                                 ByteCode byteCode = new ByteCode(
                                     BiteVmOpCodes.OpGetMember,
@@ -919,7 +919,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = classSymbol.resolve(
                                     terminalNode.Primary.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4 );
+                                    ref d4, false );
 
                                 if ( memberSymbol == null )
                                 {
@@ -1535,6 +1535,23 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             case PrimaryNode.PrimaryTypes.StringLiteral:
                 EmitConstant( new ConstantValue( node.StringLiteral ) );
 
+                return null;
+            
+            case PrimaryNode.PrimaryTypes.InterpolatedString:
+                int i = 0;
+                foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
+                {
+                    EmitConstant( new ConstantValue( interpolatedStringStringPart.TextBeforeExpression ) );
+                    if ( i > 0 )
+                    {
+                        EmitByteCode( BiteVmOpCodes.OpAdd );
+                    }
+                    Compile( interpolatedStringStringPart.ExpressionNode );
+                    EmitByteCode( BiteVmOpCodes.OpAdd );
+                    i++;
+                }
+                EmitConstant( new ConstantValue( node.InterpolatedString.TextAfterLastExpression ) );
+                EmitByteCode( BiteVmOpCodes.OpAdd );
                 return null;
 
             case PrimaryNode.PrimaryTypes.Expression:
