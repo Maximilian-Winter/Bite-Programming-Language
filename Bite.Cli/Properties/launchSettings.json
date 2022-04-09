@@ -3,7 +3,8 @@
     "Bite.Cli": {
       "commandName": "Project",
       "commandLineArgs": "",
-      "1-commandLineArgs": " -p .\\TestProgram"
+      "1-commandLineArgs": "-i ILMerge\\hello.bite",
+      "2-commandLineArgs": " -p .\\TestProgram"
     }
   }
 }

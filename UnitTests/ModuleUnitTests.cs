@@ -89,6 +89,19 @@ public class ModuleUnitTests
     }
 
     [Fact]
+    public void AmbiguousReferences()
+    {
+        string mainModule =
+            "module MainModule; import SubModuleA; import SubModuleB; using SubModuleA; using SubModuleB; var greeting = Hello + \" \" + World; greeting;";
+        string subModuleA = "module SubModuleA; var Hello = \"Hi\"; var World = \"Fellow Kids!\";";
+        string subModuleB = "module SubModuleB; var Hello = \"Hello\"; var World = \"World!\";";
+        BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World!", result.ReturnValue.StringData );
+    }
+
+
+        [Fact]
     public void VariableDeclaration()
     {
         string mainModule = "module MainModule; import System; using System; var a = 1;";

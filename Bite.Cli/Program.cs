@@ -23,7 +23,6 @@ internal class Program
             {
                 if ( o.Modules != null )
                 {
-
                     BiteCompiler compiler = new BiteCompiler();
 
                     BiteProgram program = compiler.Compile( o.Modules.Select( File.ReadAllText ) );

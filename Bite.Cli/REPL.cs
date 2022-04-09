@@ -8,14 +8,29 @@ namespace Bite.Cli
 
 public class REPL
 {
+    private static void PrintModule( string module )
+    {
+        var lines = module.Split( new[] { "\r\n" }, StringSplitOptions.None );
+
+        foreach ( var line in lines )
+        {
+            Console.WriteLine( $"> {line}" );
+        }
+    }
 
     public static void Start()
     {
-        Console.WriteLine( "Bite REPL(Read Evaluate Print Loop)\r\n" );
-        Console.WriteLine( "type 'declare' to declare functions, structs and classes" );
+        Console.WriteLine( "Starting Bite interactive command prompt...\r\n" );
+
+        Console.WriteLine( "type 'declare' to declare functions and classes" );
         Console.WriteLine( "type 'reset' to reset the module" );
-        Console.WriteLine( "type 'help' for help." );
-        Console.WriteLine( "type 'exit' or ^Z to quit. type 'help' for help." );
+        Console.WriteLine( "type 'help' to display help." );
+        Console.WriteLine( "type 'exit' or press CTRL+Z and press Enter to quit\r\n" );
+
+        string module = "module MainModule;\r\nimport System;\r\nusing System;\r\n";
+
+        PrintModule( module );
+
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
 
@@ -23,7 +38,7 @@ public class REPL
 
         BiteCompiler compiler = new BiteCompiler();
 
-        program = compiler.Compile( new[] { "module MainModule; import System; using System;" } );
+        program = compiler.Compile( new[] { module } );
 
         bool running = true;
         bool declaring = false;
@@ -36,14 +51,22 @@ public class REPL
                 Console.Write( "> " );
             }
 
-            var buffer = Console.Buffer( !declaring, out bool ctrlZPressed );
+            var buffer = ConsoleEx.Buffer( !declaring, out bool ctrlZPressed );
 
 
-            if ( declaring && ctrlZPressed )
+            if ( ctrlZPressed )
             {
-                System.Console.WriteLine( "-- DECLARE END --" );
-                declaring = false;
+                if ( declaring )
+                {
+                    Console.WriteLine( "-- DECLARE END --" );
+                    declaring = false;
+                }
+                else
+                {
+                    running = false;
+                }
             }
+
 
 
             if ( !declaring )
@@ -75,16 +98,16 @@ public class REPL
                         Console.WriteLine( "-- DECLARE START --" );
 
                         Console.WriteLine(
-                            "You are now declaring. Press ^Z to stop and compile your declaration." );
+                            "You are now declaring. Type ^Z and press Enter to end and compile your declaration." );
 
                     }
                     else if ( resetting )
                     {
-                        program = compiler.Compile( 
-                            new[] { "module MainModule; import System; using System;" } );
+                        program = compiler.Compile( new[] { module } );
 
                         Console.Clear();
-                        Console.WriteLine( "-- MODULE RESET --" );
+                        PrintModule( module );
+
                         resetting = false;
                     }
                     else if ( running )
@@ -98,7 +121,7 @@ public class REPL
                         }
                         catch (Exception e)
                         {
-                            System.Console.WriteLine( e.Message );
+                            Console.WriteLine( e.Message );
                         }
                     }
                 }

@@ -14,7 +14,7 @@ public class ObjectPoolFastMemory
     {
         for ( int i = 0; i < 1024; i++ )
         {
-            m_FastCallMemorySpaces[i] = new FastMemorySpace( $"$object_{i}", null, 0, null, 0, 0 );
+            m_FastCallMemorySpaces[i] = new FastMemorySpace( $"$objectpool_{i}", null, 0, null, 0, 0 );
         }
     }
 

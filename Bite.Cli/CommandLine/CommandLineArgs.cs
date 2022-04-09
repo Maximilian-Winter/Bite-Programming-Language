@@ -7,6 +7,14 @@ using System.Reflection;
 namespace Bite.Cli.CommandLine
 {
 
+public class CommandLineException : Exception
+{
+    public CommandLineException( string message ) : base( message )
+    {
+
+    }
+}
+
 /// <summary>
 ///     A quick'n'dirty commandline parser with an API similar to https://github.com/commandlineparser/commandline
 /// </summary>
@@ -15,7 +23,8 @@ public class CommandLineArgs
     private enum ArgState
     {
         ReadOption,
-        ReadValue
+        ReadValue,
+        ReadArray
     }
 
     private readonly string[] m_Args;
@@ -45,10 +54,22 @@ public class CommandLineArgs
 
             PropertyOption currentPropertyOption = null;
 
+            List < string > arrayValues = new List < string >();
+
             try
             {
                 foreach ( string arg in m_Args )
                 {
+                    if ( state == ArgState.ReadArray )
+                    {
+                        if ( arg.StartsWith( "-" ) && arg.Length == 2 || arg.StartsWith( "--" ) )
+                        {
+                            PropertyInfo property = currentPropertyOption.Property;
+                            property.SetValue( options, arrayValues.ToArray() );
+                            state = ArgState.ReadOption;
+                        }
+                    }
+
                     switch ( state )
                     {
                         case ArgState.ReadOption:
@@ -58,7 +79,7 @@ public class CommandLineArgs
                             {
                                 if ( !propertyLookupByShortName.TryGetValue( arg[1], out currentPropertyOption ) )
                                 {
-                                    throw new Exception( $"Unknown option {arg}" );
+                                    throw new CommandLineException( $"Unknown option {arg}" );
                                 }
 
                                 if ( currentPropertyOption.Property.PropertyType == typeof( bool ) )
@@ -74,19 +95,20 @@ public class CommandLineArgs
                                         arg.Substring( 2 ),
                                         out currentPropertyOption ) )
                                 {
-                                    throw new Exception( $"Unknown option {arg}" );
+                                    throw new CommandLineException( $"Unknown option {arg}" );
                                 }
 
                                 state = ArgState.ReadValue;
                             }
                             else
                             {
-                                throw new Exception( $"Invalid option {arg}" );
+                                throw new CommandLineException( $"Invalid option {arg}" );
                             }
 
                             break;
 
                         case ArgState.ReadValue:
+
                             Type propertyType = currentPropertyOption.Property.PropertyType;
                             PropertyInfo property = currentPropertyOption.Property;
 
@@ -102,16 +124,31 @@ public class CommandLineArgs
                             {
                                 property.SetValue( options, double.Parse( arg ) );
                             }
+                            else if ( propertyType.IsArray )
+                            {
+                                arrayValues = new List < string >() { arg };
+                                state = ArgState.ReadArray;
+                            }
 
-                            state = ArgState.ReadOption;
+                            if ( state != ArgState.ReadArray )
+                            {
+                                state = ArgState.ReadOption;
+                            }
 
                             break;
                     }
                 }
 
+
+                if ( state == ArgState.ReadArray )
+                {
+                    PropertyInfo property = currentPropertyOption.Property;
+                    property.SetValue( options, arrayValues.ToArray() );
+                }
+
                 success( options );
             }
-            catch
+            catch (CommandLineException)
             {
                 OnFail( propertyOptions );
             }
@@ -123,11 +160,13 @@ public class CommandLineArgs
         }
     }
 
+
+
     #endregion
 
     #region Private
 
-    private IEnumerable < PropertyOption > GetPropertyOptions < T >()
+    private IEnumerable < PropertyOption > GetPropertyOptions<T>()
     {
         Type type = typeof( T );
         PropertyInfo[] properties = type.GetProperties();
@@ -166,8 +205,8 @@ public class CommandLineArgs
 
         string spaces = new string( ' ', longestNameLength - "help".Length );
 
-        Console.WriteLine($"  -h  (--help){spaces} : this help screen" );
-            
+        Console.WriteLine( $"  -h  (--help){spaces} : this help screen" );
+
         foreach ( PropertyOption propertyOption in propertyOptions )
         {
             string longName = propertyOption.LongName;
