@@ -125,7 +125,7 @@ WS  :   [ \r\t\u000C\n]+ -> skip;
 
 LINE_COMMENT: '//' ~[\r\n]* '\r'? '\n' -> skip;
 
-CURLY_L: '{';
+CURLY_L: '{' -> pushMode(DEFAULT_MODE);
 CURLY_R: '}' -> popMode; // When we see this, revert to the previous context.
 
 OPEN_STRING: '"' -> pushMode(STRING); // Switch context

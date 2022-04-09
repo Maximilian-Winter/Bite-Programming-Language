@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITEParser.g4 by ANTLR 4.9.2
+// Generated from BITEParser.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -57,8 +57,7 @@ public partial class BITEParser : Parser {
 		DollarOperator=66, BooleanLiteral=67, False_=68, True_=69, IntegerLiteral=70, 
 		FloatingLiteral=71, DecimalLiteral=72, Identifier=73, COMMENT=74, WS=75, 
 		LINE_COMMENT=76, CURLY_L=77, CURLY_R=78, OPEN_STRING=79, ENTER_EXPR_INTERP=80, 
-		ID_INTERP=81, ESCAPED_DOLLAR=82, ESCAPED_QUOTE=83, TEXT=84, CLOSE_STRING=85, 
-		LPAR=86, RPAR=87;
+		ID_INTERP=81, ESCAPED_DOLLAR=82, ESCAPED_QUOTE=83, TEXT=84, CLOSE_STRING=85;
 	public const int
 		RULE_program = 0, RULE_module = 1, RULE_moduleDeclaration = 2, RULE_importDirective = 3, 
 		RULE_usingDirective = 4, RULE_declaration = 5, RULE_classDeclaration = 6, 
@@ -125,7 +124,7 @@ public partial class BITEParser : Parser {
 		"BooleanLiteral", "False_", "True_", "IntegerLiteral", "FloatingLiteral", 
 		"DecimalLiteral", "Identifier", "COMMENT", "WS", "LINE_COMMENT", "CURLY_L", 
 		"CURLY_R", "OPEN_STRING", "ENTER_EXPR_INTERP", "ID_INTERP", "ESCAPED_DOLLAR", 
-		"ESCAPED_QUOTE", "TEXT", "CLOSE_STRING", "LPAR", "RPAR"
+		"ESCAPED_QUOTE", "TEXT", "CLOSE_STRING"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -294,7 +293,7 @@ public partial class BITEParser : Parser {
 			State = 129;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & ((1L << (BooleanLiteral - 67)) | (1L << (IntegerLiteral - 67)) | (1L << (FloatingLiteral - 67)) | (1L << (Identifier - 67)) | (1L << (OPEN_STRING - 67)) | (1L << (LPAR - 67)))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & ((1L << (BooleanLiteral - 67)) | (1L << (IntegerLiteral - 67)) | (1L << (FloatingLiteral - 67)) | (1L << (Identifier - 67)) | (1L << (CURLY_L - 67)) | (1L << (OPEN_STRING - 67)))) != 0)) {
 				{
 				{
 				State = 126;
@@ -721,7 +720,7 @@ public partial class BITEParser : Parser {
 			State = 191;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
-			case LPAR:
+			case CURLY_L:
 				{
 				State = 189;
 				block();
@@ -809,7 +808,7 @@ public partial class BITEParser : Parser {
 			State = 201;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
-			case LPAR:
+			case CURLY_L:
 				{
 				State = 199;
 				block();
@@ -945,7 +944,7 @@ public partial class BITEParser : Parser {
 			State = 220;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
-			case LPAR:
+			case CURLY_L:
 				{
 				State = 218;
 				block();
@@ -1268,9 +1267,9 @@ public partial class BITEParser : Parser {
 			case IntegerLiteral:
 			case FloatingLiteral:
 			case Identifier:
+			case CURLY_L:
+			case CURLY_R:
 			case OPEN_STRING:
-			case LPAR:
-			case RPAR:
 				{
 				State = 277;
 				ErrorHandler.Sync(this);
@@ -1341,7 +1340,7 @@ public partial class BITEParser : Parser {
 			State = 286;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & ((1L << (BooleanLiteral - 67)) | (1L << (IntegerLiteral - 67)) | (1L << (FloatingLiteral - 67)) | (1L << (Identifier - 67)) | (1L << (OPEN_STRING - 67)) | (1L << (LPAR - 67)))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & ((1L << (BooleanLiteral - 67)) | (1L << (IntegerLiteral - 67)) | (1L << (FloatingLiteral - 67)) | (1L << (Identifier - 67)) | (1L << (CURLY_L - 67)) | (1L << (OPEN_STRING - 67)))) != 0)) {
 				{
 				{
 				State = 283;
@@ -1473,7 +1472,7 @@ public partial class BITEParser : Parser {
 				whileStatement();
 				}
 				break;
-			case LPAR:
+			case CURLY_L:
 				EnterOuterAlt(_localctx, 8);
 				{
 				State = 296;
@@ -2193,8 +2192,8 @@ public partial class BITEParser : Parser {
 	}
 
 	public partial class BlockContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LPAR() { return GetToken(BITEParser.LPAR, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAR() { return GetToken(BITEParser.RPAR, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURLY_L() { return GetToken(BITEParser.CURLY_L, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURLY_R() { return GetToken(BITEParser.CURLY_R, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public DeclarationContext[] declaration() {
 			return GetRuleContexts<DeclarationContext>();
 		}
@@ -2223,11 +2222,11 @@ public partial class BITEParser : Parser {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 382;
-			Match(LPAR);
+			Match(CURLY_L);
 			State = 386;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & ((1L << (BooleanLiteral - 67)) | (1L << (IntegerLiteral - 67)) | (1L << (FloatingLiteral - 67)) | (1L << (Identifier - 67)) | (1L << (OPEN_STRING - 67)) | (1L << (LPAR - 67)))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 67)) & ~0x3f) == 0 && ((1L << (_la - 67)) & ((1L << (BooleanLiteral - 67)) | (1L << (IntegerLiteral - 67)) | (1L << (FloatingLiteral - 67)) | (1L << (Identifier - 67)) | (1L << (CURLY_L - 67)) | (1L << (OPEN_STRING - 67)))) != 0)) {
 				{
 				{
 				State = 383;
@@ -2239,7 +2238,7 @@ public partial class BITEParser : Parser {
 				_la = TokenStream.LA(1);
 			}
 			State = 389;
-			Match(RPAR);
+			Match(CURLY_R);
 			}
 		}
 		catch (RecognitionException re) {
@@ -4297,7 +4296,7 @@ public partial class BITEParser : Parser {
 
 	private static char[] _serializedATN = {
 		'\x3', '\x608B', '\xA72A', '\x8133', '\xB9ED', '\x417C', '\x3BE7', '\x7786', 
-		'\x5964', '\x3', 'Y', '\x263', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
+		'\x5964', '\x3', 'W', '\x263', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
 		'\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', '\x5', '\x4', 
 		'\x6', '\t', '\x6', '\x4', '\a', '\t', '\a', '\x4', '\b', '\t', '\b', 
 		'\x4', '\t', '\t', '\t', '\x4', '\n', '\t', '\n', '\x4', '\v', '\t', '\v', 
@@ -4661,12 +4660,12 @@ public partial class BITEParser : Parser {
 		'\a', '\f', '\x2', '\x2', '\x17B', '\x17C', '\a', '>', '\x2', '\x2', '\x17C', 
 		'\x17D', '\x5', '\x34', '\x1B', '\x2', '\x17D', '\x17E', '\a', '?', '\x2', 
 		'\x2', '\x17E', '\x17F', '\x5', '\x32', '\x1A', '\x2', '\x17F', '\x31', 
-		'\x3', '\x2', '\x2', '\x2', '\x180', '\x184', '\a', 'X', '\x2', '\x2', 
+		'\x3', '\x2', '\x2', '\x2', '\x180', '\x184', '\a', 'O', '\x2', '\x2', 
 		'\x181', '\x183', '\x5', '\f', '\a', '\x2', '\x182', '\x181', '\x3', '\x2', 
 		'\x2', '\x2', '\x183', '\x186', '\x3', '\x2', '\x2', '\x2', '\x184', '\x182', 
 		'\x3', '\x2', '\x2', '\x2', '\x184', '\x185', '\x3', '\x2', '\x2', '\x2', 
 		'\x185', '\x187', '\x3', '\x2', '\x2', '\x2', '\x186', '\x184', '\x3', 
-		'\x2', '\x2', '\x2', '\x187', '\x188', '\a', 'Y', '\x2', '\x2', '\x188', 
+		'\x2', '\x2', '\x2', '\x187', '\x188', '\a', 'P', '\x2', '\x2', '\x188', 
 		'\x33', '\x3', '\x2', '\x2', '\x2', '\x189', '\x18C', '\x5', '\x36', '\x1C', 
 		'\x2', '\x18A', '\x18C', '\x5', '\x38', '\x1D', '\x2', '\x18B', '\x189', 
 		'\x3', '\x2', '\x2', '\x2', '\x18B', '\x18A', '\x3', '\x2', '\x2', '\x2', 
