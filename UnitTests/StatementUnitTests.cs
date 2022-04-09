@@ -671,6 +671,122 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void NonStringInterpolation()
+    {
+        BiteResult result = ExecStatements( @"
+            var Hello = ""Hello""; 
+            var World = ""World""; 
+            var s = ""$${Hello} $${World}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "${Hello} ${World}", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolationStringExpressions()
+    {
+        BiteResult result = ExecStatements( @"
+            var Hello = ""Hello""; 
+            var World = ""World""; 
+            var s = ""${Hello} ${World}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World", result.ReturnValue.StringData );
+    }
+
+
+    [Fact]
+    public void StringInterpolationNumericExpressions()
+    {
+        BiteResult result = ExecStatements( @"
+            var X = 200; 
+            var Y = 100; 
+            var s = ""${X}:${Y}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "200:100", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolationFunctionExpressions()
+    {
+        BiteResult result = ExecStatements( @"
+            function foo(a) {
+                return a + 1;
+            }
+
+            function bar(b) {
+                return b + 2;
+            }
+
+            var X = 200; 
+            var Y = 100; 
+            var s = ""${foo(X)}:${bar(Y)}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "201:102", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolationAsFunctionArgument()
+    {
+        BiteResult result = ExecStatements( @"
+
+            function bar(b) {
+                return b + "" World"";
+            }
+
+            var Hello = ""Hello"";
+            var s = bar(""${Hello}"");
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolatioWithStringLiterals()
+    {
+        BiteResult result = ExecStatements( @"
+            var s = ""${""Hello""} ${""World""}"";
+            s;" );
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolatioWithStringLiteralConcatenation()
+    {
+        BiteResult result = ExecStatements( @"
+            var s = ""${""Hello"" + "" "" + ""World""}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolatioWithMultiLine()
+    {
+        BiteResult result = ExecStatements( @"
+            var s = ""${""Hello"" 
+                    + "" "" 
+                    + ""World""}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void StringInterpolatioInsideStringInterpolation()
+    {
+        BiteResult result = ExecStatements( @"
+            var x = ""Inception"";
+            var s = ""${""${x}"" + "" "" + ""World""}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Inception World", result.ReturnValue.StringData );
+    }
+
+    [Fact]
     public void TernaryFalse()
     {
         BiteResult result = ExecStatements( "var a = false; var b = a ? 123 : 456; b;" );

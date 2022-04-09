@@ -357,6 +357,27 @@ public class ExpressionUnitTests
             Assert.Equal( DynamicVariableType.True, result.ReturnValue.DynamicType );
         }
     }
+
+    [Fact]
+    public void String()
+    {
+        {
+            BiteResult result = ExecExpression( "\"Hello World\"" );
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+            Assert.Equal( "Hello World", result.ReturnValue.StringData );
+        }
+    }
+
+    [Fact]
+    public void StringConcatenation()
+    {
+        {
+            BiteResult result = ExecExpression( "\"Hello\" + \" \" + \"World\"" );
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+            Assert.Equal( "Hello World", result.ReturnValue.StringData );
+        }
+    }
+
 }
 
 }
