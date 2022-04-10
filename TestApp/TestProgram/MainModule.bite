@@ -1,13 +1,8 @@
-module MainModule;
+module HelloWorld;
 
-import System;
-using System;
+import System; 
 
-var a = 5;
-
-var b = a += 2;
-
-PrintLine(b);
+System.PrintLine("Hello World!");
 /*
 
 
