@@ -13,17 +13,35 @@ namespace Bite.Compiler
 
 public class BiteCompiler
 {
+    // TODO: Move somewhere else?
+    /// <summary>
+    /// System Module Declaration
+    /// </summary>
+    public string SystemModule = @"module System;
+
+class CSharpInterface {
+    var Type;
+    var Method;
+    var Arguments;
+    var ConstructorArguments;
+    var ConstructorArgumentsTypes;
+    var ObjectInstance;
+}
+
+extern callable function CSharpInterfaceCall ( object ) {
+}
+
+extern callable function Print ( object ) {
+}
+
+extern callable function PrintLine ( object ) {
+}";
+
     #region Public Compilers
 
     public BiteProgram Compile( IEnumerable < string > modules )
     {
-        ProgramNode program = new ProgramNode();
-
-        foreach ( string biteModule in modules )
-        {
-            ModuleNode module = ParseModule( biteModule );
-            program.AddModule( module );
-        }
+        ProgramNode program = ParseModules( modules );
 
         return CompileProgramInternal( program );
     }
@@ -84,7 +102,10 @@ public class BiteCompiler
     {
         ProgramNode program = new ProgramNode();
 
-        foreach ( string biteModule in modules )
+        ModuleNode systemModule = ParseModule( SystemModule );
+        program.AddModule( systemModule );
+
+        foreach (string biteModule in modules)
         {
             ModuleNode module = ParseModule( biteModule );
             program.AddModule( module );
@@ -239,6 +260,7 @@ public class BiteCompiler
     private BiteProgram CompileStatementsInternal( IReadOnlyCollection < StatementNode > statements,
         Dictionary < string, object > externalObjects, SymbolTable symbolTable = null )
     {
+
         ModuleNode module = new ModuleNode
         {
             ModuleIdent = new ModuleIdentifier( "MainModule" ),
@@ -257,6 +279,14 @@ public class BiteCompiler
         var biteProgram = new BiteProgram( symbolTable );
 
         CodeGenerator generator = new CodeGenerator( biteProgram );
+
+        // TODO: Don't recompile system module everytime?
+
+        //ModuleNode systemModule = ParseModule( SystemModule );
+
+        //symbolTableBuilder.BuildModuleSymbolTable( systemModule );
+
+        //generator.Compile( systemModule );
 
         generator.Compile( module );
 

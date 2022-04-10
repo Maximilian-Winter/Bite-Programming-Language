@@ -45,6 +45,7 @@ public class BiteProgram
     {
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
+        // TODO: move somewhere else!
         biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
         biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
         biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );

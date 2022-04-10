@@ -3,6 +3,8 @@ using System.Diagnostics;
 using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
+using Bite.Runtime.Functions;
+using Bite.Runtime.Functions.ForeignInterface;
 
 namespace Bite.Cli
 {
@@ -34,6 +36,10 @@ public class REPL
 
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
+        // TODO: move somewhere else!
+        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
+        biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
+        biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
 
         BiteProgram program = null;
 

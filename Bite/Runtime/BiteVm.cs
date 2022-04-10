@@ -75,6 +75,7 @@ public class BiteVm
 
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
+
     }
 
     public BiteVmInterpretResult Interpret( BiteProgram context )
@@ -104,13 +105,15 @@ public class BiteVm
 
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
+
     }
 
     #endregion
 
+
     #region Private
 
-    private ConstantValue ReadConstant()
+        private ConstantValue ReadConstant()
     {
         ConstantValue instruction =
             m_CurrentChunk.Constants[m_CurrentChunk.Code[m_CurrentInstructionPointer] |

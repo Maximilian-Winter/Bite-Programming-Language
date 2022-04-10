@@ -106,31 +106,11 @@ public class ModuleUnitTests
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
 
-    private static string SystemModuleDecl = @"module System;
-
-class CSharpInterface {
-    var Type;
-    var Method;
-    var Arguments;
-    var ConstructorArguments;
-    var ConstructorArgumentsTypes;
-    var ObjectInstance;
-}
-
-extern callable function CSharpInterfaceCall ( object ) {
-}
-
-extern callable function Print ( object ) {
-}
-
-extern callable function PrintLine ( object ) {
-}";
-
     [Fact]
     public void SystemModuleDeclaration()
     {
         string mainModule = "module MainModule; import System; using System; PrintLine( \"Hello World!\" );";
-        BiteResult result = ExecModules( new[] { mainModule, SystemModuleDecl } );
+        BiteResult result = ExecModules( new[] { mainModule } );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
 
