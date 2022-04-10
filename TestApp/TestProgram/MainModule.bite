@@ -4,7 +4,18 @@ import System;
 using System;
 
 var name = "Max";
-PrintLine("Hello: ${name}");
+
+class ABC
+{
+    function Test()
+    {
+        return "Pablo";
+    }
+}
+
+var a = new ABC();
+
+PrintLine("Hello: ${a["Test"]()}");
 
 /*
 
