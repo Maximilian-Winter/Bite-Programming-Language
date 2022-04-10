@@ -1,4 +1,4 @@
-﻿//#define BITE_VM_DEBUG_TRACE_EXECUTION
+﻿#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -352,6 +352,7 @@ public class BiteVm
                         if ( m_VmStack.Count > 0 &&
                              m_VmStack.Peek().ObjectData is BiteChunkWrapper functionFromStack )
                         {
+                            m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
                             callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;

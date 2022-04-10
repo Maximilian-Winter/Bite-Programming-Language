@@ -610,7 +610,7 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                                 {
                                     string literal = elementIdentifierContext.@string().stringPart(0).TEXT().Symbol.Text;
 
-                                    callElementEntry.Identifier = literal.Substring( 1, literal.Length - 2 );
+                                    callElementEntry.Identifier = literal;
 
                                     callElementEntry.CallElementType =
                                         CallElementTypes.StringLiteral;
@@ -648,7 +648,7 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                                 {
                                     string literal = elementIdentifierContext.@string().stringPart(0).TEXT().Symbol.Text;
 
-                                    callElementEntry.Identifier = literal.Substring( 1, literal.Length - 2 );
+                                    callElementEntry.Identifier = literal;
 
                                     callElementEntry.CallElementType =
                                         CallElementTypes.StringLiteral;
