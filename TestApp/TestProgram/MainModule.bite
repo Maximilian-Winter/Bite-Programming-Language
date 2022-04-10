@@ -3,26 +3,11 @@ module MainModule;
 import System;
 using System;
 
-class Messenger {
-   var _message; 
-   
-   // declare constructor
-   function Messenger(message) {
-      _message = message;
-      PrintLine("Test");
-   }
+var a = 5;
 
-   // declare function
-   function SayMessage() {
-      PrintLine(_message);
-   }
+var b = a += 2;
 
-}
-
-var msgr = new Messenger("Bite rocks!");
-
-msgr.SayMessage();
-
+PrintLine(b);
 /*
 
 

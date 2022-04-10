@@ -350,7 +350,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         if ( node.Initializer != null )
         {
             m_PostfixInstructions.Push( new BytecodeList() );
+            m_IsCompilingAssignmentRhs = true;
             Compile( node.Initializer );
+            m_IsCompilingAssignmentRhs = false;
             EmitByteCode( BiteVmOpCodes.OpDefineVar );
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
             
