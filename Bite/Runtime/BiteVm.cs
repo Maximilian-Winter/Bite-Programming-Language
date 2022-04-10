@@ -1,4 +1,4 @@
-#define BITE_VM_DEBUG_TRACE_EXECUTION
+//#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -112,42 +112,6 @@ namespace Bite.Runtime
         #endregion
 
     #region Protected
-
-    protected void InitMemorySpaces( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
-    {
-        m_CurrentMemorySpace = m_GlobalMemorySpace;
-
-        FastMemorySpace callSpace = new FastMemorySpace(
-            "$system",
-            m_GlobalMemorySpace,
-            0,
-            m_CurrentChunk,
-            m_CurrentInstructionPointer,
-            5 );
-
-        m_GlobalMemorySpace.AddModule( callSpace );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( new BinaryChunk() ) ),
-            "System.Object" );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new PrintFunctionVm() ),
-            "Print" );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new PrintLineFunctionVm() ),
-            "PrintLine" );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
-            "CSharpInterfaceCall" );
-
-        if ( csharpInterfaceObjectBytecodeChunk != null && !m_HasInitCSharpInterfaceObjectBytecode )
-        {
-            AddCSharpInterfaceObjectBytecode( csharpInterfaceObjectBytecodeChunk );
-        }
-    }
 
     #endregion
 
