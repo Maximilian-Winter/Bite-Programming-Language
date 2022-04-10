@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public class BiteClassType : Type

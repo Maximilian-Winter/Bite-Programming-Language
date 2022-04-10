@@ -2,7 +2,7 @@
 using System.IO;
 using Antlr4.Runtime;
 
-namespace Bite.Runtime
+namespace Bite.Compiler
 {
 
 public class BiteCompilerSyntaxErrorListener : BaseErrorListener

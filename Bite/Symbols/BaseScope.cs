@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
+[DebuggerDisplay("{Name}")]
 public abstract class BaseScope : Scope
 {
     public abstract string Name { get; }

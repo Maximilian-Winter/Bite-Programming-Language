@@ -1,4 +1,4 @@
-﻿namespace Bite.SymbolTable
+﻿namespace Bite.Symbols
 {
 
 public enum AccesModifierType

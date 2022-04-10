@@ -1,5 +1,4 @@
-#define USE_NEW_PARSER
-
+using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Memory;
@@ -12,11 +11,8 @@ public class ExpressionUnitTests
 {
     private BiteResult ExecExpression( string expression )
     {
-#if USE_NEW_PARSER
         var compiler = new BiteCompiler();
-#else
-        var compiler = new Compiler( true );
-#endif
+
         BiteProgram program = compiler.CompileExpression( expression );
 
         return program.Run();

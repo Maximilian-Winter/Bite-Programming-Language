@@ -1,6 +1,6 @@
 ﻿using Antlr4.Runtime;
 
-namespace Bite.Runtime
+namespace Bite.Compiler
 {
 
 public readonly struct BiteCompilerSyntaxError

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Bite.Ast;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public class FunctionSymbol : SymbolWithScope, TypedSymbol

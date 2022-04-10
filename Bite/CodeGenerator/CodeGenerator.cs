@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Bite.Ast;
 using Bite.Runtime.Bytecode;
-using Bite.SymbolTable;
+using Bite.Symbols;
 
 namespace Bite.Runtime.CodeGen
 {
@@ -27,61 +27,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
     #region Public
 
-    public BiteProgram CompileExpression( ExpressionNode expression )
+    public CodeGenerator( BiteProgram biteProgram )
     {
-        ModuleNode module = new ModuleNode
-        {
-            ModuleIdent = new ModuleIdentifier( "MainModule" ),
-            Statements = new List < StatementNode > { new ExpressionStatementNode { Expression = expression } }
-        };
-
-        m_BiteProgram = new BiteProgram( module );
-
-        module.Accept( this );
-
-        m_BiteProgram.Build();
-
-        return m_BiteProgram;
-    }
-
-    public BiteProgram CompileProgram( ProgramNode programNode )
-    {
-        m_BiteProgram = new BiteProgram( programNode );
-
-        programNode.Accept( this );
-
-        m_BiteProgram.Build();
-
-        return m_BiteProgram;
-    }
-
-    public BiteProgram CompileStatements( ModuleNode module, List < StatementNode > statements )
-    {
-        module.Statements = statements;
-
-        m_BiteProgram = new BiteProgram( module );
-
-        module.Accept( this );
-
-        m_BiteProgram.Build();
-
-        return m_BiteProgram;
-    }
-
-    public BiteProgram CompileStatements( IReadOnlyCollection < StatementNode > statements, BiteProgram previousBiteProgram = null )
-    {
-        ModuleNode module = new ModuleNode
-        {
-            ModuleIdent = new ModuleIdentifier( "MainModule" ), Statements = statements
-        };
-
-        m_BiteProgram = new BiteProgram( module, previousBiteProgram );
-
-        module.Accept( this );
-
-        m_BiteProgram.Build();
-
-        return m_BiteProgram;
+        m_BiteProgram = biteProgram;
     }
 
     public override object Visit( ProgramNode node )
@@ -713,16 +661,17 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     }
                     else
                     {
-                        if ( var != null )
+                        if ( var.IsExternal )
+                        {
+                            EmitByteCode( BiteVmOpCodes.OpGetVarExternal,
+                                new ConstantValue( node.Primary.PrimaryId.Id ) );
+                        }
+                        else
                         {
                             BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
                             Compile( node.Primary );
                         }
-                        else
-                        {
-                            EmitByteCode( BiteVmOpCodes.OpGetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
-                        }
-                     
+
                     }
                 }
             }
@@ -1787,6 +1736,16 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_ConstructingOpCode = byteCode;
         m_ConstructingOpCodeData = new List < int >();
         m_ConstructingLine = line;
+    }
+
+    public void Compile( ProgramNode programNode )
+    {
+        programNode.Accept( this );
+    }
+
+    public void Compile( ModuleNode moduleNode )
+    {
+        moduleNode.Accept( this );
     }
 
     private object Compile( HeteroAstNode astNode )

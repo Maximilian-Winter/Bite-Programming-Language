@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Bite.Ast;
-using Bite.Runtime.SymbolTable;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public class ModuleSymbol : SymbolWithScope
@@ -50,6 +49,7 @@ public class ModuleSymbol : SymbolWithScope
 
         if ( parent != null )
         {
+
             Symbol symbol = parent.resolve( name, out moduleid, ref depth, throwErrorWhenNotFound );
 
             if ( symbol == null )

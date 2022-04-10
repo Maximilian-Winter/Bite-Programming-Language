@@ -1,23 +1,15 @@
-﻿using Bite.Ast;
-
-namespace Bite.SymbolTable
+﻿namespace Bite.Symbols
 {
 
-public class DynamicVariable : SymbolWithScope, TypedSymbol
+public class VariableSymbol : BaseSymbol, TypedSymbol
 {
-    public HeteroAstNode DefinitionNode = null;
-
     public ClassAndMemberModifiers ClassAndMemberModifiers => m_ClassAndMemberModifier;
 
     public AccesModifierType AccesModifier => m_AccessModifier;
 
-    public int TypeIndex => 0;
-
-    public Type Type { get; set; }
-
     #region Public
 
-    public DynamicVariable(
+    public VariableSymbol(
         string name,
         AccesModifierType accesModifierType,
         ClassAndMemberModifiers classAndMemberModifiers ) : base( name )
@@ -26,9 +18,18 @@ public class DynamicVariable : SymbolWithScope, TypedSymbol
         m_ClassAndMemberModifier = classAndMemberModifiers;
     }
 
-    #endregion
+    public VariableSymbol(
+        string name,
+        AccesModifierType accesModifierType,
+        ClassAndMemberModifiers classAndMemberModifiers, bool isExternal ) : base( name, isExternal )
+    {
+        m_AccessModifier = accesModifierType;
+        m_ClassAndMemberModifier = classAndMemberModifiers;
+    }
 
-    protected internal AccesModifierType m_AccessModifier;
+        #endregion
+
+        protected internal AccesModifierType m_AccessModifier;
     protected internal ClassAndMemberModifiers m_ClassAndMemberModifier;
 }
 

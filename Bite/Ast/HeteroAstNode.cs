@@ -1,4 +1,4 @@
-using Bite.SymbolTable;
+using Bite.Symbols;
 
 namespace Bite.Ast
 {

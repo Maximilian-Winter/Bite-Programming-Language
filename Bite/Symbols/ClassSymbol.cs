@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Bite.Runtime.SymbolTable;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public class ClassSymbol : DataAggregateSymbol

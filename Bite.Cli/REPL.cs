@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 
@@ -116,7 +117,7 @@ public class REPL
 
                         try
                         {
-                            program = compiler.CompileStatements( bufferString, program );
+                            program = compiler.CompileStatementsWithSymbolTable( bufferString, program.SymbolTable );
                             BiteVmInterpretResult result = biteVm.Interpret( program, false );
                         }
                         catch (Exception e)
