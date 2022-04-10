@@ -652,7 +652,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
             {
                 int d = 0;
-                node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
+                //node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d, false);
                 Resolve( node.Primary );
             }
             else

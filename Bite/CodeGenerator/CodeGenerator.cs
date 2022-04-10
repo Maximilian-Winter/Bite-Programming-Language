@@ -14,6 +14,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
     private string m_CurrentClassName = "";
 
     private bool m_IsCompilingAssignmentLhs = false;
+    private bool m_IsCompilingAssignmentRhs = false;
     
     private bool m_IsCompilingPostfixOperation = false;
 
@@ -937,8 +938,14 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         switch ( node.Type )
         {
             case AssignmentTypes.Assignment:
+                if ( m_IsCompilingAssignmentRhs )
+                {
+                    EmitByteCode( BiteVmOpCodes.OpPushNextAssignmentOnStack, 0 );
+                }
                 m_PostfixInstructions.Push( new BytecodeList() );
+                m_IsCompilingAssignmentRhs = true;
                 Compile( node.Assignment );
+                m_IsCompilingAssignmentRhs = false;
                 m_IsCompilingAssignmentLhs = true;
                 Compile( node.Call );
                 m_IsCompilingAssignmentLhs = false;

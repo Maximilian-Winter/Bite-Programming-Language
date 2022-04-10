@@ -17,6 +17,7 @@ public enum BiteVmOpCodes : byte
     OpBitwiseXorAssign,
     OpBitwiseLeftShiftAssign,
     OpBitwiseRightShiftAssign,
+    OpPushNextAssignmentOnStack,
     OpAdd,
     OpSubtract,
     OpMultiply,

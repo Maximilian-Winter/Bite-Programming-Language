@@ -3,19 +3,25 @@ module MainModule;
 import System;
 using System;
 
-var name = "Max";
+class Messenger {
+   var _message; 
+   
+   // declare constructor
+   function Messenger(message) {
+      _message = message;
+      PrintLine("Test");
+   }
 
-class ABC
-{
-    function Test()
-    {
-        return "Pablo";
-    }
+   // declare function
+   function SayMessage() {
+      PrintLine(_message);
+   }
+
 }
 
-var a = new ABC();
+var msgr = new Messenger("Bite rocks!");
 
-PrintLine("Hello: ${a["Test"]()}");
+msgr.SayMessage();
 
 /*
 
