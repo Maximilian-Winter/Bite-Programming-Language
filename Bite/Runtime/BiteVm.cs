@@ -55,10 +55,10 @@ public class BiteVm
     private bool m_SetVarWithExternalName = false;
     private string m_SetVarExternalName = "";
     private bool m_GetNextVarByRef = false;
-    private bool m_HasInitCSharpInterfaceObjectBytecode = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
+    private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
     public Dictionary < string, BinaryChunk > CompiledChunks { get; private set; }
 
@@ -66,7 +66,7 @@ public class BiteVm
 
     #region Public
 
-    public void InitVm( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
+    public void InitVm()
     {
         m_VmStack = new DynamicBiteVariableStack();
         m_UsingStatementStack = new UsingStatementStack();
@@ -75,37 +75,13 @@ public class BiteVm
 
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
-
-        InitMemorySpaces( csharpInterfaceObjectBytecodeChunk );
     }
 
-    public BiteVmInterpretResult Interpret( BiteProgram context, bool initVm = true )
+    public BiteVmInterpretResult Interpret( BiteProgram context )
     {
         m_CurrentChunk = context.CompiledMainChunk;
         CompiledChunks = context.CompiledChunks;
         m_CurrentInstructionPointer = 0;
-
-        if ( initVm )
-        {
-            if ( CompiledChunks != null )
-            {
-                if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
-                {
-                    InitVm( chunk );
-                }
-            }
-        }
-        else if ( !m_HasInitCSharpInterfaceObjectBytecode )
-        {
-            if ( CompiledChunks != null )
-            {
-                if ( CompiledChunks.TryGetValue( "System.CSharpInterface", out BinaryChunk chunk ) )
-                {
-                    AddCSharpInterfaceObjectBytecode( chunk );
-                }
-            }
-        }
-
         return Run();
     }
 
@@ -114,7 +90,12 @@ public class BiteVm
         m_ExternalObjects.Add( varName, data );
     }
 
-    public void ResetVm( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
+    public void RegisterCallable( string linkId, IBiteVmCallable callable )
+    {
+        m_Callables.Add( linkId, callable );
+    }
+
+    public void ResetVm()
     {
         m_VmStack = new DynamicBiteVariableStack();
         m_UsingStatementStack = new UsingStatementStack();
@@ -123,70 +104,11 @@ public class BiteVm
 
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
-
-        m_HasInitCSharpInterfaceObjectBytecode = false;
-
-        InitMemorySpaces( csharpInterfaceObjectBytecodeChunk );
-    }
-
-    #endregion
-
-    #region Protected
-
-    protected void InitMemorySpaces( BinaryChunk csharpInterfaceObjectBytecodeChunk = null )
-    {
-        m_CurrentMemorySpace = m_GlobalMemorySpace;
-
-        FastMemorySpace callSpace = new FastMemorySpace(
-            "$system",
-            m_GlobalMemorySpace,
-            0,
-            m_CurrentChunk,
-            m_CurrentInstructionPointer,
-            5 );
-
-        m_GlobalMemorySpace.AddModule( callSpace );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new BiteChunkWrapper( new BinaryChunk() ) ),
-            "System.Object" );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new PrintFunctionVm() ),
-            "Print" );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new PrintLineFunctionVm() ),
-            "PrintLine" );
-
-        callSpace.Define(
-            DynamicVariableExtension.ToDynamicVariable( new ForeignLibraryInterfaceVm() ),
-            "CSharpInterfaceCall" );
-
-        if ( csharpInterfaceObjectBytecodeChunk != null && !m_HasInitCSharpInterfaceObjectBytecode )
-        {
-            AddCSharpInterfaceObjectBytecode( csharpInterfaceObjectBytecodeChunk );
-        }
     }
 
     #endregion
 
     #region Private
-
-    private void AddCSharpInterfaceObjectBytecode( BinaryChunk compiledCSharpInterfaceObjectChunk )
-    {
-        FastMemorySpace biteSystemMemorySpace = m_GlobalMemorySpace.GetModule( 0 );
-
-        if ( !biteSystemMemorySpace.NamesToProperties.ContainsKey( "System.CSharpInterface" ) )
-        {
-            m_HasInitCSharpInterfaceObjectBytecode = true;
-
-            biteSystemMemorySpace.Define(
-                DynamicVariableExtension.ToDynamicVariable(
-                    new BiteChunkWrapper( compiledCSharpInterfaceObjectChunk ) ),
-                "System.CSharpInterface" );
-        }
-    }
 
     private ConstantValue ReadConstant()
     {
@@ -320,7 +242,28 @@ public class BiteVm
                         break;
                     }
 
-                    case BiteVmOpCodes.OpBindToFunction:
+                    case BiteVmOpCodes.OpDefineCallableMethod:
+                    {
+                        string fullQualifiedMethodName = ReadConstant().StringConstantValue;
+
+                        string methodName = m_VmStack.Pop().StringData;
+
+                        if ( m_Callables.TryGetValue( methodName, out IBiteVmCallable callable ) )
+                        {
+                            m_CurrentMemorySpace.Define(
+                                DynamicVariableExtension.ToDynamicVariable( callable ),
+                                methodName );
+                        }
+                        else
+                        {
+                            throw new BiteVmRuntimeException( $"No such Callable {methodName}" );
+                        }
+
+
+                        break;
+                    }
+
+                        case BiteVmOpCodes.OpBindToFunction:
                     {
                         int numberOfArguments = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
@@ -627,7 +570,7 @@ public class BiteVm
                             BiteChunkWrapper classWrapper )
                         {
                             FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
-                                $"$class_{moduleIdClass}",
+                                $"{moduleIdClass}",
                                 m_CurrentMemorySpace,
                                 m_VmStack.Count + 1,
                                 m_CurrentChunk,
@@ -724,7 +667,7 @@ public class BiteVm
                             BiteChunkWrapper classWrapper )
                         {
                             FastClassMemorySpace classInstanceMemorySpace = new FastClassMemorySpace(
-                                $"class_{moduleIdClass}",
+                                $"{moduleIdClass}",
                                 m_CurrentMemorySpace,
                                 m_VmStack.Count,
                                 m_CurrentChunk,

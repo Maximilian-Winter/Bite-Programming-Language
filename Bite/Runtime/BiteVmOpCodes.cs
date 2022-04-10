@@ -48,6 +48,7 @@ public enum BiteVmOpCodes : byte
     OpUsingStatmentHead,
     OpUsingStatmentEnd,
     OpDefineMethod,
+    OpDefineCallableMethod,
     OpDefineVar,
     OpDeclareVar,
     OpSetVar,

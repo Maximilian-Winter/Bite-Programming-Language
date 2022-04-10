@@ -448,6 +448,12 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         bool isAbstract = node.Modifiers.Modifiers != null &&
                           node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareAbstract );
 
+        bool isExtern = node.Modifiers.Modifiers != null &&
+                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareExtern );
+
+        bool isCallable = node.Modifiers.Modifiers != null &&
+                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareCallable );
+
         if ( isAbstract || isStatic )
         {
             throw new Exception( "Only methods in classes can be abstract or static!" );
@@ -465,7 +471,15 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             node.FunctionId.Id,
             declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
             isStatic ? ClassAndMemberModifiers.Static :
-            isAbstract ? ClassAndMemberModifiers.Abstract : ClassAndMemberModifiers.None );
+            isAbstract ? ClassAndMemberModifiers.Abstract : ClassAndMemberModifiers.None,
+            isExtern,
+            isCallable
+            );
+
+        if ( isCallable )
+        {
+            f.LinkName = node.LinkFunctionId.Id;
+        }
 
         BiteClassType functionType = new BiteClassType( "Object" );
 

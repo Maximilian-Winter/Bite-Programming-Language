@@ -5,7 +5,7 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime.Functions
 {
 
-public class PrintFunctionVm : IBiteVmCallable
+public class PrintLineFunctionVm : IBiteVmCallable
 {
     #region Public
 
@@ -17,7 +17,7 @@ public class PrintFunctionVm : IBiteVmCallable
             
             for ( int i = 0; i < arraySize; i++ )
             {
-                Console.Write( arguments[i].ToString() );
+                Console.WriteLine( arguments[i].ToString() );
             }
         }
         else

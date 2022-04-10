@@ -13,90 +13,7 @@ namespace Bite.Compiler
 
 public class BiteCompiler
 {
-    private ProgramNode ParseModules( IEnumerable < string > modules )
-    {
-        ProgramNode program = new ProgramNode();
-
-        foreach ( string biteModule in modules )
-        {
-            ModuleNode module = ParseModule( biteModule );
-            program.AddModule( module );
-        }
-
-        return program;
-    }
-
-    private ModuleNode ParseModule( string module )
-    {
-        HeteroAstGenerator gen = new HeteroAstGenerator();
-        AntlrInputStream input = new AntlrInputStream( module );
-        BITELexer lexer = new BITELexer( input );
-        CommonTokenStream tokens = new CommonTokenStream( lexer );
-        BITEParser biteParser = new BITEParser( tokens );
-        BiteCompilerSyntaxErrorListener biteCompilerSyntaxErrorListener = new BiteCompilerSyntaxErrorListener();
-        biteParser.AddErrorListener( biteCompilerSyntaxErrorListener );
-        biteParser.RemoveErrorListener( ConsoleErrorListener < IToken >.Instance );
-        BITEParser.ModuleContext tree = biteParser.program().module( 0 );
-
-        if ( biteCompilerSyntaxErrorListener.Errors.Count > 0 )
-        {
-            module = module.Trim();
-            int start = module.IndexOf( "module" ) + "module ".Length;
-            var moduleName = module.Substring( start, module.IndexOf( ';' ) - start );
-
-            throw new BiteCompilerException(
-                $"Error occured while parsing module '{moduleName}' .\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}",
-                biteCompilerSyntaxErrorListener.Errors );
-        }
-
-        return ( ModuleNode ) gen.VisitModule( tree );
-    }
-
-    private ExpressionNode ParseExpression( string expression )
-    {
-        HeteroAstGenerator gen = new HeteroAstGenerator();
-        AntlrInputStream input = new AntlrInputStream( expression );
-        BITELexer lexer = new BITELexer( input );
-        CommonTokenStream tokens = new CommonTokenStream( lexer );
-        BITEParser biteParser = new BITEParser( tokens );
-        BiteCompilerSyntaxErrorListener biteCompilerSyntaxErrorListener = new BiteCompilerSyntaxErrorListener();
-        biteParser.AddErrorListener( biteCompilerSyntaxErrorListener );
-        biteParser.RemoveErrorListener( ConsoleErrorListener < IToken >.Instance );
-        BITEParser.ExpressionContext tree = biteParser.expression();
-
-        if ( biteCompilerSyntaxErrorListener.Errors.Count > 0 )
-        {
-            throw new BiteCompilerException(
-                $"Error occured while parsing expression.\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}",
-                biteCompilerSyntaxErrorListener.Errors );
-        }
-
-        return ( ExpressionNode ) gen.VisitExpression( tree );
-    }
-
-    private IReadOnlyCollection < StatementNode > ParseStatements( string statements )
-    {
-        HeteroAstGenerator gen = new HeteroAstGenerator();
-        AntlrInputStream input = new AntlrInputStream( statements );
-        BITELexer lexer = new BITELexer( input );
-        CommonTokenStream tokens = new CommonTokenStream( lexer );
-        BITEParser biteParser = new BITEParser( tokens );
-        BiteCompilerSyntaxErrorListener biteCompilerSyntaxErrorListener = new BiteCompilerSyntaxErrorListener();
-        biteParser.AddErrorListener( biteCompilerSyntaxErrorListener );
-        biteParser.RemoveErrorListener( ConsoleErrorListener < IToken >.Instance );
-        BITEParser.StatementsContext tree = biteParser.statements();
-
-        if ( biteCompilerSyntaxErrorListener.Errors.Count > 0 )
-        {
-            throw new BiteCompilerException(
-                $"Error occured while parsing statement.\r\nError Count: {biteCompilerSyntaxErrorListener.Errors.Count}",
-                biteCompilerSyntaxErrorListener.Errors );
-        }
-
-        DeclarationsNode declarations = ( DeclarationsNode ) gen.VisitStatements( tree );
-
-        return declarations.Statements;
-    }
+    #region Public Compilers
 
     public BiteProgram Compile( IEnumerable < string > modules )
     {
@@ -132,6 +49,127 @@ public class BiteCompiler
         return CompileStatementsInternal( statementNodes, externalObjects );
     }
 
+
+    public BiteProgram Compile( IReadOnlyCollection < Module > modules )
+    {
+        var moduleStrings = new List < string >();
+
+        foreach ( var module in modules )
+        {
+            var moduleBuilder = new StringBuilder();
+            moduleBuilder.AppendLine( $"module {module.Name};\r\n" );
+
+            foreach ( var import in module.Imports )
+            {
+                moduleBuilder.AppendLine( $"import {import};" );
+                moduleBuilder.AppendLine( $"using {import};" );
+            }
+
+            moduleBuilder.AppendLine();
+            moduleBuilder.AppendLine( module.Code );
+
+            moduleStrings.Add( moduleBuilder.ToString() );
+        }
+
+        ProgramNode program = ParseModules( moduleStrings );
+
+        return CompileProgramInternal( program );
+    }
+
+    #endregion
+
+    #region Parsers
+
+    private ProgramNode ParseModules( IEnumerable < string > modules )
+    {
+        ProgramNode program = new ProgramNode();
+
+        foreach ( string biteModule in modules )
+        {
+            ModuleNode module = ParseModule( biteModule );
+            program.AddModule( module );
+        }
+
+        return program;
+    }
+
+    private ModuleNode ParseModule( string module )
+    {
+        HeteroAstGenerator gen = new HeteroAstGenerator();
+
+        BITEParser biteParser = CreateBiteParser( module, out var errorListener );
+
+        BITEParser.ModuleContext tree = biteParser.program().module( 0 );
+
+        if ( errorListener.Errors.Count > 0 )
+        {
+            module = module.Trim();
+            int start = module.IndexOf( "module" ) + "module ".Length;
+            var moduleName = module.Substring( start, module.IndexOf( ';' ) - start );
+
+            throw new BiteCompilerException(
+                $"Error occured while parsing module '{moduleName}' .\r\nError Count: {errorListener.Errors.Count}",
+                errorListener.Errors );
+        }
+
+        return ( ModuleNode ) gen.VisitModule( tree );
+    }
+
+    private ExpressionNode ParseExpression( string expression )
+    {
+        BITEParser biteParser = CreateBiteParser( expression, out var errorListener );
+
+        BITEParser.ExpressionContext tree = biteParser.expression();
+
+        if ( errorListener.Errors.Count > 0 )
+        {
+            throw new BiteCompilerException(
+                $"Error occured while parsing expression.\r\nError Count: {errorListener.Errors.Count}",
+                errorListener.Errors );
+        }
+
+        HeteroAstGenerator gen = new HeteroAstGenerator();
+
+        return ( ExpressionNode ) gen.VisitExpression( tree );
+    }
+
+    private IReadOnlyCollection < StatementNode > ParseStatements( string statements )
+    {
+        BITEParser biteParser = CreateBiteParser( statements, out var errorListener );
+
+        BITEParser.StatementsContext tree = biteParser.statements();
+
+        if ( errorListener.Errors.Count > 0 )
+        {
+            throw new BiteCompilerException(
+                $"Error occured while parsing statement.\r\nError Count: {errorListener.Errors.Count}",
+                errorListener.Errors );
+        }
+
+        HeteroAstGenerator gen = new HeteroAstGenerator();
+
+        DeclarationsNode declarations = ( DeclarationsNode ) gen.VisitStatements( tree );
+
+        return declarations.Statements;
+    }
+
+    private BITEParser CreateBiteParser( string input, out BiteCompilerSyntaxErrorListener errorListener )
+    {
+        AntlrInputStream stream = new AntlrInputStream( input );
+        BITELexer lexer = new BITELexer( stream );
+        CommonTokenStream tokens = new CommonTokenStream( lexer );
+        BITEParser biteParser = new BITEParser( tokens );
+        errorListener = new BiteCompilerSyntaxErrorListener();
+        biteParser.AddErrorListener( errorListener );
+        biteParser.RemoveErrorListener( ConsoleErrorListener < IToken >.Instance );
+
+        return biteParser;
+    }
+
+    #endregion
+
+    #region Private Compilers
+
     private BiteProgram CompileExpressionInternal( ExpressionNode expression )
     {
         ModuleNode module = new ModuleNode
@@ -140,9 +178,7 @@ public class BiteCompiler
             Statements = new List < StatementNode > { new ExpressionStatementNode { Expression = expression } }
         };
 
-        var symbolTable = new SymbolTable();
-
-        symbolTable.Initialize();
+        var symbolTable = SymbolTable.Default;
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
@@ -152,7 +188,7 @@ public class BiteCompiler
 
         CodeGenerator generator = new CodeGenerator( biteProgram );
 
-        module.Accept( generator );
+        generator.Compile( module );
 
         biteProgram.Build();
 
@@ -161,9 +197,7 @@ public class BiteCompiler
 
     private BiteProgram CompileProgramInternal( ProgramNode programNode )
     {
-        var symbolTable = new SymbolTable();
-
-        symbolTable.Initialize();
+        var symbolTable = SymbolTable.Default;
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
@@ -185,9 +219,7 @@ public class BiteCompiler
     {
         module.Statements = statements;
 
-        var symbolTable = new SymbolTable();
-
-        symbolTable.Initialize( externalObjects );
+        var symbolTable = SymbolTable.Default; //.WithExternalObjects( externalObjects );
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
@@ -215,8 +247,7 @@ public class BiteCompiler
 
         if ( symbolTable == null )
         {
-            symbolTable = new SymbolTable();
-            symbolTable.Initialize( externalObjects );
+            symbolTable = SymbolTable.Default.WithExternalObjects( externalObjects );
         }
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
@@ -234,31 +265,7 @@ public class BiteCompiler
         return biteProgram;
     }
 
-    public BiteProgram Compile( IReadOnlyCollection < Module > modules )
-    {
-        var moduleStrings = new List < string >();
-
-        foreach ( var module in modules )
-        {
-            var moduleBuilder = new StringBuilder();
-            moduleBuilder.AppendLine( $"module {module.Name};\r\n" );
-
-            foreach ( var import in module.Imports )
-            {
-                moduleBuilder.AppendLine( $"import {import};" );
-                moduleBuilder.AppendLine( $"using {import};" );
-            }
-
-            moduleBuilder.AppendLine();
-            moduleBuilder.AppendLine( module.Code );
-
-            moduleStrings.Add( moduleBuilder.ToString() );
-        }
-
-        ProgramNode program = ParseModules( moduleStrings );
-
-        return CompileProgramInternal( program );
-    }
+    #endregion
 
 }
 

@@ -7,11 +7,22 @@ public class GlobalScope : BaseScope
 
     #region Public
 
-    public GlobalScope( Scope scope ) : base( scope )
+    public GlobalScope() : base( null )
     {
     }
 
     #endregion
+
+    public void DefineModule( ModuleSymbol moduleSymbol )
+    {
+        moduleSymbol.EnclosingScope = this;
+        define( moduleSymbol );
+    }
+
+    public void DefineVariable( VariableSymbol variableSymbol )
+    {
+        define( variableSymbol );
+    }
 }
 
 }

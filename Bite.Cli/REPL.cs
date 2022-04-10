@@ -118,7 +118,7 @@ public class REPL
                         try
                         {
                             program = compiler.CompileStatementsWithSymbolTable( bufferString, program.SymbolTable );
-                            BiteVmInterpretResult result = biteVm.Interpret( program, false );
+                            BiteVmInterpretResult result = biteVm.Interpret( program );
                         }
                         catch (Exception e)
                         {

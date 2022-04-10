@@ -42,7 +42,7 @@ public class ModuleUnitTests
         Assert.Equal( 11, result.ReturnValue.NumberData );
     }
 
-        [Fact]
+    [Fact]
     public void LoadModulesInDependencyOrder()
     {
         string mainModule = "module MainModule; import SubModule; using SubModule; var a = SubModule.a; a;";
@@ -89,6 +89,7 @@ public class ModuleUnitTests
     {
         string mainModule =
             "module MainModule; import SubModuleA; import SubModuleB; using SubModuleA; using SubModuleB; var greeting = Hello + \" \" + World; greeting;";
+
         string subModuleA = "module SubModuleA; var Hello = \"Hi\"; var World = \"Fellow Kids!\";";
         string subModuleB = "module SubModuleB; var Hello = \"Hello\"; var World = \"World!\";";
         BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
@@ -97,13 +98,42 @@ public class ModuleUnitTests
     }
 
 
-        [Fact]
+    [Fact]
     public void VariableDeclaration()
     {
         string mainModule = "module MainModule; import System; using System; var a = 1;";
         BiteResult result = ExecModules( new[] { mainModule } );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
+
+    private static string SystemModuleDecl = @"module System;
+
+class CSharpInterface {
+    var Type;
+    var Method;
+    var Arguments;
+    var ConstructorArguments;
+    var ConstructorArgumentsTypes;
+    var ObjectInstance;
 }
+
+extern callable function CSharpInterfaceCall ( object ) {
+}
+
+extern callable function Print ( object ) {
+}
+
+extern callable function PrintLine ( object ) {
+}";
+
+    [Fact]
+    public void SystemModuleDeclaration()
+    {
+        string mainModule = "module MainModule; import System; using System; PrintLine( \"Hello World!\" );";
+        BiteResult result = ExecModules( new[] { mainModule, SystemModuleDecl } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+    }
+
+    }
 
 }

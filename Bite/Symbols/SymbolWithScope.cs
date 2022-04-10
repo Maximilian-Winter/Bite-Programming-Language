@@ -5,7 +5,7 @@ using System.Text;
 namespace Bite.Symbols
 {
 
-[DebuggerDisplay("{QualifiedName}")]
+[DebuggerDisplay( "{Name}" )]
 public abstract class SymbolWithScope : BaseScope, Symbol, Scope
 {
     public override string Name => name;

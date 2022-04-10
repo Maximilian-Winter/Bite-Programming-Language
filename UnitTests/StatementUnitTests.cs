@@ -275,6 +275,22 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void AddTwoNumbers()
+    {
+        string statements = @"var c = 1 + 2; c;";
+
+        BiteResult result = ExecStatements( statements,
+            new Dictionary<string, object>()
+            {
+                { "a", 1 },
+                { "b", 2 }
+            } );
+
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 3, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
     public void ExternalValues()
     {
         string statements = @"var c = a + b; c;";

@@ -327,6 +327,13 @@ public class ClassSymbol : DataAggregateSymbol
         }
     }
 
+    public void DefineField( FieldSymbol fieldSymbol )
+    {
+        fieldSymbol.EnclosingScope = this;
+        define( fieldSymbol );
+    }
+
+
     public override string ToString()
     {
         List < ClassSymbol > superClassScope = BaseClassesScopes;

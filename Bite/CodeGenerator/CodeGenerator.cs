@@ -36,35 +36,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
     {
         m_BiteProgram.PushChunk();
 
-        int d = 0;
-        ModuleSymbol m = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;
+        //m_BiteProgram.SetCurrentChunk( SystemModuleCodeGenerator.GenerateFrom( node ) );
 
-        int d2 = 0;
-        ClassSymbol c = m.resolve( "Object", out int moduleId2, ref d2 ) as ClassSymbol;
-
-        m_BiteProgram.NewChunk();
-
-        ByteCode byteCode = new ByteCode(
-            BiteVmOpCodes.OpDefineInstance,
-            moduleId2,
-            d2,
-            c.InsertionOrderNumber,
-            1024 );
-
-        EmitByteCode( byteCode );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "Type" ) );
-        EmitByteCode( byteCode );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "Method" ) );
-        EmitByteCode( byteCode );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "Arguments" ) );
-        EmitByteCode( byteCode );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ConstructorArguments" ) );
-        EmitByteCode( byteCode );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ConstructorArgumentsTypes" ) );
-        EmitByteCode( byteCode );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "ObjectInstance" ) );
-
-        m_BiteProgram.SaveCurrentChunk( "System.CSharpInterface" );
+        //m_BiteProgram.SaveCurrentChunk( "System.CSharpInterface" );
 
         m_BiteProgram.PopChunk();
 
@@ -316,14 +290,28 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         
         if ( m_BiteProgram.HasChunk( symbol.QualifiedName ) )
         {
-            EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
+            if (symbol.m_IsExtern && symbol.IsCallable)
+            {
+                EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ) );
+            }
+            else
+            {
+                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
+            }
 
             //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
             m_BiteProgram.RestoreChunk( symbol.QualifiedName );
         }
         else
         {
-            EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
+            if ( symbol.m_IsExtern && symbol.IsCallable )
+            {
+                EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ) );
+            }
+            else
+            {
+                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
+            }
 
             //EmitByteCode( symbol.InsertionOrderNumber );
 
@@ -1797,9 +1785,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         ByteCode byCode = new ByteCode( m_ConstructingOpCode );
         byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
         m_BiteProgram.CurrentChunk.WriteToChunk( byCode, m_ConstructingLine );
-        if ( m_PostfixInstructions.Count > 0 && m_IsCompilingPostfixOperation)
+        if (m_PostfixInstructions.Count > 0 && m_IsCompilingPostfixOperation)
         {
-            if ( m_ConstructingOpCode == BiteVmOpCodes.OpGetVar )
+            if (m_ConstructingOpCode == BiteVmOpCodes.OpGetVar)
             {
                 ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetNextVarByRef );
                 m_PostfixInstructions.Peek().ByteCodes.Add( byCodeAlt );
@@ -1809,8 +1797,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_ConstructingOpCodeData = null;
         m_ConstructingOpCode = BiteVmOpCodes.OpNone;
     }
-
-    #endregion
-}
+        #endregion
+    }
 
 }

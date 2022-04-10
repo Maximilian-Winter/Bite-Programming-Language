@@ -89,11 +89,11 @@ public abstract class BaseScope : Scope
 
     #region Public
 
-    public BaseScope()
+    protected BaseScope()
     {
     }
 
-    public BaseScope( Scope enclosingScope )
+    protected BaseScope( Scope enclosingScope )
     {
         EnclosingScope = enclosingScope;
     }

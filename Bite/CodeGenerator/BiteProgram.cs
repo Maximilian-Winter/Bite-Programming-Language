@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using Bite.Ast;
 using Bite.Runtime.Bytecode;
+using Bite.Runtime.Functions;
+using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Symbols;
 
 namespace Bite.Runtime.CodeGen
@@ -43,6 +45,9 @@ public class BiteProgram
     {
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
+        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
+        biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
+        biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
 
         if ( externalCSharpObjects != null )
         {
@@ -79,6 +84,10 @@ public class BiteProgram
     internal void NewChunk()
     {
         CurrentChunk = new Chunk();
+    }
+    internal void SetCurrentChunk( Chunk chunk )
+    {
+        CurrentChunk = chunk;
     }
 
     internal void PopChunk()

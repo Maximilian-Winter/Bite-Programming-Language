@@ -100,14 +100,14 @@ usingDirective
     ;
 
 declaration 
-    : classDeclaration                  
-    | structDeclaration                  
-    | functionDeclaration                
-    | classInstanceDeclaration           
-    | variableDeclaration                     
-    | statement 
-    ;                            
-                                                       
+    : classDeclaration
+    | structDeclaration
+    | functionDeclaration
+    | classInstanceDeclaration
+    | variableDeclaration
+    | statement
+    ;
+
 classDeclaration : 
     ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
     DeclareClass Identifier (ColonOperator inheritance)? ( block | SemicolonSeperator )
@@ -120,7 +120,7 @@ structDeclaration :
 
 functionDeclaration :
     ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
-    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeperator )
+    ExternModifier? CallableModifier? DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeperator )
     ;
 
 classInstanceDeclaration : 
@@ -262,21 +262,21 @@ additive
     : multiplicative ( ( MinusOperator | PlusOperator ) multiplicative )* 
     ;
 
-multiplicative 
+multiplicative
     : unary ( ( DivideOperator | MultiplyOperator | ModuloOperator) unary )* 
     ;
 
-unary          
+unary
     : ( LogicalNegationOperator | MinusOperator| PlusOperator | PlusPlusOperator | MinusMinusOperator | ComplimentOperator ) unary 
     | call 
     | unary ( PlusPlusOperator | MinusMinusOperator )
     ;
 
-call           
+call
     : primary (callArguments | DotOperator Identifier| elementAccess )*
     ;
 
-primary        
+primary
     : BooleanLiteral 
     | NullReference 
     | ThisReference 
@@ -307,9 +307,3 @@ stringPart:
   | ID_INTERP
   | ENTER_EXPR_INTERP expression CURLY_R
 ;
-                           
-                           
-
-
-
-
