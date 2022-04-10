@@ -1,4 +1,4 @@
-﻿namespace Bite.SymbolTable
+﻿namespace Bite.Symbols
 {
 
 public interface Symbol
@@ -12,6 +12,8 @@ public interface Symbol
     string Name { get; }
 
     Scope SymbolScope { get; set; }
+
+    bool IsExternal { get; }
 }
 
 }

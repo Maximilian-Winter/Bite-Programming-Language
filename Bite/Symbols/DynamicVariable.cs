@@ -1,15 +1,23 @@
-﻿namespace Bite.SymbolTable
+﻿using Bite.Ast;
+
+namespace Bite.Symbols
 {
 
-public class VariableSymbol : BaseSymbol, TypedSymbol
+public class DynamicVariable : SymbolWithScope, TypedSymbol
 {
+    public HeteroAstNode DefinitionNode = null;
+
     public ClassAndMemberModifiers ClassAndMemberModifiers => m_ClassAndMemberModifier;
 
     public AccesModifierType AccesModifier => m_AccessModifier;
 
+    public int TypeIndex => 0;
+
+    public Type Type { get; set; }
+
     #region Public
 
-    public VariableSymbol(
+    public DynamicVariable(
         string name,
         AccesModifierType accesModifierType,
         ClassAndMemberModifiers classAndMemberModifiers ) : base( name )

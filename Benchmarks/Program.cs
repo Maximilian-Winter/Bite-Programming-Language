@@ -2,6 +2,7 @@
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 

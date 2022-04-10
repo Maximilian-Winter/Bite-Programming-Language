@@ -1,4 +1,4 @@
-﻿namespace Bite.SymbolTable
+﻿namespace Bite.Symbols
 {
 
 public class MethodSymbol : FunctionSymbol, MemberSymbol
@@ -9,10 +9,11 @@ public class MethodSymbol : FunctionSymbol, MemberSymbol
 
     #region Public
 
+    // TODO: Allow extern on methods?
     public MethodSymbol(
         string name,
         AccesModifierType accessModifier,
-        ClassAndMemberModifiers classAndMemberModifiers ) : base( name, accessModifier, classAndMemberModifiers )
+        ClassAndMemberModifiers classAndMemberModifiers ) : base( name, accessModifier, classAndMemberModifiers, false, false )
     {
     }
 

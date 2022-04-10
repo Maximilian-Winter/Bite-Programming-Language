@@ -1,6 +1,5 @@
-#define USE_NEW_PARSER
-
 using System.Collections.Generic;
+using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 using Xunit;
@@ -12,11 +11,8 @@ public class ModuleUnitTests
 {
     private BiteResult ExecModules( IEnumerable < string > modules )
     {
-#if USE_NEW_PARSER
         var compiler = new BiteCompiler();
-#else
-        var compiler = new Compiler( true );
-#endif
+
         BiteProgram program = compiler.Compile( modules );
 
         return program.Run();
@@ -46,7 +42,7 @@ public class ModuleUnitTests
         Assert.Equal( 11, result.ReturnValue.NumberData );
     }
 
-        [Fact]
+    [Fact]
     public void LoadModulesInDependencyOrder()
     {
         string mainModule = "module MainModule; import SubModule; using SubModule; var a = SubModule.a; a;";
@@ -93,6 +89,7 @@ public class ModuleUnitTests
     {
         string mainModule =
             "module MainModule; import SubModuleA; import SubModuleB; using SubModuleA; using SubModuleB; var greeting = Hello + \" \" + World; greeting;";
+
         string subModuleA = "module SubModuleA; var Hello = \"Hi\"; var World = \"Fellow Kids!\";";
         string subModuleB = "module SubModuleB; var Hello = \"Hello\"; var World = \"World!\";";
         BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
@@ -101,13 +98,22 @@ public class ModuleUnitTests
     }
 
 
-        [Fact]
+    [Fact]
     public void VariableDeclaration()
     {
         string mainModule = "module MainModule; import System; using System; var a = 1;";
         BiteResult result = ExecModules( new[] { mainModule } );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
-}
+
+    [Fact]
+    public void SystemModuleDeclaration()
+    {
+        string mainModule = "module MainModule; import System; using System; PrintLine( \"Hello World!\" );";
+        BiteResult result = ExecModules( new[] { mainModule } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+    }
+
+    }
 
 }

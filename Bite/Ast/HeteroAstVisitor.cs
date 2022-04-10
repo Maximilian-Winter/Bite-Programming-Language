@@ -1,8 +1,14 @@
+using System.Collections.Generic;
+
 namespace Bite.Ast
 {
 
 public abstract class HeteroAstVisitor<T>
 {
+    public HeteroAstVisitor()
+    {
+    }
+
     #region Public
 
     public abstract T Visit( ProgramNode node );

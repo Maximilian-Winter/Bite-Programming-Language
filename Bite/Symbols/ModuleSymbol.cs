@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Bite.Ast;
-using Bite.Runtime.SymbolTable;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public class ModuleSymbol : SymbolWithScope
@@ -16,6 +15,8 @@ public class ModuleSymbol : SymbolWithScope
     public IEnumerable < ModuleIdentifier > ImportedModules { get; }
 
     public IEnumerable < ModuleIdentifier > UsedModules { get; }
+
+    public override int InsertionOrderNumber { get; set; }
 
     #region Public
 
@@ -50,7 +51,9 @@ public class ModuleSymbol : SymbolWithScope
 
         if ( parent != null )
         {
+
             Symbol symbol = parent.resolve( name, out moduleid, ref depth, throwErrorWhenNotFound );
+
 
             if ( symbol == null )
             {
@@ -91,10 +94,17 @@ public class ModuleSymbol : SymbolWithScope
             depth++;
             m_SearchedModules.Clear();
 
+
             if ( symbol == null && throwErrorWhenNotFound )
             {
                 throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
             }
+
+            //if ( symbol.IsExternal )
+            //{
+            //    return symbol;
+            //}
+
             return symbol;
         }
 
@@ -102,6 +112,23 @@ public class ModuleSymbol : SymbolWithScope
         moduleid = -2;
 
         return null;
+    }
+
+    public void DefineClass( ClassSymbol classSymbol )
+    {
+        classSymbol.EnclosingScope = this;
+        define( classSymbol );
+    }
+
+    public void DefineFunction ( FunctionSymbol functionSymbol )
+    {
+        functionSymbol.EnclosingScope = this;
+        define( functionSymbol );
+    }
+
+    public void DefineVariable ( VariableSymbol variableSymbol )
+    {
+        define( variableSymbol );
     }
 
     #endregion

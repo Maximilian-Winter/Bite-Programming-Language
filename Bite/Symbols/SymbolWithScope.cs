@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
+[DebuggerDisplay( "{Name}" )]
 public abstract class SymbolWithScope : BaseScope, Symbol, Scope
 {
     public override string Name => name;
@@ -13,6 +15,8 @@ public abstract class SymbolWithScope : BaseScope, Symbol, Scope
         get => enclosingScope;
         set => EnclosingScope = value;
     }
+
+    public bool IsExternal { get; }
 
     public override Scope EnclosingScope => enclosingScope;
 

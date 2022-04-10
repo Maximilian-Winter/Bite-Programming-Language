@@ -18,7 +18,6 @@ public class ModuleNode : HeteroAstNode
     public ModuleNode()
     {
         ModuleIdent = new ModuleIdentifier();
-        Statements = new List < StatementNode >();
     }
 
     public override object Accept( IAstVisitor visitor )

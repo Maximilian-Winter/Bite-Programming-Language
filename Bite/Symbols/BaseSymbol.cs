@@ -1,6 +1,6 @@
 ﻿using Bite.Ast;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public abstract class BaseSymbol : Symbol
@@ -12,6 +12,8 @@ public abstract class BaseSymbol : Symbol
         get => scope;
         set => scope = value;
     }
+
+    public bool IsExternal => isExternal;
 
     public virtual Type Type
     {
@@ -36,6 +38,12 @@ public abstract class BaseSymbol : Symbol
     public BaseSymbol( string name )
     {
         this.name = name;
+    }
+
+    public BaseSymbol( string name, bool isExternal )
+    {
+        this.name = name;
+        this.isExternal = isExternal;
     }
 
     public override bool Equals( object obj )
@@ -89,6 +97,7 @@ public abstract class BaseSymbol : Symbol
     protected internal readonly string name;
     protected internal Scope scope;
     protected internal Type type;
+    protected readonly bool isExternal;
 }
 
 }

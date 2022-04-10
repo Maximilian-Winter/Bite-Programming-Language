@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
 using Bite.Ast;
 using Bite.Runtime.Bytecode;
-using Bite.Runtime.SymbolTable;
-using Bite.SymbolTable;
+using Bite.Runtime.Functions;
+using Bite.Runtime.Functions.ForeignInterface;
+using Bite.Symbols;
 
 namespace Bite.Runtime.CodeGen
 {
 
 public class BiteProgram
 {
+    public SymbolTable SymbolTable { get; }
+
     private readonly Dictionary < string, Chunk > m_CompilingChunks;
     private readonly Stack < Chunk > _savedChunks = new Stack < Chunk >();
 
-    public SymbolTableBuilder SymbolTableBuilder;
     internal BaseScope BaseScope { get; }
 
     internal Dictionary < string, BinaryChunk > CompiledChunks { get; }
@@ -25,29 +27,10 @@ public class BiteProgram
 
     #region Public
 
-    public BiteProgram( ModuleNode module, BiteProgram previousProgram = null )
+    public BiteProgram( SymbolTable symbolTable )
     {
-        if ( previousProgram == null )
-        {
-            SymbolTableBuilder = new SymbolTableBuilder();
-        }
-        else
-        {
-            SymbolTableBuilder = previousProgram.SymbolTableBuilder;
-        }
-        SymbolTableBuilder.BuildModuleSymbolTable( module );
-        BaseScope = SymbolTableBuilder.CurrentScope as BaseScope;
-        m_CompilingChunks = new Dictionary < string, Chunk >();
-        MainChunk = new Chunk();
-        CurrentChunk = MainChunk;
-        CompiledChunks = new Dictionary < string, BinaryChunk >();
-    }
-
-    public BiteProgram( ProgramNode programNode )
-    {
-        SymbolTableBuilder = new SymbolTableBuilder();
-        SymbolTableBuilder.BuildProgramSymbolTable( programNode );
-        BaseScope = SymbolTableBuilder.CurrentScope as BaseScope;
+        SymbolTable = symbolTable;
+        BaseScope = symbolTable.RootScope;
         m_CompilingChunks = new Dictionary < string, Chunk >();
         MainChunk = new Chunk();
         CurrentChunk = MainChunk;
@@ -62,6 +45,10 @@ public class BiteProgram
     {
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
+        // TODO: move somewhere else!
+        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
+        biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
+        biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
 
         if ( externalCSharpObjects != null )
         {
@@ -98,6 +85,10 @@ public class BiteProgram
     internal void NewChunk()
     {
         CurrentChunk = new Chunk();
+    }
+    internal void SetCurrentChunk( Chunk chunk )
+    {
+        CurrentChunk = chunk;
     }
 
     internal void PopChunk()

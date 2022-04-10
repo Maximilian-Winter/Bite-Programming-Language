@@ -1092,6 +1092,8 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
 
         string accessToken;
         string abstractStaticMod = null;
+        bool isExtern = false;
+        bool isCallable = false;
 
         if ( context.publicModifier() != null )
         {
@@ -1111,7 +1113,20 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
             abstractStaticMod = "static";
         }
 
-        ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod );
+        if ( context.ExternModifier() != null )
+        {
+            isExtern = true;
+        }
+
+        if ( context.CallableModifier() != null )
+        {
+            isCallable = true;
+            // TODO: define callable link name semantics
+            functionDeclarationNode.LinkFunctionId = new Identifier( context.Identifier().GetText() );
+        }
+
+        ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod, isExtern, isCallable );
+
         functionDeclarationNode.Modifiers = Modifiers;
 
         if ( context.parameters() != null )

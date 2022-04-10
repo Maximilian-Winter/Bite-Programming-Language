@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Bite.Runtime.SymbolTable;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public class ClassSymbol : DataAggregateSymbol
@@ -327,6 +326,13 @@ public class ClassSymbol : DataAggregateSymbol
             base.SetSlotNumber( symbol );
         }
     }
+
+    public void DefineField( FieldSymbol fieldSymbol )
+    {
+        fieldSymbol.EnclosingScope = this;
+        define( fieldSymbol );
+    }
+
 
     public override string ToString()
     {

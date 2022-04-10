@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Bite.Ast;
 
-namespace Bite.SymbolTable
+namespace Bite.Symbols
 {
 
 public abstract class DataAggregateSymbol : SymbolWithScope, MemberSymbol, Type

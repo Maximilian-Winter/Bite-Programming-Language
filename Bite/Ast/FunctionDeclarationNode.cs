@@ -4,6 +4,7 @@ namespace Bite.Ast
 public class FunctionDeclarationNode : DeclarationNode
 {
     public Identifier FunctionId;
+    public Identifier LinkFunctionId;
     public ModifiersNode Modifiers;
     public ParametersNode Parameters;
     public BlockStatementNode FunctionBlock;

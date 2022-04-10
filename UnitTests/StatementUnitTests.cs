@@ -1,8 +1,8 @@
-#define USE_NEW_PARSER
-
+using System.Collections.Generic;
+using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
-using Bite.Runtime.SymbolTable;
+using Bite.Symbols;
 using Xunit;
 
 namespace UnitTests
@@ -10,16 +10,13 @@ namespace UnitTests
 
 public class StatementUnitTests
 {
-    private BiteResult ExecStatements( string statements )
+    private BiteResult ExecStatements( string statements, Dictionary < string, object > externalObjects = null )
     {
-#if USE_NEW_PARSER
         var compiler = new BiteCompiler();
-#else
-        var compiler = new Compiler( true );
-#endif
-        BiteProgram program = compiler.CompileStatements( statements );
 
-        return program.Run();
+        BiteProgram program = compiler.CompileStatements( statements, externalObjects );
+
+        return program.Run( externalObjects );
     }
 
     [Fact]
@@ -275,6 +272,38 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( 10, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void AddTwoNumbers()
+    {
+        string statements = @"var c = 1 + 2; c;";
+
+        BiteResult result = ExecStatements( statements,
+            new Dictionary<string, object>()
+            {
+                { "a", 1 },
+                { "b", 2 }
+            } );
+
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 3, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void ExternalValues()
+    {
+        string statements = @"var c = a + b; c;";
+
+        BiteResult result = ExecStatements( statements,
+            new Dictionary < string, object >()
+            {
+                { "a", 1 },
+                { "b", 2 }
+            });
+
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 3, result.ReturnValue.NumberData );
     }
 
     [Fact]
@@ -676,7 +705,7 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( @"
             var Hello = ""Hello""; 
             var World = ""World""; 
-            var s = ""$${Hello} $${World}"";
+            var s = ""\${Hello} \${World}"";
             s;" );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( "${Hello} ${World}", result.ReturnValue.StringData );
@@ -694,8 +723,18 @@ public class StatementUnitTests
         Assert.Equal( "Hello World", result.ReturnValue.StringData );
     }
 
-
     [Fact]
+    public void StringInterpolationStringLiteralsWithClosingCurlyBrace()
+    {
+        BiteResult result = ExecStatements( @"
+            var s = ""${""Hello}""} ${""{World""}"";
+            s;" );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello} {World", result.ReturnValue.StringData );
+    }
+
+
+        [Fact]
     public void StringInterpolationNumericExpressions()
     {
         BiteResult result = ExecStatements( @"

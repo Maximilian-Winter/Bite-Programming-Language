@@ -127,7 +127,9 @@ public class ProgramNode : HeteroAstNode
             }
         }
 
-        return dependencyNodes.FirstOrDefault( n => n.Parent == null );
+        // && n.Id != "System" 
+        // Hack to ensure that if System is not imported, it will not be returned root node
+        return dependencyNodes.FirstOrDefault( n => n.Parent == null && n.Id != "System" );
     }
 
     private IEnumerable < ModuleDependencyNode > Traverse( ModuleDependencyNode node )

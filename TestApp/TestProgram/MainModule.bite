@@ -1,22 +1,8 @@
-module MainModule;
+module HelloWorld;
 
-import System;
-using System;
+import System; 
 
-var name = "Max";
-
-class ABC
-{
-    function Test()
-    {
-        return "Pablo";
-    }
-}
-
-var a = new ABC();
-
-PrintLine("Hello: ${a["Test"]()}");
-
+System.PrintLine("Hello World!");
 /*
 
 
