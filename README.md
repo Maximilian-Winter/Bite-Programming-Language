@@ -80,7 +80,7 @@ The following code will calculate the first 50 fibonacci numbers and print them 
 
 # Getting Started
 
-To try out Bite, you will need to download the [BiteVM CLI](https://github.com/Maximilian-Winter/Bite-Programming-Language/releases/download/alpha-release/Bite-Language-Alpha-v0.1.zip). It's a command line program that will compile and interpret Bite programs. 
+To try out Bite, you will need to download the [BiteVM CLI](https://github.com/Maximilian-Winter/Bite-Programming-Language/releases/download/alpha-release/Bite-Language-Alpha-v0.1.2.zip). It's a command line program that will compile and interpret Bite programs. 
 
 The CLI has two modes, [REPL mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#repl-mode) and [Compile and Interpret mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#compile-and-interpret-mode)
 
@@ -97,6 +97,10 @@ You can use your favorite editor to create Bite programs, but we have a [Visual 
 
 # Integrating BiteVM in your Unity or C# application
 
+Install the nuget package:
+```ps
+> Install-package BiteVM
+```
 Create an instance of the `BiteCompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 The function will return a `BiteProgram` instance. You can call the `Run()` method on this object to execute the compiled Bite modules.
