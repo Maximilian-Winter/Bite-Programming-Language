@@ -62,13 +62,13 @@ The following code will calculate the first 50 fibonacci numbers and print them 
 
 # Getting Started
 
-To try out Bite, you will need to download the [BiteVM CLI](http://link.to.bitevm). It's a command line program that will compile and interpret Bite programs. 
+To try out Bite, you will need to download the [BiteVM CLI](https://github.com/Maximilian-Winter/Bite-Programming-Language/releases/download/alpha-release/Bite-Language-Alpha-v0.1.zip). It's a command line program that will compile and interpret Bite programs. 
 
 The CLI has two modes, [REPL mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#repl-mode) and [Compile and Interpret mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#compile-and-interpret-mode)
 
-To start the REPL mode, just start the [BiteVM CLI](http://link.to.bitevm).
+To start the REPL mode, just start the [BiteVM CLI](https://github.com/Maximilian-Winter/Bite-Programming-Language/releases/download/alpha-release/Bite-Language-Alpha-v0.1.zip).
 
-To compile the bite modules in `.\TestProgram` and start the execution, just start the [BiteVM CLI](http://link.to.bitevm) like this:
+To compile the bite modules in `.\TestProgram` and start the execution, just start the [BiteVM CLI](https://github.com/Maximilian-Winter/Bite-Programming-Language/releases/download/alpha-release/Bite-Language-Alpha-v0.1.zip) like this:
 
 ```
   bitevm.exe -p .\TestProgram
