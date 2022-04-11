@@ -19,16 +19,28 @@ public class BiteCompiler
     /// </summary>
     public string SystemModule = @"module System;
 
+class Object {
+
+}
+
 class CSharpInterface {
-    var Type;
-    var Method;
-    var Arguments;
-    var ConstructorArguments;
-    var ConstructorArgumentsTypes;
-    var ObjectInstance;
+    var Type = new Object();
+    var Method = new Object();
+    var Arguments = new Object();
+    var ConstructorArguments = new Object();
+    var ConstructorArgumentsTypes = new Object();
+    var ObjectInstance = new Object();
 }
 
 extern callable function CSharpInterfaceCall ( object );
+
+function CreateFromType( typeName, arguments, types ) {
+    var interface = new CSharpInterface();
+    interface.Type = typeName;
+    interface.ConstructorArguments = arguments;
+    interface.ConstructorArgumentsTypes = types;
+    return CSharpInterfaceCall ( interface );
+}
 
 extern callable function Print ( object );
 
@@ -50,20 +62,12 @@ extern callable function PrintLine ( object );";
         return CompileExpressionInternal( expressionNode );
     }
 
-    public BiteProgram CompileStatementsWithSymbolTable( string statements, SymbolTable symbolTable )
+    public BiteProgram CompileStatements( string statements, SymbolTable symbolTable = null )
     {
         IReadOnlyCollection < StatementNode > statementNodes = ParseStatements( statements );
 
         return CompileStatementsInternal( statementNodes, symbolTable );
     }
-
-    public BiteProgram CompileStatements( string statements )
-    {
-        IReadOnlyCollection < StatementNode > statementNodes = ParseStatements( statements );
-
-        return CompileStatementsInternal( statementNodes );
-    }
-
 
     public BiteProgram Compile( IReadOnlyCollection < Module > modules )
     {

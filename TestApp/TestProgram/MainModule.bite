@@ -1,26 +1,25 @@
 module HelloWorld;
 
 import System; 
-
-var a = 5;
-
-System.PrintLine("Number: \${a} ${a}");
-/*
-
+using System;
 
 var testClassInterface = new CSharpInterface();
-testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
 
-testClassInterface.ConstructorArguments[0] = 0;
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
+testClassInterface.ConstructorArguments[0] = 42;
 testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
+
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
 PrintLine(TestCSharp.testfield.i);
+
 for(var i = 0; i < 5000; i++)
 {
     TestCSharp.testfield.i += 25;
 }
-PrintLine(TestCSharp.testfield.i);*/
+
+PrintLine(TestCSharp.testfield.i);
+
 /*
 class A
 {

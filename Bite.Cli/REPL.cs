@@ -123,7 +123,7 @@ public class REPL
 
                         try
                         {
-                            program = compiler.CompileStatementsWithSymbolTable( bufferString, program.SymbolTable );
+                            program = compiler.CompileStatements( bufferString, program.SymbolTable );
                             BiteVmInterpretResult result = biteVm.Interpret( program );
                         }
                         catch (Exception e)
