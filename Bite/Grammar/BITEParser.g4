@@ -131,7 +131,7 @@ functionDeclaration :
 
 classInstanceDeclaration : 
     ( privateModifier | publicModifier )? ( staticModifier )? 
-    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
+    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket (SemicolonSeperator |  CURLY_L initializerExpression CURLY_R )
     | Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
     ;
 
@@ -151,6 +151,8 @@ statement
     | returnStatement
     | breakStatement
     | usingStatement
+    | startThreadStatement
+    | useThreadStatement
     | whileStatement
     | block 
     ;  
@@ -200,6 +202,13 @@ usingStatement
     : UsingDirective OpeningRoundBracket expression ClosingRoundBracket block
     ;
 
+startThreadStatement
+    : StartStatement ThreadStatement OpeningRoundBracket expression ClosingRoundBracket
+    ;
+useThreadStatement
+    : UseStatement ThreadStatement OpeningRoundBracket expression ClosingRoundBracket
+    ;
+    
 whileStatement
     : DeclareWhileLoop OpeningRoundBracket expression ClosingRoundBracket block 
     ;
@@ -296,7 +305,8 @@ primary
 privateModifier         : DeclarePrivate;
 publicModifier          : DeclarePublic;
 abstractModifier        : DeclareAbstract;
-staticModifier          : DeclareStatic;                                   
+staticModifier          : DeclareStatic;                     
+initializerExpression   : expression ( CommaSeperator expression )*;           
 parameters              : parametersIdentifier ( CommaSeperator parametersIdentifier )* ;
 arguments               : argumentExpression ( CommaSeperator argumentExpression )* ; 
 inheritance             : Identifier ( CommaSeperator Identifier )* ;                  

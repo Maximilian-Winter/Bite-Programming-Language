@@ -31,6 +31,10 @@ NullReference: 'null';
 ThisReference: 'this';
 UsingDirective: 'using';
 ImportDirective: 'import';
+StartStatement: 'start';
+UseStatement: 'use';
+ThreadStatement: 'thread';
+
 
 AssignOperator: '=';
 PlusAssignOperator: '+=';

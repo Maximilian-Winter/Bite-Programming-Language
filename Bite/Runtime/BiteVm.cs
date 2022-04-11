@@ -59,7 +59,7 @@ namespace Bite.Runtime
         private bool m_PushNextAssignmentOnStack = false;
         private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
-        private readonly Dictionary<string, object> m_ExternalObjects = new Dictionary<string, object>();
+        private Dictionary<string, object> m_ExternalObjects = new Dictionary<string, object>();
         private readonly Dictionary<string, IBiteVmCallable> m_Callables = new Dictionary<string, IBiteVmCallable>();
 
         public Dictionary<string, BinaryChunk> CompiledChunks { get; private set; }
@@ -85,9 +85,15 @@ namespace Bite.Runtime
         public BiteVmInterpretResult Interpret( BiteProgram context )
         {
             m_CurrentChunk = context.CompiledMainChunk;
-
+            
+            foreach ( var compiledChunk in CompiledChunks)
+            {
+                if ( !context.CompiledChunks.ContainsKey( compiledChunk.Key ) )
+                {
+                    context.CompiledChunks.Add( compiledChunk.Key, compiledChunk.Value );
+                }
+            }
             CompiledChunks = context.CompiledChunks;
-           
             m_CurrentInstructionPointer = 0;
             return Run();
         }
@@ -95,6 +101,11 @@ namespace Bite.Runtime
         public void RegisterExternalGlobalObject( string varName, object data )
         {
             m_ExternalObjects.Add( varName, data );
+        }
+        
+        public void RegisterExternalGlobalObjects( Dictionary <string, object> externalObjects )
+        {
+            m_ExternalObjects = externalObjects;
         }
 
         public void RegisterCallable( string linkId, IBiteVmCallable callable )
