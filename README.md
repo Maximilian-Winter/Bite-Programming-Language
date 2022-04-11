@@ -96,7 +96,7 @@ The function will return a `BiteProgram` instance. You can call the `Run()` meth
             "*.bite",
             SearchOption.AllDirectories );
 
-        BiteCompilercompiler = new BiteCompiler();
+        BiteCompiler compiler = new BiteCompiler();
 
         BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
 
