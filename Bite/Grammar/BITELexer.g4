@@ -137,13 +137,15 @@ OPEN_STRING: '"' -> pushMode(STRING); // Switch context
 // Note that complex escapes, like Unicode, are not illustrated here.
 mode STRING;
 
+ESCAPED_DOLLAR: '\\$';
+
 ENTER_EXPR_INTERP: '${' -> pushMode(DEFAULT_MODE); // When we see this, start parsing program tokens.
 
 ID_INTERP: '$'[A-Za-z_][A-Za-z0-9_]*;
-ESCAPED_DOLLAR: '\\$';
-ESCAPED_QUOTE: '\\"';
-TEXT: ~('$'|'\n'|'"')+; // This doesn't cover escapes, FYI.
 
+
+
+TEXT: (ESCAPED_DOLLAR|(~('$'|'\n'|'"')))+; // This doesn't cover escapes, FYI.
 CLOSE_STRING: '"' -> popMode; // Revert to the previous mode; our string is closed.
 	
 

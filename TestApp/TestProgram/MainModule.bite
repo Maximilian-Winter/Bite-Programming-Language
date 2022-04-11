@@ -3,9 +3,8 @@ module HelloWorld;
 import System; 
 
 var a = 5;
-var b = 5;
 
-System.PrintLine(a += b);
+System.PrintLine("Number: \${a}");
 /*
 
 

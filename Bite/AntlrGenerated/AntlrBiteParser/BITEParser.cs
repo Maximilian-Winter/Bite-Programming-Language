@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from BITEParser.g4 by ANTLR 4.9.2
+// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITEParser.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -58,7 +58,7 @@ public partial class BITEParser : Parser {
 		BooleanLiteral=70, False_=71, True_=72, IntegerLiteral=73, FloatingLiteral=74, 
 		DecimalLiteral=75, Identifier=76, COMMENT=77, WS=78, LINE_COMMENT=79, 
 		CURLY_L=80, CURLY_R=81, OPEN_STRING=82, ENTER_EXPR_INTERP=83, ID_INTERP=84, 
-		ESCAPED_DOLLAR=85, ESCAPED_QUOTE=86, TEXT=87, CLOSE_STRING=88;
+		ESCAPED_DOLLAR=85, TEXT=86, CLOSE_STRING=87;
 	public const int
 		RULE_program = 0, RULE_module = 1, RULE_moduleDeclaration = 2, RULE_importDirective = 3, 
 		RULE_usingDirective = 4, RULE_declaration = 5, RULE_classDeclaration = 6, 
@@ -102,7 +102,7 @@ public partial class BITEParser : Parser {
 		"'-'", "'--'", "'+'", "'++'", "'/'", "'*'", "'!'", "'.'", "'?'", "':'", 
 		"'->'", "'%'", "'~'", "'&'", "'^'", "'|'", "'('", "')'", "'['", "']'", 
 		"','", "';'", "'$'", null, "'false'", "'true'", null, null, null, null, 
-		null, null, null, "'{'", "'}'", null, "'${'", null, "'\\$'", "'\\\"'"
+		null, null, null, "'{'", "'}'", null, "'${'", null, "'\\$'"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, "DeclareModule", "DeclareClass", "DeclareStruct", "DeclareClassInstance", 
@@ -125,8 +125,7 @@ public partial class BITEParser : Parser {
 		"CommaSeperator", "SemicolonSeperator", "DollarOperator", "BooleanLiteral", 
 		"False_", "True_", "IntegerLiteral", "FloatingLiteral", "DecimalLiteral", 
 		"Identifier", "COMMENT", "WS", "LINE_COMMENT", "CURLY_L", "CURLY_R", "OPEN_STRING", 
-		"ENTER_EXPR_INTERP", "ID_INTERP", "ESCAPED_DOLLAR", "ESCAPED_QUOTE", "TEXT", 
-		"CLOSE_STRING"
+		"ENTER_EXPR_INTERP", "ID_INTERP", "ESCAPED_DOLLAR", "TEXT", "CLOSE_STRING"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -4469,7 +4468,7 @@ public partial class BITEParser : Parser {
 
 	private static char[] _serializedATN = {
 		'\x3', '\x608B', '\xA72A', '\x8133', '\xB9ED', '\x417C', '\x3BE7', '\x7786', 
-		'\x5964', '\x3', 'Z', '\x281', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
+		'\x5964', '\x3', 'Y', '\x281', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
 		'\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', '\x5', '\x4', 
 		'\x6', '\t', '\x6', '\x4', '\a', '\t', '\a', '\x4', '\b', '\t', '\b', 
 		'\x4', '\t', '\t', '\t', '\x4', '\n', '\t', '\n', '\x4', '\v', '\t', '\v', 
@@ -5018,8 +5017,8 @@ public partial class BITEParser : Parser {
 		'\x2', '\x2', '\x2', '\x273', '\x271', '\x3', '\x2', '\x2', '\x2', '\x273', 
 		'\x274', '\x3', '\x2', '\x2', '\x2', '\x274', '\x276', '\x3', '\x2', '\x2', 
 		'\x2', '\x275', '\x273', '\x3', '\x2', '\x2', '\x2', '\x276', '\x277', 
-		'\a', 'Z', '\x2', '\x2', '\x277', 'q', '\x3', '\x2', '\x2', '\x2', '\x278', 
-		'\x27F', '\a', 'Y', '\x2', '\x2', '\x279', '\x27F', '\a', 'V', '\x2', 
+		'\a', 'Y', '\x2', '\x2', '\x277', 'q', '\x3', '\x2', '\x2', '\x2', '\x278', 
+		'\x27F', '\a', 'X', '\x2', '\x2', '\x279', '\x27F', '\a', 'V', '\x2', 
 		'\x2', '\x27A', '\x27B', '\a', 'U', '\x2', '\x2', '\x27B', '\x27C', '\x5', 
 		'\x36', '\x1C', '\x2', '\x27C', '\x27D', '\a', 'S', '\x2', '\x2', '\x27D', 
 		'\x27F', '\x3', '\x2', '\x2', '\x2', '\x27E', '\x278', '\x3', '\x2', '\x2', 
