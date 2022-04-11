@@ -57,26 +57,16 @@ The following code will calculate the first 50 fibonacci numbers and print them 
 
 
 
-# Usage
-The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe without commandline options. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
+# Getting Started
 
-```
-     Bite Programming Langauge v0.1 (c) 2022
+To try out Bite, you will need to download the [BiteVM](http://link.to.bitevm). It's a command line program that will compile and interpret Bite programs. You can also execute Bite code directly in BiteVM's REPL (Read Eval Print Loop) mode.  
 
-     Bite REPL(Read Evaluate Print Loop)
-     
-     type 'declare' to declare functions, structs and classes
-     type 'reset' to reset the module
-     type 'help' for help.
-     type 'exit' or ^Z to quit. type 'help' for help.
-     > var a = 5;
-     > var b = 42;
-     > PrintLine(5 + 42);
-     47
-     >
+You can use your favorite editor to create Bite programs, but we have a [Visual Studio Code Extension](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha). that gives .bite programs syntax highlighting.
 
-```
-The easiest way to run a script file, is the use of the Bite CLI.
+If you want to use BiteVM in your Unity or C# application, see [here](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Integrating-BiteVM-into-your-C%23-application)
+
+
+The easiest way to run a script file, is the use of the [BiteVM](http://link.to.bitevm) .
 
 The following command will compile the bite modules in `.\TestProgram` and start execution.
 
