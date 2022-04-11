@@ -15,7 +15,7 @@ public class BiteSymbolTableException : Exception
 }
 
 
-public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
+public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
 {
     public enum ClassType
     {
@@ -44,29 +44,29 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         m_SymbolTable = symbolTable;
     }
 
-    public void BuildModuleSymbolTable( ModuleNode moduleNode )
+    public void BuildModuleSymbolTable( ModuleBaseNode moduleBaseNode )
     {
-        Resolve( moduleNode );
+        Resolve( moduleBaseNode );
     }
 
-    public void BuildProgramSymbolTable( ProgramNode programNode )
+    public void BuildProgramSymbolTable( ProgramBaseNode programBaseNode )
     {
-        Resolve( programNode );
+        Resolve( programBaseNode );
     }
 
-    public void BuildStatementsSymbolTable( List < StatementNode > statementNodes )
+    public void BuildStatementsSymbolTable( List < StatementBaseNode > statementNodes )
     {
-        foreach ( StatementNode statementNode in statementNodes )
+        foreach ( StatementBaseNode statementNode in statementNodes )
         {
             Resolve( statementNode );
         }
     }
 
-    public override object Visit( ProgramNode node )
+    public override object Visit( ProgramBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        foreach ( ModuleNode module in node.GetModulesInDepedencyOrder() )
+        foreach ( ModuleBaseNode module in node.GetModulesInDepedencyOrder() )
         {
             Resolve( module );
         }
@@ -74,7 +74,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ModuleNode node )
+    public override object Visit( ModuleBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         int d = 0;
@@ -90,29 +90,29 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         m_SymbolTable.PushScope( m );
 
-        foreach ( StatementNode statement in node.Statements )
+        foreach ( StatementBaseNode statement in node.Statements )
         {
-            if ( statement is ClassDeclarationNode classDeclarationNode )
+            if ( statement is ClassDeclarationBaseNode classDeclarationNode )
             {
                 Resolve( classDeclarationNode );
             }
-            else if ( statement is StructDeclarationNode structDeclaration )
+            else if ( statement is StructDeclarationBaseNode structDeclaration )
             {
                 Resolve( structDeclaration );
             }
-            else if ( statement is FunctionDeclarationNode functionDeclarationNode )
+            else if ( statement is FunctionDeclarationBaseNode functionDeclarationNode )
             {
                 Resolve( functionDeclarationNode );
             }
-            else if ( statement is VariableDeclarationNode variable )
+            else if ( statement is VariableDeclarationBaseNode variable )
             {
                 Resolve( variable );
             }
-            else if ( statement is ClassInstanceDeclarationNode classInstance )
+            else if ( statement is ClassInstanceDeclarationBaseNode classInstance )
             {
                 Resolve( classInstance );
             }
-            else if ( statement is StatementNode stat )
+            else if ( statement is StatementBaseNode stat )
             {
                 Resolve( stat );
             }
@@ -123,33 +123,36 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         if ( defineModule )
         {
             m_SymbolTable.CurrentScope.define( m );
+            
         }
+        m.CheckForAmbiguousReferences();
 
+      
         return null;
     }
 
-    public override object Visit( ModifiersNode node )
+    public override object Visit( ModifiersBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
         return null;
     }
 
-    public override object Visit( DeclarationNode node )
+    public override object Visit( DeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
         return null;
     }
 
-    public override object Visit( UsingStatementNode node )
+    public override object Visit( UsingStatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         LocalScope l = new LocalScope( m_SymbolTable.CurrentScope );
         m_SymbolTable.CurrentScope.nest( l );
         m_SymbolTable.PushScope( l );
 
-        Resolve( node.UsingNode );
+        Resolve( node.UsingBaseNode );
         Resolve( node.UsingBlock );
 
         m_SymbolTable.PopScope();
@@ -157,12 +160,12 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( BreakStatementNode node )
+    public override object Visit( BreakStatementBaseNode node )
     {
         return null;
     }
 
-    public override object Visit( DeclarationsNode node )
+    public override object Visit( DeclarationsBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
@@ -172,7 +175,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Classes != null )
         {
-            foreach ( ClassDeclarationNode declaration in node.Classes )
+            foreach ( ClassDeclarationBaseNode declaration in node.Classes )
             {
                 Resolve( declaration );
             }
@@ -180,7 +183,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Structs != null )
         {
-            foreach ( StructDeclarationNode declaration in node.Structs )
+            foreach ( StructDeclarationBaseNode declaration in node.Structs )
             {
                 Resolve( declaration );
             }
@@ -188,7 +191,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Functions != null )
         {
-            foreach ( FunctionDeclarationNode declaration in node.Functions )
+            foreach ( FunctionDeclarationBaseNode declaration in node.Functions )
             {
                 Resolve( declaration );
             }
@@ -196,7 +199,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.ClassInstances != null )
         {
-            foreach ( ClassInstanceDeclarationNode declaration in node.ClassInstances )
+            foreach ( ClassInstanceDeclarationBaseNode declaration in node.ClassInstances )
             {
                 Resolve( declaration );
             }
@@ -204,7 +207,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Variables != null )
         {
-            foreach ( VariableDeclarationNode declaration in node.Variables )
+            foreach ( VariableDeclarationBaseNode declaration in node.Variables )
             {
                 Resolve( declaration );
             }
@@ -212,7 +215,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Statements != null )
         {
-            foreach ( StatementNode declaration in node.Statements )
+            foreach ( StatementBaseNode declaration in node.Statements )
             {
                 Resolve( declaration );
             }
@@ -223,18 +226,18 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ClassDeclarationNode node )
+    public override object Visit( ClassDeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        bool isPublicClass = node.Modifiers.Modifiers != null &&
-                             node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclarePublic );
+        bool isPublicClass = node.ModifiersBase.Modifiers != null &&
+                             node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-        bool isStaticClass = node.Modifiers.Modifiers != null &&
-                             node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
+        bool isStaticClass = node.ModifiersBase.Modifiers != null &&
+                             node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
-        bool isAbstractClass = node.Modifiers.Modifiers != null &&
-                               node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareAbstract );
+        bool isAbstractClass = node.ModifiersBase.Modifiers != null &&
+                               node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareAbstract );
 
         if ( isStaticClass && isAbstractClass )
         {
@@ -242,7 +245,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         }
 
         bool noModifiers = !isAbstractClass && !isStaticClass;
-
+        int depth = 0;
         ClassType enclosingClass = m_CurrentClass;
         m_CurrentClass = ClassType.CLASS;
         BiteClassType classType = new BiteClassType( node.ClassId.Id );
@@ -255,7 +258,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
         classSymbol.EnclosingScope = m_SymbolTable.CurrentScope;
         classSymbol.typeIndex = classType.TypeIndex;
-        classSymbol.m_DefinitionNode = node;
+        classSymbol.m_DefinitionBaseNode = node;
 
         if ( node.Inheritance != null )
         {
@@ -298,24 +301,24 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             m_SymbolTable.CurrentScope.define( methodSymbol );
         }
 
-        foreach ( VariableDeclarationNode memberDeclarationContext in node.BlockStatement.Declarations.Variables )
+        foreach ( VariableDeclarationBaseNode memberDeclarationContext in node.BlockStatementBase.DeclarationsBase.Variables )
         {
             memberDeclarationContext.AstScopeNode = m_SymbolTable.CurrentScope;
 
             if ( memberDeclarationContext.VarId != null )
             {
-                if ( memberDeclarationContext.Initializer != null )
+                if ( memberDeclarationContext.InitializerBase != null )
                 {
-                    Resolve( memberDeclarationContext.Initializer );
+                    Resolve( memberDeclarationContext.InitializerBase );
                 }
 
-                bool isPublicField = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                     memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                         ModifiersNode.ModifierTypes.DeclarePublic );
+                bool isPublicField = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                     memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                         ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-                bool isStaticField = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                     memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                         ModifiersNode.ModifierTypes.DeclareStatic );
+                bool isStaticField = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                     memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                         ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
                 FieldSymbol fieldSymbol = new FieldSymbol(
                     memberDeclarationContext.VarId.Id,
@@ -323,25 +326,25 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     isStaticField ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
 
                 fieldSymbol.Type = new BiteClassType( "Object" );
-                fieldSymbol.DefinitionNode = memberDeclarationContext;
+                fieldSymbol.DefinitionBaseNode = memberDeclarationContext;
                 m_SymbolTable.CurrentScope.define( fieldSymbol );
             }
         }
 
-        foreach ( ClassInstanceDeclarationNode memberDeclarationContext in node.BlockStatement.Declarations.
+        foreach ( ClassInstanceDeclarationBaseNode memberDeclarationContext in node.BlockStatementBase.DeclarationsBase.
                      ClassInstances )
         {
             memberDeclarationContext.AstScopeNode = m_SymbolTable.CurrentScope;
 
             if ( memberDeclarationContext.InstanceId != null )
             {
-                bool isPublicField = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                     memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                         ModifiersNode.ModifierTypes.DeclarePublic );
+                bool isPublicField = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                     memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                         ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-                bool isStaticField = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                     memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                         ModifiersNode.ModifierTypes.DeclareStatic );
+                bool isStaticField = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                     memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                         ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
                 FieldSymbol fieldSymbol = new FieldSymbol(
                     memberDeclarationContext.InstanceId.Id,
@@ -349,28 +352,28 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     isStaticField ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
 
                 fieldSymbol.Type = new BiteClassType( memberDeclarationContext.ClassName.Id );
-                fieldSymbol.DefinitionNode = memberDeclarationContext;
+                fieldSymbol.DefinitionBaseNode = memberDeclarationContext;
                 m_SymbolTable.CurrentScope.define( fieldSymbol );
             }
         }
 
-        foreach ( FunctionDeclarationNode memberDeclarationContext in node.BlockStatement.Declarations.Functions )
+        foreach ( FunctionDeclarationBaseNode memberDeclarationContext in node.BlockStatementBase.DeclarationsBase.Functions )
         {
             memberDeclarationContext.AstScopeNode = m_SymbolTable.CurrentScope;
 
             if ( memberDeclarationContext.FunctionId.Id != null )
             {
-                bool isPublic = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                    ModifiersNode.ModifierTypes.DeclarePublic );
+                bool isPublic = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                    ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-                bool isStatic = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                    ModifiersNode.ModifierTypes.DeclareStatic );
+                bool isStatic = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                    ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
-                bool isAbstract = memberDeclarationContext.Modifiers.Modifiers != null &&
-                                  memberDeclarationContext.Modifiers.Modifiers.Contains(
-                                      ModifiersNode.ModifierTypes.DeclareAbstract );
+                bool isAbstract = memberDeclarationContext.ModifiersBase.Modifiers != null &&
+                                  memberDeclarationContext.ModifiersBase.Modifiers.Contains(
+                                      ModifiersBaseNode.ModifierTypes.DeclareAbstract );
 
                 if ( isStatic && isAbstract )
                 {
@@ -395,16 +398,16 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     isAbstract ? ClassAndMemberModifiers.Abstract : ClassAndMemberModifiers.None );
 
                 f.IsConstructor = declarationType == FunctionType.CONSTRUCTOR;
-                f.defNode = memberDeclarationContext;
+                f.m_DefBaseNode = memberDeclarationContext;
                 f.EnclosingScope = m_SymbolTable.CurrentScope;
                 m_SymbolTable.PushScope( f );
 
-                if ( memberDeclarationContext.Parameters != null &&
-                     memberDeclarationContext.Parameters.Identifiers != null )
+                if ( memberDeclarationContext.ParametersBase != null &&
+                     memberDeclarationContext.ParametersBase.Identifiers != null )
                 {
-                    memberDeclarationContext.Parameters.AstScopeNode = m_SymbolTable.CurrentScope;
+                    memberDeclarationContext.ParametersBase.AstScopeNode = m_SymbolTable.CurrentScope;
 
-                    foreach ( Identifier id in memberDeclarationContext.Parameters.Identifiers )
+                    foreach ( Identifier id in memberDeclarationContext.ParametersBase.Identifiers )
                     {
                         id.AstScopeNode = m_SymbolTable.CurrentScope;
                         m_SymbolTable.CurrentScope.define( new ParameterSymbol( id.Id ) );
@@ -413,7 +416,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
                 if ( memberDeclarationContext.FunctionBlock != null )
                 {
-                    ResolveDeclarations( memberDeclarationContext.FunctionBlock.Declarations );
+                    ResolveDeclarations( memberDeclarationContext.FunctionBlock.DeclarationsBase );
                 }
 
                 m_SymbolTable.PopScope();
@@ -434,25 +437,25 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( FunctionDeclarationNode node )
+    public override object Visit( FunctionDeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        bool declaredPublicOrPrivate = node.Modifiers.Modifiers != null &&
-                                       node.Modifiers.Modifiers.Contains(
-                                           ModifiersNode.ModifierTypes.DeclarePublic );
+        bool declaredPublicOrPrivate = node.ModifiersBase.Modifiers != null &&
+                                       node.ModifiersBase.Modifiers.Contains(
+                                           ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-        bool isStatic = node.Modifiers.Modifiers != null &&
-                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
+        bool isStatic = node.ModifiersBase.Modifiers != null &&
+                        node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
-        bool isAbstract = node.Modifiers.Modifiers != null &&
-                          node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareAbstract );
+        bool isAbstract = node.ModifiersBase.Modifiers != null &&
+                          node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareAbstract );
 
-        bool isExtern = node.Modifiers.Modifiers != null &&
-                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareExtern );
+        bool isExtern = node.ModifiersBase.Modifiers != null &&
+                        node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareExtern );
 
-        bool isCallable = node.Modifiers.Modifiers != null &&
-                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareCallable );
+        bool isCallable = node.ModifiersBase.Modifiers != null &&
+                        node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareCallable );
 
         if ( isAbstract || isStatic )
         {
@@ -484,17 +487,17 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         BiteClassType functionType = new BiteClassType( "Object" );
 
         f.Type = functionType;
-        f.defNode = node;
+        f.m_DefBaseNode = node;
         f.EnclosingScope = m_SymbolTable.CurrentScope;
         m_SymbolTable.PushScope( f );
 
-        if ( node.Parameters != null )
+        if ( node.ParametersBase != null )
         {
-            node.Parameters.AstScopeNode = m_SymbolTable.CurrentScope;
+            node.ParametersBase.AstScopeNode = m_SymbolTable.CurrentScope;
 
-            if ( node.Parameters.Identifiers != null )
+            if ( node.ParametersBase.Identifiers != null )
             {
-                foreach ( Identifier id in node.Parameters.Identifiers )
+                foreach ( Identifier id in node.ParametersBase.Identifiers )
                 {
                     id.AstScopeNode = m_SymbolTable.CurrentScope;
                     m_SymbolTable.CurrentScope.define( new ParameterSymbol( id.Id ) );
@@ -502,9 +505,9 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             }
         }
 
-        if ( node.FunctionBlock != null && node.FunctionBlock.Declarations != null )
+        if ( node.FunctionBlock != null && node.FunctionBlock.DeclarationsBase != null )
         {
-            ResolveDeclarations( node.FunctionBlock.Declarations );
+            ResolveDeclarations( node.FunctionBlock.DeclarationsBase );
         }
 
         m_SymbolTable.PopScope();
@@ -519,7 +522,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( LocalVariableInitializerNode node )
+    public override object Visit( LocalVariableInitializerBaseNode node )
     {
         foreach ( var variableDeclaration in node.VariableDeclarations )
         {
@@ -529,68 +532,68 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( LocalVariableDeclarationNode node )
+    public override object Visit( LocalVariableDeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        if ( node.Expression != null )
+        if ( node.ExpressionBase != null )
         {
-            Resolve( node.Expression );
+            Resolve( node.ExpressionBase );
         }
 
-        bool declaredPublicOrPrivate = node.Modifiers.Modifiers != null &&
-                                       node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclarePublic );
+        bool declaredPublicOrPrivate = node.ModifiersBase.Modifiers != null &&
+                                       node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-        bool isStatic = node.Modifiers.Modifiers != null &&
-                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
+        bool isStatic = node.ModifiersBase.Modifiers != null &&
+                        node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
         DynamicVariable variableSymbol = new DynamicVariable( node.VarId.Id,
             declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
             isStatic ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
 
         variableSymbol.Type = new BiteClassType( "Object" );
-        variableSymbol.DefinitionNode = node;
+        variableSymbol.DefinitionBaseNode = node;
         m_SymbolTable.CurrentScope.define( variableSymbol );
 
         return null;
     }
 
-    public override object Visit( VariableDeclarationNode node )
+    public override object Visit( VariableDeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        if ( node.Initializer != null )
+        if ( node.InitializerBase != null )
         {
-            Resolve( node.Initializer );
+            Resolve( node.InitializerBase );
         }
 
-        bool declaredPublicOrPrivate = node.Modifiers.Modifiers != null &&
-                                       node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclarePublic );
+        bool declaredPublicOrPrivate = node.ModifiersBase.Modifiers != null &&
+                                       node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-        bool isStatic = node.Modifiers.Modifiers != null &&
-                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
+        bool isStatic = node.ModifiersBase.Modifiers != null &&
+                        node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
         DynamicVariable variableSymbol = new DynamicVariable( node.VarId.Id,
             declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
             isStatic ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
 
         variableSymbol.Type = new BiteClassType( "Object" );
-        variableSymbol.DefinitionNode = node;
+        variableSymbol.DefinitionBaseNode = node;
         m_SymbolTable.CurrentScope.define( variableSymbol );
 
         return null;
     }
 
-    public override object Visit( ClassInstanceDeclarationNode node )
+    public override object Visit( ClassInstanceDeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        bool declaredPublicOrPrivate = node.Modifiers.Modifiers != null &&
-                                       node.Modifiers.Modifiers.Contains(
-                                           ModifiersNode.ModifierTypes.DeclarePublic );
+        bool declaredPublicOrPrivate = node.ModifiersBase.Modifiers != null &&
+                                       node.ModifiersBase.Modifiers.Contains(
+                                           ModifiersBaseNode.ModifierTypes.DeclarePublic );
 
-        bool isStatic = node.Modifiers.Modifiers != null &&
-                        node.Modifiers.Modifiers.Contains( ModifiersNode.ModifierTypes.DeclareStatic );
+        bool isStatic = node.ModifiersBase.Modifiers != null &&
+                        node.ModifiersBase.Modifiers.Contains( ModifiersBaseNode.ModifierTypes.DeclareStatic );
 
         BiteClassType classType = new BiteClassType( node.ClassName.Id );
 
@@ -600,7 +603,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             isStatic ? ClassAndMemberModifiers.Static : ClassAndMemberModifiers.None );
 
         classInstance.Type = classType;
-        classInstance.DefinitionNode = node;
+        classInstance.DefinitionBaseNode = node;
 
         if ( !node.IsVariableRedeclaration )
         {
@@ -610,13 +613,13 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( CallNode node )
+    public override object Visit( CallBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        if ( node.Arguments != null && node.Arguments.Expressions != null )
+        if ( node.ArgumentsBase != null && node.ArgumentsBase.Expressions != null )
         {
-            foreach ( ExpressionNode argumentsExpression in node.Arguments.Expressions )
+            foreach ( ExpressionBaseNode argumentsExpression in node.ArgumentsBase.Expressions )
             {
                 Resolve( argumentsExpression );
             }
@@ -628,7 +631,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             {
                 if ( callElementEntry.CallElementType == CallElementTypes.Call )
                 {
-                    Resolve( callElementEntry.Call );
+                    Resolve( callElementEntry.CallBase );
                 }
             }
         }
@@ -638,26 +641,26 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             /* LocalScope l = new LocalScope( SymbolTable.CurrentScope );
              SymbolTable.CurrentScope.nest( l );
              SymbolTable.pushScope( l );*/
-            if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+            if ( node.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
             {
                 int d = 0;
-                node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d );
-                Resolve( node.Primary );
+                node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d );
+                Resolve( node.PrimaryBase );
             }
 
             //SymbolTable.popScope();
         }
         else
         {
-            if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+            if ( node.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
             {
                 int d = 0;
                 //node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d, false);
-                Resolve( node.Primary );
+                Resolve( node.PrimaryBase );
             }
             else
             {
-                Resolve( node.Primary );
+                Resolve( node.PrimaryBase );
             }
         }
 
@@ -667,9 +670,9 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
 
             foreach ( CallEntry terminalNode in node.CallEntries )
             {
-                if ( terminalNode.Arguments != null && terminalNode.Arguments.Expressions != null )
+                if ( terminalNode.ArgumentsBase != null && terminalNode.ArgumentsBase.Expressions != null )
                 {
-                    foreach ( ExpressionNode argumentsExpression in terminalNode.Arguments.Expressions )
+                    foreach ( ExpressionBaseNode argumentsExpression in terminalNode.ArgumentsBase.Expressions )
                     {
                         Resolve( argumentsExpression );
                     }
@@ -681,7 +684,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     {
                         if ( callElementEntry.CallElementType == CallElementTypes.Call )
                         {
-                            Resolve( callElementEntry.Call );
+                            Resolve( callElementEntry.CallBase );
                         }
                     }
                 }
@@ -691,20 +694,20 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                     /* LocalScope l = new LocalScope( SymbolTable.CurrentScope );
                      SymbolTable.CurrentScope.nest( l );
                      SymbolTable.pushScope( l );*/
-                    if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                    if ( terminalNode.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
                     {
                         int d = 0;
                         /*DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
                         ClassSymbol classSymbol = symbol.resolve( symbol.Type.Name, out moduleId, ref d ) as ClassSymbol;
                         classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );*/
-                        Resolve( terminalNode.Primary);
+                        Resolve( terminalNode.PrimaryBase);
                     }
 
                     //SymbolTable.popScope();
                 }
                 else
                 {
-                    if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                    if ( terminalNode.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
                     {
                         int d = 0;
                         /*DynamicVariable symbol = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d ) as DynamicVariable;
@@ -722,7 +725,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                             classSymbol.resolve( terminalNode.Primary.PrimaryId.Id, out moduleId, ref d );
                         }*/
                         
-                        Resolve( terminalNode.Primary );
+                        Resolve( terminalNode.PrimaryBase );
                     }
                     
                 }
@@ -734,29 +737,29 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ArgumentsNode node )
+    public override object Visit( ArgumentsBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
         return null;
     }
 
-    public override object Visit( ParametersNode node )
+    public override object Visit( ParametersBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
         return null;
     }
 
-    public override object Visit( AssignmentNode node )
+    public override object Visit( AssignmentBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
         switch ( node.Type )
         {
             case AssignmentTypes.Assignment:
-                Resolve( node.Call );
-                Resolve( node.Assignment );
+                Resolve( node.CallBase );
+                Resolve( node.AssignmentBase );
 
                 break;
 
@@ -771,12 +774,12 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
                 break;
 
             case AssignmentTypes.Call:
-                Resolve( node.Call );
+                Resolve( node.CallBase );
 
                 break;
 
             case AssignmentTypes.Primary:
-                Resolve( node.PrimaryNode );
+                Resolve( node.PrimaryBaseNode );
 
                 break;
 
@@ -797,61 +800,61 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ExpressionNode node )
+    public override object Visit( ExpressionBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
-        Resolve( node.Assignment );
+        Resolve( node.AssignmentBase );
 
         return null;
     }
 
-    public override object Visit( BlockStatementNode node )
+    public override object Visit( BlockStatementBaseNode node )
     {
-        ResolveDeclarations( node.Declarations );
+        ResolveDeclarations( node.DeclarationsBase );
 
         return null;
     }
 
-    public override object Visit( StatementNode node )
+    public override object Visit( StatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
-        if ( node is ExpressionStatementNode expressionStatementNode )
+        if ( node is ExpressionStatementBaseNode expressionStatementNode )
         {
             Resolve( expressionStatementNode );
 
             return null;
         }
 
-        if ( node is ForStatementNode forStatementNode )
+        if ( node is ForStatementBaseNode forStatementNode )
         {
             Resolve( forStatementNode );
 
             return null;
         }
 
-        if ( node is IfStatementNode ifStatementNode )
+        if ( node is IfStatementBaseNode ifStatementNode )
         {
             Resolve( ifStatementNode );
 
             return null;
         }
 
-        if ( node is WhileStatementNode whileStatement )
+        if ( node is WhileStatementBaseNode whileStatement )
         {
             Resolve( whileStatement );
 
             return null;
         }
 
-        if ( node is ReturnStatementNode returnStatement )
+        if ( node is ReturnStatementBaseNode returnStatement )
         {
             Resolve( returnStatement );
 
             return null;
         }
 
-        if ( node is BlockStatementNode blockStatementNode )
+        if ( node is BlockStatementBaseNode blockStatementNode )
         {
             Resolve( blockStatementNode );
 
@@ -861,47 +864,47 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ExpressionStatementNode node )
+    public override object Visit( ExpressionStatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
-        Resolve( node.Expression );
+        Resolve( node.ExpressionBase );
 
         return null;
     }
 
-    public override object Visit( IfStatementNode node )
+    public override object Visit( IfStatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
-        Resolve( node.Expression );
-        Resolve(node.ThenStatement);
+        Resolve( node.ExpressionBase );
+        Resolve(node.ThenStatementBase);
 
-        if (node.ElseStatement != null)
+        if (node.ElseStatementBase != null)
         {
-            Resolve(node.ElseStatement);
+            Resolve(node.ElseStatementBase);
         }
 
         return null;
     }
 
-    public override object Visit( ForStatementNode node )
+    public override object Visit( ForStatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         LocalScope l = new LocalScope( m_SymbolTable.CurrentScope );
         m_SymbolTable.CurrentScope.nest( l );
         m_SymbolTable.PushScope( l );
 
-        if ( node.Initializer != null )
+        if ( node.InitializerBase != null )
         {
-            if ( node.Initializer.Expressions != null )
+            if ( node.InitializerBase.Expressions != null )
             {
-                foreach ( var expression in node.Initializer.Expressions )
+                foreach ( var expression in node.InitializerBase.Expressions )
                 {
                     Resolve( expression );
                 }
             }
-            else if ( node.Initializer.LocalVariableInitializer != null )
+            else if ( node.InitializerBase.LocalVariableInitializerBase != null )
             {
-                Resolve( node.Initializer.LocalVariableInitializer );
+                Resolve( node.InitializerBase.LocalVariableInitializerBase );
             }
         }
 
@@ -918,9 +921,9 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             }
         }
 
-        if ( node.Statement != null )
+        if ( node.StatementBase != null )
         {
-            Resolve( node.Statement );
+            Resolve( node.StatementBase );
         }
 
         m_SymbolTable.PopScope();
@@ -928,16 +931,16 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( WhileStatementNode node )
+    public override object Visit( WhileStatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
-        Resolve( node.Expression );
+        Resolve( node.ExpressionBase );
         Resolve( node.WhileBlock );
 
         return null;
     }
 
-    public override object Visit( ReturnStatementNode node )
+    public override object Visit( ReturnStatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
@@ -946,20 +949,20 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             return null;
         }
 
-        if ( node.ExpressionStatement != null )
+        if ( node.ExpressionStatementBase != null )
         {
             if ( m_CurrentFunction == FunctionType.CONSTRUCTOR )
             {
                 return null;
             }
 
-            Resolve( node.ExpressionStatement );
+            Resolve( node.ExpressionStatementBase );
         }
 
         return null;
     }
 
-    public override object Visit( InitializerNode node )
+    public override object Visit( InitializerBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         Resolve( node.Expression );
@@ -967,7 +970,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( BinaryOperationNode node )
+    public override object Visit( BinaryOperationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         Resolve( node.LeftOperand );
@@ -976,7 +979,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( TernaryOperationNode node )
+    public override object Visit( TernaryOperationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         Resolve( node.LeftOperand );
@@ -986,19 +989,19 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( PrimaryNode node )
+    public override object Visit( PrimaryBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
         
-        if ( node.PrimaryType == PrimaryNode.PrimaryTypes.InterpolatedString )
+        if ( node.PrimaryType == PrimaryBaseNode.PrimaryTypes.InterpolatedString )
         {
             foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
             {
-                Resolve( interpolatedStringStringPart.ExpressionNode );
+                Resolve( interpolatedStringStringPart.ExpressionBaseNode );
             }
         }
         
-        if ( node.PrimaryType == PrimaryNode.PrimaryTypes.Expression )
+        if ( node.PrimaryType == PrimaryBaseNode.PrimaryTypes.Expression )
         {
             Resolve( node.Expression );
         }
@@ -1006,7 +1009,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( StructDeclarationNode node )
+    public override object Visit( StructDeclarationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
 
@@ -1029,74 +1032,74 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( HeteroAstNode node )
+    public override object Visit( AstBaseNode baseNode )
     {
-        switch ( node )
+        switch ( baseNode )
         {
-            case ProgramNode program:
+            case ProgramBaseNode program:
                 return Visit( program );
 
-            case ModuleNode module:
+            case ModuleBaseNode module:
                 return Visit( module );
 
-            case ClassDeclarationNode classDeclarationNode:
+            case ClassDeclarationBaseNode classDeclarationNode:
                 return Visit( classDeclarationNode );
 
-            case StructDeclarationNode structDeclaration:
+            case StructDeclarationBaseNode structDeclaration:
                 return Visit( structDeclaration );
 
-            case FunctionDeclarationNode functionDeclarationNode:
+            case FunctionDeclarationBaseNode functionDeclarationNode:
                 return Visit( functionDeclarationNode );
             
-            case LocalVariableDeclarationNode localVar:
+            case LocalVariableDeclarationBaseNode localVar:
                 return Visit(localVar);
 
-            case LocalVariableInitializerNode initializer:
+            case LocalVariableInitializerBaseNode initializer:
                 return Visit(initializer);
 
-            case VariableDeclarationNode variable:
+            case VariableDeclarationBaseNode variable:
                 return Visit( variable );
 
-            case ClassInstanceDeclarationNode classInstance:
+            case ClassInstanceDeclarationBaseNode classInstance:
                 return Visit( classInstance );
 
-            case UsingStatementNode usingStatementNode:
+            case UsingStatementBaseNode usingStatementNode:
                 return Visit( usingStatementNode );
 
-            case ExpressionStatementNode expressionStatementNode:
+            case ExpressionStatementBaseNode expressionStatementNode:
                 return Visit( expressionStatementNode );
 
-            case ForStatementNode forStatementNode:
+            case ForStatementBaseNode forStatementNode:
                 return Visit( forStatementNode );
 
-            case WhileStatementNode whileStatement:
+            case WhileStatementBaseNode whileStatement:
                 return Visit( whileStatement );
 
-            case IfStatementNode ifStatementNode:
+            case IfStatementBaseNode ifStatementNode:
                 return Visit( ifStatementNode );
 
-            case ReturnStatementNode returnStatement:
+            case ReturnStatementBaseNode returnStatement:
                 return Visit( returnStatement );
 
-            case BlockStatementNode blockStatementNode:
+            case BlockStatementBaseNode blockStatementNode:
                 return Visit( blockStatementNode );
 
-            case AssignmentNode assignmentNode:
+            case AssignmentBaseNode assignmentNode:
                 return Visit( assignmentNode );
 
-            case CallNode callNode:
+            case CallBaseNode callNode:
                 return Visit( callNode );
 
-            case BinaryOperationNode binaryOperation:
+            case BinaryOperationBaseNode binaryOperation:
                 return Visit( binaryOperation );
 
-            case TernaryOperationNode ternaryOperationNode:
+            case TernaryOperationBaseNode ternaryOperationNode:
                 return Visit( ternaryOperationNode );
 
-            case PrimaryNode primaryNode:
+            case PrimaryBaseNode primaryNode:
                 return Visit( primaryNode );
 
-            case DeclarationsNode declarationsNode:
+            case DeclarationsBaseNode declarationsNode:
                 return Visit( declarationsNode );
 
             case UnaryPostfixOperation postfixOperation:
@@ -1105,13 +1108,13 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             case UnaryPrefixOperation prefixOperation:
                 return Visit( prefixOperation );
 
-            case StatementNode stat:
+            case StatementBaseNode stat:
                 return Visit( stat );
 
-            case ExpressionNode expression:
+            case ExpressionBaseNode expression:
                 return Visit( expression );
 
-            case InitializerNode initializerNode:
+            case InitializerBaseNode initializerNode:
                 return Visit( initializerNode.Expression );
 
             default:
@@ -1124,14 +1127,14 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
     #region Private
 
 
-    private object Resolve( HeteroAstNode astNode )
+    private object Resolve( AstBaseNode astBaseNode )
     {
-        return astNode.Accept( this );
+        return astBaseNode.Accept( this );
     }
 
-    private void ResolveDeclarations( DeclarationsNode declarationsNode )
+    private void ResolveDeclarations( DeclarationsBaseNode declarationsBaseNode )
     {
-        Resolve( declarationsNode );
+        Resolve( declarationsBaseNode );
     }
 
     #endregion

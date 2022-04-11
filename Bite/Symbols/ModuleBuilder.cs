@@ -27,10 +27,10 @@ public abstract class ModuleBuilder
             )
         {
             Type = new BiteClassType( type ),
-            defNode = new FunctionDeclarationNode
+            m_DefBaseNode = new FunctionDeclarationBaseNode
             {
                 FunctionId = new Identifier( name ),
-                Parameters = new ParametersNode
+                ParametersBase = new ParametersBaseNode
                 {
                     Identifiers = parameters.Select( p => new Identifier( p ) ).ToList()
                 }
@@ -53,11 +53,11 @@ public abstract class ModuleBuilder
             ClassAndMemberModifiers.None )
         {
             Type = new BiteClassType( type ),
-            DefinitionNode = null
+            DefinitionBaseNode = null
         };
     }
 
-    protected FieldSymbol CreatePublicField( string name, string type, HeteroAstNode declaringType )
+    protected FieldSymbol CreatePublicField( string name, string type, AstBaseNode declaringType )
     {
         return new FieldSymbol(
             name,
@@ -65,7 +65,7 @@ public abstract class ModuleBuilder
             ClassAndMemberModifiers.None )
         {
             Type = new BiteClassType( type ),
-            DefinitionNode = declaringType
+            DefinitionBaseNode = declaringType
         };
     }
 }

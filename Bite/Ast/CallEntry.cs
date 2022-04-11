@@ -5,8 +5,8 @@ namespace Bite.Ast
 
 public class CallEntry
 {
-    public PrimaryNode Primary;
-    public ArgumentsNode Arguments;
+    public PrimaryBaseNode PrimaryBase;
+    public ArgumentsBaseNode ArgumentsBase;
     public List < CallElementEntry > ElementAccess;
     public bool IsFunctionCall;
 }

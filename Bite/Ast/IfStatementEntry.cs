@@ -4,8 +4,8 @@
 public class IfStatementEntry
 {
     public IfStatementEntryType IfStatementType;
-    public ExpressionNode ExpressionElseIf;
-    public BlockStatementNode ElseBlock;
+    public ExpressionBaseNode ExpressionBaseElseIf;
+    public BlockStatementBaseNode ElseBlock;
 }
 
 }

@@ -1,7 +1,7 @@
 namespace Bite.Ast
 {
 
-public class UnaryPostfixOperation : ExpressionNode
+public class UnaryPostfixOperation : ExpressionBaseNode
 {
     public enum UnaryPostfixOperatorType
     {
@@ -9,7 +9,7 @@ public class UnaryPostfixOperation : ExpressionNode
         MinusMinus
     }
 
-    public ExpressionNode Primary;
+    public ExpressionBaseNode Primary;
     public UnaryPostfixOperatorType Operator;
 
     #region Public

@@ -6,10 +6,10 @@ namespace Bite.Symbols
 
 public class FunctionSymbol : SymbolWithScope, TypedSymbol
 {
-    public virtual FunctionDeclarationNode DefNode
+    public virtual FunctionDeclarationBaseNode DefBaseNode
     {
-        set => defNode = value;
-        get => defNode;
+        set => m_DefBaseNode = value;
+        get => m_DefBaseNode;
     }
 
     public virtual Type Type
@@ -69,7 +69,7 @@ public class FunctionSymbol : SymbolWithScope, TypedSymbol
 
     #endregion
 
-    protected internal FunctionDeclarationNode defNode;
+    protected internal FunctionDeclarationBaseNode m_DefBaseNode;
     protected internal AccesModifierType m_AccessModifier;
     protected internal ClassAndMemberModifiers m_ClassAndMemberModifier;
     protected internal Type retType;

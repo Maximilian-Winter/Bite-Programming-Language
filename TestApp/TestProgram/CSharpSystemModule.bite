@@ -1,0 +1,16 @@
+module CSharpSystem;
+
+import System;
+using System;
+
+var CSharpInterfaceObject = new CSharpInterface();
+
+CSharpInterfaceObject.Type = "System.Console";
+
+var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+
+
+
+
+
+

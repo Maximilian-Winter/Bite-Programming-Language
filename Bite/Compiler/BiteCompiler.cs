@@ -50,21 +50,21 @@ extern callable function PrintLine ( object );";
 
     public BiteProgram Compile( IEnumerable < string > modules )
     {
-        ProgramNode program = ParseModules( modules );
+        ProgramBaseNode programBase = ParseModules( modules );
 
-        return CompileProgramInternal( program );
+        return CompileProgramInternal( programBase );
     }
 
     public BiteProgram CompileExpression( string expression )
     {
-        ExpressionNode expressionNode = ParseExpression( expression );
+        ExpressionBaseNode expressionBaseNode = ParseExpression( expression );
 
-        return CompileExpressionInternal( expressionNode );
+        return CompileExpressionInternal( expressionBaseNode );
     }
 
     public BiteProgram CompileStatements( string statements, SymbolTable symbolTable = null )
     {
-        IReadOnlyCollection < StatementNode > statementNodes = ParseStatements( statements );
+        IReadOnlyCollection < StatementBaseNode > statementNodes = ParseStatements( statements );
 
         return CompileStatementsInternal( statementNodes, symbolTable );
     }
@@ -90,34 +90,34 @@ extern callable function PrintLine ( object );";
             moduleStrings.Add( moduleBuilder.ToString() );
         }
 
-        ProgramNode program = ParseModules( moduleStrings );
+        ProgramBaseNode programBase = ParseModules( moduleStrings );
 
-        return CompileProgramInternal( program );
+        return CompileProgramInternal( programBase );
     }
 
     #endregion
 
     #region Parsers
 
-    private ProgramNode ParseModules( IEnumerable < string > modules )
+    private ProgramBaseNode ParseModules( IEnumerable < string > modules )
     {
-        ProgramNode program = new ProgramNode();
+        ProgramBaseNode programBase = new ProgramBaseNode();
 
-        ModuleNode systemModule = ParseModule( SystemModule );
-        program.AddModule( systemModule );
+        ModuleBaseNode systemModuleBase = ParseModule( SystemModule );
+        programBase.AddModule( systemModuleBase );
 
         foreach (string biteModule in modules)
         {
-            ModuleNode module = ParseModule( biteModule );
-            program.AddModule( module );
+            ModuleBaseNode moduleBase = ParseModule( biteModule );
+            programBase.AddModule( moduleBase );
         }
 
-        return program;
+        return programBase;
     }
 
-    private ModuleNode ParseModule( string module )
+    private ModuleBaseNode ParseModule( string module )
     {
-        HeteroAstGenerator gen = new HeteroAstGenerator();
+        BiteAstGenerator gen = new BiteAstGenerator();
 
         BITEParser biteParser = CreateBiteParser( module, out var errorListener );
 
@@ -134,10 +134,10 @@ extern callable function PrintLine ( object );";
                 errorListener.Errors );
         }
 
-        return ( ModuleNode ) gen.VisitModule( tree );
+        return ( ModuleBaseNode ) gen.VisitModule( tree );
     }
 
-    private ExpressionNode ParseExpression( string expression )
+    private ExpressionBaseNode ParseExpression( string expression )
     {
         BITEParser biteParser = CreateBiteParser( expression, out var errorListener );
 
@@ -150,12 +150,12 @@ extern callable function PrintLine ( object );";
                 errorListener.Errors );
         }
 
-        HeteroAstGenerator gen = new HeteroAstGenerator();
+        BiteAstGenerator gen = new BiteAstGenerator();
 
-        return ( ExpressionNode ) gen.VisitExpression( tree );
+        return ( ExpressionBaseNode ) gen.VisitExpression( tree );
     }
 
-    private IReadOnlyCollection < StatementNode > ParseStatements( string statements )
+    private IReadOnlyCollection < StatementBaseNode > ParseStatements( string statements )
     {
         BITEParser biteParser = CreateBiteParser( statements, out var errorListener );
 
@@ -168,11 +168,11 @@ extern callable function PrintLine ( object );";
                 errorListener.Errors );
         }
 
-        HeteroAstGenerator gen = new HeteroAstGenerator();
+        BiteAstGenerator gen = new BiteAstGenerator();
 
-        DeclarationsNode declarations = ( DeclarationsNode ) gen.VisitStatements( tree );
+        DeclarationsBaseNode declarationsBase = ( DeclarationsBaseNode ) gen.VisitStatements( tree );
 
-        return declarations.Statements;
+        return declarationsBase.Statements;
     }
 
     private BITEParser CreateBiteParser( string input, out BiteCompilerSyntaxErrorListener errorListener )
@@ -192,76 +192,76 @@ extern callable function PrintLine ( object );";
 
     #region Private Compilers
 
-    private BiteProgram CompileExpressionInternal( ExpressionNode expression )
+    private BiteProgram CompileExpressionInternal( ExpressionBaseNode expressionBase )
     {
-        ModuleNode module = new ModuleNode
+        ModuleBaseNode moduleBase = new ModuleBaseNode
         {
             ModuleIdent = new ModuleIdentifier( "MainModule" ),
-            Statements = new List < StatementNode > { new ExpressionStatementNode { Expression = expression } }
+            Statements = new List < StatementBaseNode > { new ExpressionStatementBaseNode { ExpressionBase = expressionBase } }
         };
 
         var symbolTable = SymbolTable.Default;
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
-        symbolTableBuilder.BuildModuleSymbolTable( module );
+        symbolTableBuilder.BuildModuleSymbolTable( moduleBase );
 
         var biteProgram = new BiteProgram( symbolTable );
 
         CodeGenerator generator = new CodeGenerator( biteProgram );
 
-        generator.Compile( module );
+        generator.Compile( moduleBase );
 
         biteProgram.Build();
 
         return biteProgram;
     }
 
-    private BiteProgram CompileProgramInternal( ProgramNode programNode )
+    private BiteProgram CompileProgramInternal( ProgramBaseNode programBaseNode )
     {
         var symbolTable = SymbolTable.Default;
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
-        symbolTableBuilder.BuildProgramSymbolTable( programNode );
+        symbolTableBuilder.BuildProgramSymbolTable( programBaseNode );
 
         var biteProgram = new BiteProgram( symbolTable );
 
         CodeGenerator generator = new CodeGenerator( biteProgram );
 
-        generator.Compile( programNode );
+        generator.Compile( programBaseNode );
 
         biteProgram.Build();
 
         return biteProgram;
     }
 
-    private BiteProgram CompileStatements( ModuleNode module, Dictionary < string, object > externalObjects,
-        List < StatementNode > statements )
+    private BiteProgram CompileStatements( ModuleBaseNode moduleBase, Dictionary < string, object > externalObjects,
+        List < StatementBaseNode > statements )
     {
-        module.Statements = statements;
+        moduleBase.Statements = statements;
 
         var symbolTable = SymbolTable.Default; //.WithExternalObjects( externalObjects );
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
-        symbolTableBuilder.BuildModuleSymbolTable( module );
+        symbolTableBuilder.BuildModuleSymbolTable( moduleBase );
 
         var biteProgram = new BiteProgram( symbolTable );
 
         CodeGenerator generator = new CodeGenerator( biteProgram );
 
-        generator.Compile( module );
+        generator.Compile( moduleBase );
 
         biteProgram.Build();
 
         return biteProgram;
     }
 
-    private BiteProgram CompileStatementsInternal( IReadOnlyCollection < StatementNode > statements, SymbolTable symbolTable = null )
+    private BiteProgram CompileStatementsInternal( IReadOnlyCollection < StatementBaseNode > statements, SymbolTable symbolTable = null )
     {
 
-        ModuleNode module = new ModuleNode
+        ModuleBaseNode moduleBase = new ModuleBaseNode
         {
             ModuleIdent = new ModuleIdentifier( "MainModule" ),
             Statements = statements,
@@ -274,7 +274,7 @@ extern callable function PrintLine ( object );";
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
-        symbolTableBuilder.BuildModuleSymbolTable( module );
+        symbolTableBuilder.BuildModuleSymbolTable( moduleBase );
 
         var biteProgram = new BiteProgram( symbolTable );
 
@@ -288,7 +288,7 @@ extern callable function PrintLine ( object );";
 
         //generator.Compile( systemModule );
 
-        generator.Compile( module );
+        generator.Compile( moduleBase );
 
         biteProgram.Build();
 

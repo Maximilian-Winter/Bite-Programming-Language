@@ -3,6 +3,8 @@ module HelloWorld;
 import System; 
 using System;
 
+import CSharpSystem; 
+using CSharpSystem;
 var testClassInterface = new CSharpInterface();
 
 testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";

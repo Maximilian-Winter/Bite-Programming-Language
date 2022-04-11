@@ -130,7 +130,7 @@ LINE_COMMENT: '//' ~[\r\n]* '\r'? '\n' -> skip;
 
 DQUOTE: '"' -> pushMode(IN_STRING);
 CURLY_L: '{' -> pushMode(DEFAULT_MODE);
-CURLY_R: '}' -> popMode; // When we
+CURLY_R: '}' -> popMode; 
 
 mode IN_STRING;
 

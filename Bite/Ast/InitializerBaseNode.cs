@@ -1,20 +1,11 @@
 namespace Bite.Ast
 {
 
-public class Identifier : AstBaseNode
+public class InitializerBaseNode : AstBaseNode
 {
-    public string Id;
+    public ExpressionStatementBaseNode Expression;
 
     #region Public
-
-    public Identifier()
-    {
-    }
-
-    public Identifier( string id )
-    {
-        Id = id;
-    }
 
     public override object Accept( IAstVisitor visitor )
     {

@@ -7,10 +7,10 @@ namespace Bite.Symbols
 
 public abstract class DataAggregateSymbol : SymbolWithScope, MemberSymbol, Type
 {
-    public virtual DeclarationNode DefNode
+    public virtual DeclarationBaseNode DefBaseNode
     {
-        set => m_DefinitionNode = value;
-        get => m_DefinitionNode;
+        set => m_DefinitionBaseNode = value;
+        get => m_DefinitionBaseNode;
     }
 
     public override IList < Symbol > Symbols => base.Symbols;
@@ -134,7 +134,7 @@ public abstract class DataAggregateSymbol : SymbolWithScope, MemberSymbol, Type
 
     protected internal AccesModifierType m_AccessModifier;
     protected internal ClassAndMemberModifiers m_ClassAndMemberModifier;
-    protected internal DeclarationNode m_DefinitionNode;
+    protected internal DeclarationBaseNode m_DefinitionBaseNode;
 
     protected internal int nextFreeFieldSlot = 0;
     protected internal int typeIndex;

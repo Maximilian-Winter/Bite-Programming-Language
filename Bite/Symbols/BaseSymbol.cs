@@ -19,10 +19,10 @@ public abstract class BaseSymbol : Symbol
         set => type = value;
     }
 
-    public virtual HeteroAstNode DefNode
+    public virtual AstBaseNode DefBaseNode
     {
-        set => defNode = value;
-        get => defNode;
+        set => m_DefBaseNode = value;
+        get => m_DefBaseNode;
     }
 
     public virtual int InsertionOrderNumber
@@ -84,7 +84,7 @@ public abstract class BaseSymbol : Symbol
 
     #endregion
 
-    protected internal HeteroAstNode defNode;
+    protected internal AstBaseNode m_DefBaseNode;
     protected internal int lexicalOrder;
     protected internal readonly string name;
     protected internal Scope scope;
