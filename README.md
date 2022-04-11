@@ -44,7 +44,7 @@ ToDo:
 
 
 # Syntax
-[Information about the Bite Language Syntax are here on the Wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax)
+[Get information about the Bite Language Syntax here on the Wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax)
 
 
 # Example Code
@@ -56,25 +56,36 @@ The following code will calculate the first 50 fibonacci numbers and print them 
 ![BiteFibo](https://user-images.githubusercontent.com/24946356/162203003-13b87476-4d38-4187-9b76-fbdcc2ae5c6a.PNG)
 
 
-
 # Getting Started
 
-To try out Bite, you will need to download the [BiteVM](http://link.to.bitevm). It's a command line program that will compile and interpret Bite programs. You can also execute Bite code directly in BiteVM's REPL (Read Eval Print Loop) mode.  
+To try out Bite, you will need to download the [BiteVM CLI](http://link.to.bitevm). It's a command line program that will compile and interpret Bite programs. 
+
+The CLI has two modes, [REPL mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#repl-mode) and [Compile and Interpret mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#compile-and-interpret-mode)
+
+To start the REPL mode, just start the [BiteVM CLI](http://link.to.bitevm).
+
+To compile the bite modules in `.\TestProgram` and start the execution, just start the [BiteVM CLI](http://link.to.bitevm) like this:
+
+```
+  bitevm.exe -p .\TestProgram
+```
+
 
 You can use your favorite editor to create Bite programs, but we have a [Visual Studio Code Extension](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha). that gives .bite programs syntax highlighting.
 
-If you want to use BiteVM in your Unity or C# application, see [here](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Integrating-BiteVM-into-your-C%23-application)
+
+If you want to use BiteVM in your Unity or C# application, do the following:
 
 
-The easiest way to run a script file, is the use of the [BiteVM](http://link.to.bitevm) .
+Install the Nuget package for BiteVM
 
-The following command will compile the bite modules in `.\TestProgram` and start execution.
-
+```ps
+> Install-package BiteVM
 ```
-  bitevm -p .\TestProgram
-```
 
-Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+Create an instance of the `BiteCompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+
+The function will return a `BiteProgram` instance. You can call the `Run()` method on this object to execute the compiled Bite modules.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(
@@ -82,34 +93,12 @@ Another way to get up and running is to use the Bite dll in C# to create an inst
             "*.bite",
             SearchOption.AllDirectories );
 
-        BITECompiler compiler = new BITECompiler();
+        BiteCompilercompiler = new BiteCompiler();
 
-        BiteProgram program = compiler.Compile( files.Select(File.ReadAllText));
+        BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
 
         program.Run();
 ```
-
-# CLI
-
-The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session, when given no commandline options.
-
-```
-USAGE:
-
-  bitevm.exe <OPTIONS>
-
-OPTIONS:
-  -p  (--path)  : The path containing the modules to be loaded
-  -i  (--input) : A list of modules to be loaded
-
-```
-
-The following command will compile the bite modules in `.\TestProgram` and start execution.
-
-```
-  bitevm -p .\TestProgram
-```
-
 
 # Importing and using C# Types and Objects.
 
