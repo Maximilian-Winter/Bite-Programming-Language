@@ -75,7 +75,7 @@ namespace Bite.Runtime
             m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
 
             m_GlobalMemorySpace =
-                new FastGlobalMemorySpace( 1 );
+                new FastGlobalMemorySpace( 10 );
 
         }
 

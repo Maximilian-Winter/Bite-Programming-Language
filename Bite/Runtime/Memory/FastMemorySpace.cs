@@ -43,9 +43,18 @@ public class FastMemorySpace
     {
         if ( CurrentMemoryPointer >= Properties.Length )
         {
-            DynamicBiteVariable[] newProperties = new DynamicBiteVariable[Properties.Length * 2];
-            Array.Copy( Properties, newProperties, Properties.Length );
-            Properties = newProperties;
+            if ( CurrentMemoryPointer == 0 )
+            {
+                DynamicBiteVariable[] newProperties = new DynamicBiteVariable[2];
+                Array.Copy( Properties, newProperties, Properties.Length );
+                Properties = newProperties;
+            }
+            else
+            {
+                DynamicBiteVariable[] newProperties = new DynamicBiteVariable[Properties.Length * 2];
+                Array.Copy( Properties, newProperties, Properties.Length );
+                Properties = newProperties;
+            }
         }
         
         Properties[CurrentMemoryPointer] = value;
@@ -64,9 +73,18 @@ public class FastMemorySpace
         {
             if ( CurrentMemoryPointer >= Properties.Length )
             {
-                DynamicBiteVariable[] newProperties = new DynamicBiteVariable[Properties.Length * 2];
-                Array.Copy( Properties, newProperties, Properties.Length );
-                Properties = newProperties;
+                if ( CurrentMemoryPointer == 0 )
+                {
+                    DynamicBiteVariable[] newProperties = new DynamicBiteVariable[2];
+                    Array.Copy( Properties, newProperties, Properties.Length );
+                    Properties = newProperties;
+                }
+                else
+                {
+                    DynamicBiteVariable[] newProperties = new DynamicBiteVariable[Properties.Length * 2];
+                    Array.Copy( Properties, newProperties, Properties.Length );
+                    Properties = newProperties;
+                }
             }
             
             Properties[CurrentMemoryPointer] = value;
