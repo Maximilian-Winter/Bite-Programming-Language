@@ -123,6 +123,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         if ( defineModule )
         {
             m_SymbolTable.CurrentScope.define( m );
+            m.CheckForAmbiguousReferences();
         }
 
         return null;
@@ -242,7 +243,7 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         }
 
         bool noModifiers = !isAbstractClass && !isStaticClass;
-
+        int depth = 0;
         ClassType enclosingClass = m_CurrentClass;
         m_CurrentClass = ClassType.CLASS;
         BiteClassType classType = new BiteClassType( node.ClassId.Id );
