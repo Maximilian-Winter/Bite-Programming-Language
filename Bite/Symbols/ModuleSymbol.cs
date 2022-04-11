@@ -62,10 +62,16 @@ public class ModuleSymbol : SymbolWithScope
                             SymbolWithScope module2 =
                                 parent.resolve( importedModule.ToString(), out i, ref d ) as SymbolWithScope;
 
-                            if ( module2.resolve( moduleSymbols.Name, out d, ref d, false ) != null )
+                            Symbol symbol = module2.resolve( moduleSymbols.Name, out d, ref d, false );
+                            
+                            if ( symbol != null )
                             {
-                                throw new BiteSymbolTableException(
-                                    $"Symbol Table Error: Ambiguous references: {moduleSymbols.Name}" );
+                                if ( symbol.SymbolScope != moduleSymbols.SymbolScope )
+                                {
+                                    throw new BiteSymbolTableException(
+                                        $"Symbol Table Error: Ambiguous references: {moduleSymbols.Name}" );
+                                }
+                               
                             }
                         }
                     }
