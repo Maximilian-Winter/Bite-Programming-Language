@@ -30,115 +30,11 @@ The reference virtual machine, BiteVM, is a stack-based virtual machine written 
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
 * [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
-
-# Syntax
-## Modules
-Modules are the basic foundation of a program in Bite. Each program consists of at least one module. 
-
-The code on the module level can contain functions, classes, objects and other variables. It can also create objects from classes, call functions and access objects. 
-Modules are defined like this:
-```
-module ModuleName;
-```
-
-You can import other modules through the "import" keyword, like this:
-```
-import ModuleName;
-```
-
-
-You can use imported functions and variables, like this:
-```
-ModuleName.FunctioName();
-ModuleName.VariableName;
-```
-
-
-Through the use of the "using" keyword, you can omit the module names, like this:
-```
-import ModuleName;
-using ModuleName;
-
-FunctioName();       // ModuleName Function
-VariableName;        // ModuleName Variable
-```
-
-## Variables
-Variables in Bite are there to hold data.
-Supported data types:
-numeric
-string
-object 
-boolean
-array
- 
-Variables are defined like this:
-
-```
-var a = 42; // numeric data
-a = "Hello World!"; // now 'a' is a variable that holds string data
-a = new TestClass(); // now 'a' is a variable that holds object data from type TestClass
-
-var b = new TestClass() // created a new variable of type TestClass
-```
-
-## Functions
-
-Functions in Bite can create objects from classes, call functions, access objects and return values. 
-
-They are defined, like that:
-```
-function FunctionName()
-{
-
-}
-```
-
-You can add parameters and return values, like that:
-```
-function FunctionName(parameterOne, parameterTwo)
-{
-  return parameterOne * parameterTwo;
-}
-```
-
-## Classes
-
-Classes in Bite are an object-oriented way to separate Code into blueprints for objects and data structures. Classes can contain objects, other variables and functions. Classes can inherit members of other classes through inheritance. Functions in classes and functions in general can also create objects from classes, call functions and access objects. 
-
-Classes are defined like this:
-```
-class ClassName
-{
-
-}
-```
-
-You can inherit the members of other classes, like this:
-```
-class ClassName : OtherClassOne, OtherClassTwo
-{
-
-}
-```
-
-You can add members like variables and functions to a class, like this:
-```
-class ClassName
-{
-  var MemberOne = 5;
-  function MethodOne(t)
-  {
-     return MemberOne * t;
-  }
-}
-```
-
-
-
 # Overall Status
 Most of Language Features are implemented.
+
 Still has to be integrated into unity!
+An early test of the integration can be found [here](https://github.com/Maximilian-Winter/BiteUnity).
 
 ToDo:
 * Finish implementation of private and public access modifiers
@@ -148,126 +44,52 @@ ToDo:
 * Better Error Messages for Users
 
 
+# Syntax
+
+For an introduction about how to write Code in the Bite Language, go [here](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki#writing-code-in-bite).
+
+And get more information about the Bite Language Syntax [here on the Wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax).
 
 
 # Example Code
 
-You can find the following Examples as Code here:
-
-[Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Example-Code)
-
+[Code for the following example and more examples can be found here!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Example-Code)
 
 The following code will calculate the first 50 fibonacci numbers and print them on the console:
 
 ![BiteFibo](https://user-images.githubusercontent.com/24946356/162203003-13b87476-4d38-4187-9b76-fbdcc2ae5c6a.PNG)
 
 
+# Getting Started
 
+To try out Bite, you will need to download the [BiteVM CLI](http://link.to.bitevm). It's a command line program that will compile and interpret Bite programs. 
 
+The CLI has two modes, [REPL mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#repl-mode) and [Compile and Interpret mode](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Bite-CLI#compile-and-interpret-mode)
 
+To start the REPL mode, just start the [BiteVM CLI](http://link.to.bitevm).
 
-The following code will calculate and print the 2-, 4-, 8-, 16-, 32- and 64-th Prime Number:
+To compile the bite modules in `.\TestProgram` and start the execution, just start the [BiteVM CLI](http://link.to.bitevm) like this:
 
-![BitePrime](https://user-images.githubusercontent.com/24946356/161903979-3d4cbdc5-8d22-4bcd-9719-a75428227d6a.PNG)
-
-
-
-
-
-
-The following code will create a dynamic array and fill it with strings. Then it will print out the array elements:
-
-![biteDynamic](https://user-images.githubusercontent.com/24946356/161903997-fe14fa25-9b80-4962-aeec-a977052b834a.PNG)
-
-
-
-
-
-The following code show the use of classes, constructors and inheritance:
-
-![BiteClasses](https://user-images.githubusercontent.com/24946356/162202377-444a4156-d257-48bc-b3ba-7dfdd215ff7e.PNG)
-
-
-
-The following code will create a function, that returns a function and call that function afterwards:
-
-![BiteFuncAsReturn](https://user-images.githubusercontent.com/24946356/162301361-dc4e0d2b-8d1a-450a-ac9f-ddf94d666230.PNG)
-
-
-
-
-The following code will pass a function, to a function and call that passed function:
-
-![BiteFuncAsArg](https://user-images.githubusercontent.com/24946356/162301881-122c8cc9-dc18-4fcf-9102-65412efc6820.PNG)
-
-
-
-The following code shows the C# Type Import System. It shows how to create an C# Object by calling his constructor and the use after it:
-
-![BiteFFI](https://user-images.githubusercontent.com/24946356/161910038-cfa41e5d-ecb6-4e75-a912-2a7517dfe967.PNG)
-
-
-
-The following code shows the corresponding C# Class used for type import above. 
-
-```C#
-public class Foo
-{
-    public int i = 5;
-}
-
-public class TestClassCSharp
-{
-    private readonly int i = 5;
-
-    public Foo testfield { get; set; } = new Foo();
-
-    #region Public
-
-    public TestClassCSharp( int n )
-    {
-        i = n;
-    }
-
-    public void PrintVar()
-    {
-        Console.WriteLine( i );
-    }
-
-    #endregion
-}
+```
+  bitevm.exe -p .\TestProgram
 ```
 
 
+You can use your favorite editor to create Bite programs, but we have a [Visual Studio Code Extension](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha). that gives .bite programs syntax highlighting.
 
-# Usage
-The easiest way to get up and running is to use the REPL(Read Evalue Print Loop) in the Bite CLI, just start the bitevm.exe without commandline options. A main module is already created for you! So you can start with the actual code. You can exit REPL session by entering `exit`
 
-```
-     Bite Programming Langauge v0.1 (c) 2022
+## If you want to use BiteVM in your Unity or C# application, do the following:
 
-     Bite REPL(Read Evaluate Print Loop)
-     
-     type 'declare' to declare functions, structs and classes
-     type 'reset' to reset the module
-     type 'help' for help.
-     type 'exit' or ^Z to quit. type 'help' for help.
-     > var a = 5;
-     > var b = 42;
-     > PrintLine(5 + 42);
-     47
-     >
 
-```
-The easiest way to run a script file, is the use of the Bite CLI.
+Install the Nuget package for BiteVM
 
-The following command will compile the bite modules in `.\TestProgram` and start execution.
-
-```
-  bitevm -p .\TestProgram
+```ps
+> Install-package BiteVM
 ```
 
-Another way to get up and running is to use the Bite dll in C# to create an instance of the `BITECompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+Create an instance of the `BiteCompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
+
+The function will return a `BiteProgram` instance. You can call the `Run()` method on this object to execute the compiled Bite modules.
 
 ```c#
         IEnumerable < string > files = Directory.EnumerateFiles(
@@ -275,34 +97,12 @@ Another way to get up and running is to use the Bite dll in C# to create an inst
             "*.bite",
             SearchOption.AllDirectories );
 
-        BITECompiler compiler = new BITECompiler();
+        BiteCompiler compiler = new BiteCompiler();
 
-        BiteProgram program = compiler.Compile( files.Select(File.ReadAllText));
+        BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
 
         program.Run();
 ```
-
-# CLI
-
-The `Bite.Cli` project outputs an executable `bitevm.exe` that will compile and run a set of files in the specified location or start an interactive REPL session, when given no commandline options.
-
-```
-USAGE:
-
-  bitevm.exe <OPTIONS>
-
-OPTIONS:
-  -p  (--path)  : The path containing the modules to be loaded
-  -i  (--input) : A list of modules to be loaded
-
-```
-
-The following command will compile the bite modules in `.\TestProgram` and start execution.
-
-```
-  bitevm -p .\TestProgram
-```
-
 
 # Importing and using C# Types and Objects.
 
