@@ -34,7 +34,7 @@ extern callable function PrintLine ( object ) {
 }
 ";
 
-    public static Chunk GenerateFrom( ProgramNode node )
+    public static Chunk GenerateFrom( ProgramBaseNode node )
     {
         int d = 0;
         ModuleSymbol moduleSymbol = node.AstScopeNode.resolve( "System", out int moduleId, ref d ) as ModuleSymbol;

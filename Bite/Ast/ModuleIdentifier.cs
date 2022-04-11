@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Bite.Ast
 {
 
-public class ModuleIdentifier : HeteroAstNode
+public class ModuleIdentifier : AstBaseNode
 {
     public Identifier ModuleId;
     private readonly List < Identifier > ParentModules;

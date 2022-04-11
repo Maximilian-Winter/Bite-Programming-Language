@@ -7,7 +7,7 @@ using Bite.Symbols;
 namespace Bite.Runtime.CodeGen
 {
 
-public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
+public class CodeGenerator : AstVisitor < object >, IAstVisitor
 {
     private int m_CurrentEnterBlockCount = 0;
     private string m_CurrentModuleName = "";
@@ -33,7 +33,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_BiteProgram = biteProgram;
     }
 
-    public override object Visit( ProgramNode node )
+    public override object Visit( ProgramBaseNode node )
     {
         m_BiteProgram.PushChunk();
 
@@ -43,7 +43,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         m_BiteProgram.PopChunk();
 
-        foreach ( ModuleNode module in node.GetModulesInDepedencyOrder() )
+        foreach ( ModuleBaseNode module in node.GetModulesInDepedencyOrder() )
         {
             Compile( module );
         }
@@ -51,7 +51,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ModuleNode node )
+    public override object Visit( ModuleBaseNode node )
     {
         m_CurrentModuleName = node.ModuleIdent.ToString();
 
@@ -87,36 +87,36 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             EmitByteCode( BiteVmOpCodes.OpImportModule, importedModule.ToString(), importedModule.DebugInfoAstNode.LineNumber );
         }*/
 
-        foreach ( StatementNode statement in node.Statements )
+        foreach ( StatementBaseNode statement in node.Statements )
         {
             switch ( statement )
             {
-                case ClassDeclarationNode classDeclarationNode:
+                case ClassDeclarationBaseNode classDeclarationNode:
                     Compile( classDeclarationNode );
 
                     break;
 
-                case StructDeclarationNode structDeclaration:
+                case StructDeclarationBaseNode structDeclaration:
                     Compile( structDeclaration );
 
                     break;
 
-                case FunctionDeclarationNode functionDeclarationNode:
+                case FunctionDeclarationBaseNode functionDeclarationNode:
                     Compile( functionDeclarationNode );
 
                     break;
 
-                case VariableDeclarationNode variable:
+                case VariableDeclarationBaseNode variable:
                     Compile( variable );
 
                     break;
 
-                case ClassInstanceDeclarationNode classInstance:
+                case ClassInstanceDeclarationBaseNode classInstance:
                     Compile( classInstance );
 
                     break;
 
-                case StatementNode stat:
+                case StatementBaseNode stat:
                     Compile( stat );
 
                     break;
@@ -129,20 +129,20 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ModifiersNode node )
+    public override object Visit( ModifiersBaseNode node )
     {
         return null;
     }
 
-    public override object Visit( DeclarationNode node )
+    public override object Visit( DeclarationBaseNode node )
     {
         return null;
     }
 
-    public override object Visit( UsingStatementNode node )
+    public override object Visit( UsingStatementBaseNode node )
     {
         EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, 0 );
-        Compile( node.UsingNode );
+        Compile( node.UsingBaseNode );
         EmitByteCode( BiteVmOpCodes.OpUsingStatmentHead );
         Compile( node.UsingBlock );
         EmitByteCode( BiteVmOpCodes.OpUsingStatmentEnd );
@@ -151,7 +151,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( DeclarationsNode node )
+    public override object Visit( DeclarationsBaseNode node )
     {
         EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, 0 );
 
@@ -159,7 +159,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Classes != null )
         {
-            foreach ( ClassDeclarationNode declaration in node.Classes )
+            foreach ( ClassDeclarationBaseNode declaration in node.Classes )
             {
                 Compile( declaration );
             }
@@ -167,7 +167,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Structs != null )
         {
-            foreach ( StructDeclarationNode declaration in node.Structs )
+            foreach ( StructDeclarationBaseNode declaration in node.Structs )
             {
                 Compile( declaration );
             }
@@ -175,7 +175,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Functions != null )
         {
-            foreach ( FunctionDeclarationNode declaration in node.Functions )
+            foreach ( FunctionDeclarationBaseNode declaration in node.Functions )
             {
                 Compile( declaration );
             }
@@ -183,7 +183,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.ClassInstances != null )
         {
-            foreach ( ClassInstanceDeclarationNode declaration in node.ClassInstances )
+            foreach ( ClassInstanceDeclarationBaseNode declaration in node.ClassInstances )
             {
                 Compile( declaration );
             }
@@ -191,7 +191,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Variables != null )
         {
-            foreach ( VariableDeclarationNode declaration in node.Variables )
+            foreach ( VariableDeclarationBaseNode declaration in node.Variables )
             {
                 Compile( declaration );
             }
@@ -199,7 +199,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         if ( node.Statements != null )
         {
-            foreach ( StatementNode declaration in node.Statements )
+            foreach ( StatementBaseNode declaration in node.Statements )
             {
                 Compile( declaration );
             }
@@ -211,7 +211,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ClassDeclarationNode node )
+    public override object Visit( ClassDeclarationBaseNode node )
     {
         int d = 0;
         ClassSymbol symbol = ( ClassSymbol ) node.AstScopeNode.resolve( node.ClassId.Id, out int moduleId, ref d );
@@ -235,13 +235,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         foreach ( FieldSymbol field in symbol.Fields )
         {
-            if ( field.DefinitionNode != null &&
-                 field.DefinitionNode is VariableDeclarationNode variableDeclarationNode )
+            if ( field.DefinitionBaseNode != null &&
+                 field.DefinitionBaseNode is VariableDeclarationBaseNode variableDeclarationNode )
             {
                 Compile( variableDeclarationNode );
             }
-            else if ( field.DefinitionNode != null &&
-                      field.DefinitionNode is ClassInstanceDeclarationNode classInstance )
+            else if ( field.DefinitionBaseNode != null &&
+                      field.DefinitionBaseNode is ClassInstanceDeclarationBaseNode classInstance )
             {
                 Compile( classInstance );
             }
@@ -259,9 +259,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         foreach ( MethodSymbol method in symbol.Methods )
         {
-            if ( method.DefNode != null )
+            if ( method.DefBaseNode != null )
             {
-                Compile( method.DefNode );
+                Compile( method.DefBaseNode );
             }
             else
             {
@@ -278,7 +278,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( FunctionDeclarationNode node )
+    public override object Visit( FunctionDeclarationBaseNode node )
     {
         m_BiteProgram.PushChunk();
 
@@ -320,14 +320,14 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             m_BiteProgram.SaveCurrentChunk( symbol.QualifiedName );
         }
 
-        if ( node.Parameters != null &&  node.Parameters.Identifiers != null )
+        if ( node.ParametersBase != null &&  node.ParametersBase.Identifiers != null )
         {
-            foreach ( Identifier parametersIdentifier in node.Parameters.Identifiers )
+            foreach ( Identifier parametersIdentifier in node.ParametersBase.Identifiers )
             {
                 EmitConstant(  new ConstantValue(parametersIdentifier.Id) );
             }
 
-            EmitByteCode( BiteVmOpCodes.OpSetFunctionParameterName, node.Parameters.Identifiers.Count, 0 );
+            EmitByteCode( BiteVmOpCodes.OpSetFunctionParameterName, node.ParametersBase.Identifiers.Count, 0 );
         }
 
         if ( node.FunctionBlock != null )
@@ -340,18 +340,18 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( VariableDeclarationNode node )
+    public override object Visit( VariableDeclarationBaseNode node )
     {
         int d = 0;
 
         DynamicVariable variableSymbol =
             node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d ) as DynamicVariable;
 
-        if ( node.Initializer != null )
+        if ( node.InitializerBase != null )
         {
             m_PostfixInstructions.Push( new BytecodeList() );
             m_IsCompilingAssignmentRhs = true;
-            Compile( node.Initializer );
+            Compile( node.InitializerBase );
             m_IsCompilingAssignmentRhs = false;
             EmitByteCode( BiteVmOpCodes.OpDefineVar );
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
@@ -372,7 +372,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ClassInstanceDeclarationNode node )
+    public override object Visit( ClassInstanceDeclarationBaseNode node )
     {
         int d = 0;
 
@@ -412,11 +412,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
         }
 
-        if ( node.Arguments != null && node.Arguments.Expressions.Count > 0 )
+        if ( node.ArgumentsBase != null && node.ArgumentsBase.Expressions.Count > 0 )
         {
             foreach ( MethodSymbol methodSymbol in classSymbol.Methods )
             {
-                if ( methodSymbol.IsConstructor && node.Arguments.Expressions.Count == methodSymbol.NumberOfParameters )
+                if ( methodSymbol.IsConstructor && node.ArgumentsBase.Expressions.Count == methodSymbol.NumberOfParameters )
                 {
                     ByteCode byteCode = new ByteCode(
                         BiteVmOpCodes.OpGetVar,
@@ -429,13 +429,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         BiteVmOpCodes.OpGetNextVarByRef );
 
                     m_PostfixInstructions.Push( new BytecodeList() );
-                    foreach ( ExpressionNode argument in node.Arguments.Expressions )
+                    foreach ( ExpressionBaseNode argument in node.ArgumentsBase.Expressions )
                     {
                         Compile( argument );
                     }
                     
                     
-                    EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.Arguments.Expressions.Count, 0 );
+                    EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.ArgumentsBase.Expressions.Count, 0 );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
                     foreach ( ByteCode code in byteCodes.ByteCodes )
@@ -487,13 +487,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( CallNode node )
+    public override object Visit( CallBaseNode node )
     {
-        if ( node.Arguments != null && node.Arguments.Expressions != null )
+        if ( node.ArgumentsBase != null && node.ArgumentsBase.Expressions != null )
         {
             m_PostfixInstructions.Push( new BytecodeList() );
             
-            foreach ( ExpressionNode argument in node.Arguments.Expressions )
+            foreach ( ExpressionBaseNode argument in node.ArgumentsBase.Expressions )
             {
                 m_IsCompilingAssignmentRhs = true;
                 Compile( argument );
@@ -502,7 +502,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
            
             ByteCode byteCode = new ByteCode(
                 BiteVmOpCodes.OpBindToFunction,
-                node.Arguments.Expressions.Count );
+                node.ArgumentsBase.Expressions.Count );
 
             EmitByteCode( byteCode );
             
@@ -520,19 +520,19 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
             if ( node.ElementAccess != null )
             {
-                if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                if ( node.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
                 {
                     if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                     {
                         int d2 = 0;
-                        if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2, false ) != null )
+                        if ( node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId2, ref d2, false ) != null )
                         {
                             BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
-                            Compile( node.Primary );
+                            Compile( node.PrimaryBase );
                         }
                         else
                         {
-                            EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                            EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                         }
                     
                     
@@ -540,7 +540,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     else
                     {
                         int d2 = 0;
-                        Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId2, ref d2, false );
+                        Symbol var = node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId2, ref d2, false );
 
                         if ( var is ModuleSymbol m )
                         {
@@ -553,12 +553,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                             if ( var != null )
                             {
                                 BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
-                                Compile( node.Primary );
+                                Compile( node.PrimaryBase );
                                
                             }
                             else
                             {
-                                EmitByteCode( BiteVmOpCodes.OpGetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                                EmitByteCode( BiteVmOpCodes.OpGetVarExternal, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                             }
                      
                         }
@@ -566,13 +566,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 }
                 else
                 {
-                    Compile( node.Primary );
+                    Compile( node.PrimaryBase );
                 }
                 foreach ( CallElementEntry callElementEntry in node.ElementAccess )
                 {
                     if ( callElementEntry.CallElementType == CallElementTypes.Call )
                     {
-                        Compile( callElementEntry.Call );
+                        Compile( callElementEntry.CallBase );
                     }
                     else
                     {
@@ -600,7 +600,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 int dObject = 0;
 
                 Symbol objectToCall = node.AstScopeNode.resolve(
-                    node.Primary.PrimaryId.Id,
+                    node.PrimaryBase.PrimaryId.Id,
                     out int moduleIdObject,
                     ref dObject, false );
                 
@@ -620,24 +620,24 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             }
             else
             {
-                EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
             }
         }
         else
         {
-            if ( node.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+            if ( node.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
             {
                 if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                 {
                     int d = 0;
-                    if ( node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d , false) != null )
+                    if ( node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d , false) != null )
                     {
                         BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
-                        Compile( node.Primary );
+                        Compile( node.PrimaryBase );
                     }
                     else
                     {
-                        EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.Primary.PrimaryId.Id ) );
+                        EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                     }
                     
                     
@@ -645,7 +645,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 else
                 {
                     int d = 0;
-                    Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d, false );
+                    Symbol var = node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d, false );
 
                     if ( var is ModuleSymbol m )
                     {
@@ -658,12 +658,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                         if ( var == null )
                         {
                             EmitByteCode( BiteVmOpCodes.OpGetVarExternal,
-                                new ConstantValue( node.Primary.PrimaryId.Id ) );
+                                new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                         }
                         else
                         {
                             BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
-                            Compile( node.Primary );
+                            Compile( node.PrimaryBase );
                         }
 
                     }
@@ -671,7 +671,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             }
             else
             {
-                Compile( node.Primary );
+                Compile( node.PrimaryBase );
             }
             if ( node.ElementAccess != null )
             {
@@ -679,7 +679,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 {
                     if ( callElementEntry.CallElementType == CallElementTypes.Call )
                     {
-                        Compile( callElementEntry.Call );
+                        Compile( callElementEntry.CallBase );
                     }
                     else
                     {
@@ -715,7 +715,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             int d2 = 0;
             bool isModuleSymbol = false;
             bool isClassSymbol = false;
-            Symbol var = node.AstScopeNode.resolve( node.Primary.PrimaryId.Id, out int moduleId, ref d, false );
+            Symbol var = node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d, false );
             ModuleSymbol moduleSymbol = null;
             ClassSymbol classSymbol = null;
 
@@ -742,11 +742,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
             foreach ( CallEntry terminalNode in node.CallEntries )
             {
-                if ( terminalNode.Arguments != null && terminalNode.Arguments.Expressions != null )
+                if ( terminalNode.ArgumentsBase != null && terminalNode.ArgumentsBase.Expressions != null )
                 {
                     
                     m_PostfixInstructions.Push( new BytecodeList() );
-                    foreach ( ExpressionNode argumentsExpression in terminalNode.Arguments.Expressions )
+                    foreach ( ExpressionBaseNode argumentsExpression in terminalNode.ArgumentsBase.Expressions )
                     {
                         m_IsCompilingAssignmentRhs = true;
                         Compile( argumentsExpression );
@@ -756,7 +756,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     
                     ByteCode byteCode = new ByteCode(
                         BiteVmOpCodes.OpBindToFunction,
-                        terminalNode.Arguments.Expressions.Count );
+                        terminalNode.ArgumentsBase.Expressions.Count );
                     EmitByteCode( byteCode );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
@@ -773,24 +773,24 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
-                            new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                     }
                     else if ( isClassSymbol )
                     {
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
-                            new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                     }
                     else
                     {
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
-                            new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                     }
                 }
                 else
                 {
-                    if ( terminalNode.Primary.PrimaryType == PrimaryNode.PrimaryTypes.Identifier )
+                    if ( terminalNode.PrimaryBase.PrimaryType == PrimaryBaseNode.PrimaryTypes.Identifier )
                     {
                         if ( m_IsCompilingAssignmentLhs && i == node.CallEntries.Count - 1 )
                         {
@@ -799,7 +799,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 int d4 = 0;
 
                                 Symbol memberSymbol = moduleSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
+                                    terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
                                     ref d4,false );
 
@@ -814,7 +814,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 int d4 = 0;
 
                                 Symbol memberSymbol = classSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
+                                    terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
                                     ref d4, false );
 
@@ -822,7 +822,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 {
                                     EmitByteCode(
                                         BiteVmOpCodes.OpSetMemberWithString,
-                                        new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                                        new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                                 }
                                 else
                                 {
@@ -837,7 +837,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                             {
                                 EmitByteCode(
                                     BiteVmOpCodes.OpSetMemberWithString,
-                                    new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                                    new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                             }
                         }
                         else
@@ -847,7 +847,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 int d4 = 0;
 
                                 Symbol memberSymbol = moduleSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
+                                    terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
                                     ref d4, false );
 
@@ -862,7 +862,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 int d4 = 0;
 
                                 Symbol memberSymbol = classSymbol.resolve(
-                                    terminalNode.Primary.PrimaryId.Id,
+                                    terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
                                     ref d4, false );
 
@@ -870,7 +870,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                                 {
                                     EmitByteCode(
                                         BiteVmOpCodes.OpGetMemberWithString,
-                                        new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                                        new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                                 }
                                 else
                                 {
@@ -885,7 +885,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                             {
                                 EmitByteCode(
                                     BiteVmOpCodes.OpGetMemberWithString,
-                                    new ConstantValue( terminalNode.Primary.PrimaryId.Id ) );
+                                    new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
                             }
                         }
                     }
@@ -897,7 +897,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     {
                         if ( callElementEntry.CallElementType == CallElementTypes.Call )
                         {
-                            Compile( callElementEntry.Call );
+                            Compile( callElementEntry.CallBase );
                         }
                         else
                         {
@@ -930,17 +930,17 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ArgumentsNode node )
+    public override object Visit( ArgumentsBaseNode node )
     {
         return null;
     }
 
-    public override object Visit( ParametersNode node )
+    public override object Visit( ParametersBaseNode node )
     {
         return null;
     }
 
-    public override object Visit( AssignmentNode node )
+    public override object Visit( AssignmentBaseNode node )
     {
         switch ( node.Type )
         {
@@ -951,10 +951,10 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 }
                 m_PostfixInstructions.Push( new BytecodeList() );
                 m_IsCompilingAssignmentRhs = true;
-                Compile( node.Assignment );
+                Compile( node.AssignmentBase );
                 m_IsCompilingAssignmentRhs = false;
                 m_IsCompilingAssignmentLhs = true;
-                Compile( node.Call );
+                Compile( node.CallBase );
                 m_IsCompilingAssignmentLhs = false;
 
                 switch ( node.OperatorType )
@@ -1037,12 +1037,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 break;
 
             case AssignmentTypes.Call:
-                Compile( node.Call );
+                Compile( node.CallBase );
 
                 break;
 
             case AssignmentTypes.Primary:
-                Compile( node.PrimaryNode );
+                Compile( node.PrimaryBaseNode );
 
                 break;
 
@@ -1063,58 +1063,58 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ExpressionNode node )
+    public override object Visit( ExpressionBaseNode node )
     {
-        Compile( node.Assignment );
+        Compile( node.AssignmentBase );
 
         return null;
     }
 
-    public override object Visit( BlockStatementNode node )
+    public override object Visit( BlockStatementBaseNode node )
     {
-        Compile( node.Declarations );
+        Compile( node.DeclarationsBase );
 
         return null;
     }
 
-    public override object Visit( StatementNode node )
+    public override object Visit( StatementBaseNode node )
     {
-        if ( node is ExpressionStatementNode expressionStatementNode )
+        if ( node is ExpressionStatementBaseNode expressionStatementNode )
         {
             Compile( expressionStatementNode );
 
             return null;
         }
 
-        if ( node is ForStatementNode forStatementNode )
+        if ( node is ForStatementBaseNode forStatementNode )
         {
             Compile( forStatementNode );
 
             return null;
         }
 
-        if ( node is IfStatementNode ifStatementNode )
+        if ( node is IfStatementBaseNode ifStatementNode )
         {
             Compile( ifStatementNode );
 
             return null;
         }
 
-        if ( node is WhileStatementNode whileStatement )
+        if ( node is WhileStatementBaseNode whileStatement )
         {
             Compile( whileStatement );
 
             return null;
         }
 
-        if ( node is ReturnStatementNode returnStatement )
+        if ( node is ReturnStatementBaseNode returnStatement )
         {
             Compile( returnStatement );
 
             return null;
         }
 
-        if ( node is BlockStatementNode blockStatementNode )
+        if ( node is BlockStatementBaseNode blockStatementNode )
         {
             Compile( blockStatementNode );
 
@@ -1124,18 +1124,18 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ExpressionStatementNode node )
+    public override object Visit( ExpressionStatementBaseNode node )
     {
-        Compile( node.Expression );
+        Compile( node.ExpressionBase );
 
         return null;
     }
 
-    public override object Visit( IfStatementNode node )
+    public override object Visit( IfStatementBaseNode node )
     {
-        Compile( node.Expression );
+        Compile( node.ExpressionBase );
         int thenJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
-        Compile( node.ThenStatement );
+        Compile( node.ThenStatementBase );
         int overElseJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
 
         m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(
@@ -1144,9 +1144,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         Stack < int > endJumpStack = new Stack < int >();
 
-        if (node.ElseStatement != null)
+        if (node.ElseStatementBase != null)
         {
-            Compile(node.ElseStatement);
+            Compile(node.ElseStatementBase);
         }
 
         int endJumpStackCount = endJumpStack.Count;
@@ -1167,20 +1167,20 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( LocalVariableDeclarationNode node )
+    public override object Visit( LocalVariableDeclarationBaseNode node )
     {
         int d = 0;
 
         DynamicVariable variableSymbol = node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d ) as DynamicVariable;
 
-        Compile( node.Expression );
+        Compile( node.ExpressionBase );
         EmitByteCode( BiteVmOpCodes.OpDefineVar );
         EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
 
         return null;
     }
 
-    public override object Visit( LocalVariableInitializerNode node )
+    public override object Visit( LocalVariableInitializerBaseNode node )
     {
         foreach ( var variableDeclaration in node.VariableDeclarations )
         {
@@ -1190,24 +1190,24 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ForStatementNode node )
+    public override object Visit( ForStatementBaseNode node )
     {
         EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, 0 );
         m_CurrentEnterBlockCount++;
         m_PreviousLoopBlockCount = m_CurrentEnterBlockCount;
 
-        if (node.Initializer != null)
+        if (node.InitializerBase != null)
         {
-            if (node.Initializer.Expressions != null)
+            if (node.InitializerBase.Expressions != null)
             {
-                foreach (var expression in node.Initializer.Expressions)
+                foreach (var expression in node.InitializerBase.Expressions)
                 {
                     Compile(expression);
                 }
             }
-            else if (node.Initializer.LocalVariableInitializer != null)
+            else if (node.InitializerBase.LocalVariableInitializerBase != null)
             {
-                Compile(node.Initializer.LocalVariableInitializer);
+                Compile(node.InitializerBase.LocalVariableInitializerBase);
             }
         }
 
@@ -1224,9 +1224,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
         int toFix = EmitByteCode( BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0 );
 
-        if ( node.Statement != null )
+        if ( node.StatementBase != null )
         {
-            Compile( node.Statement );
+            Compile( node.StatementBase );
         }
         
         if ( node.Iterators != null )
@@ -1258,12 +1258,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( WhileStatementNode node )
+    public override object Visit( WhileStatementBaseNode node )
     {
         m_PreviousLoopBlockCount = m_CurrentEnterBlockCount;
 
         int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
-        Compile( node.Expression );
+        Compile( node.ExpressionBase );
         int toFix = EmitByteCode( BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0 );
         Compile( node.WhileBlock );
 
@@ -1278,9 +1278,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ReturnStatementNode node )
+    public override object Visit( ReturnStatementBaseNode node )
     {
-        Compile( node.ExpressionStatement );
+        Compile( node.ExpressionStatementBase );
         EmitByteCode( BiteVmOpCodes.OpKeepLastItemOnStack );
 
         for ( int i = 0; i < m_CurrentEnterBlockCount; i++ )
@@ -1293,7 +1293,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( BreakStatementNode node )
+    public override object Visit( BreakStatementBaseNode node )
     {
         for ( int i = 0; i < m_CurrentEnterBlockCount - m_PreviousLoopBlockCount; i++ )
         {
@@ -1305,106 +1305,106 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( InitializerNode node )
+    public override object Visit( InitializerBaseNode node )
     {
         Compile( node.Expression );
 
         return null;
     }
 
-    public override object Visit( BinaryOperationNode node )
+    public override object Visit( BinaryOperationBaseNode node )
     {
         Compile( node.LeftOperand );
         Compile( node.RightOperand );
 
         switch ( node.Operator )
         {
-            case BinaryOperationNode.BinaryOperatorType.Plus:
+            case BinaryOperationBaseNode.BinaryOperatorType.Plus:
                 EmitByteCode( BiteVmOpCodes.OpAdd );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Minus:
+            case BinaryOperationBaseNode.BinaryOperatorType.Minus:
                 EmitByteCode( BiteVmOpCodes.OpSubtract );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Mult:
+            case BinaryOperationBaseNode.BinaryOperatorType.Mult:
                 EmitByteCode( BiteVmOpCodes.OpMultiply );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Div:
+            case BinaryOperationBaseNode.BinaryOperatorType.Div:
                 EmitByteCode( BiteVmOpCodes.OpDivide );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Modulo:
+            case BinaryOperationBaseNode.BinaryOperatorType.Modulo:
                 EmitByteCode( BiteVmOpCodes.OpModulo );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Equal:
+            case BinaryOperationBaseNode.BinaryOperatorType.Equal:
                 EmitByteCode( BiteVmOpCodes.OpEqual );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.NotEqual:
+            case BinaryOperationBaseNode.BinaryOperatorType.NotEqual:
                 EmitByteCode( BiteVmOpCodes.OpNotEqual );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Less:
+            case BinaryOperationBaseNode.BinaryOperatorType.Less:
                 EmitByteCode( BiteVmOpCodes.OpLess );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.LessOrEqual:
+            case BinaryOperationBaseNode.BinaryOperatorType.LessOrEqual:
                 EmitByteCode( BiteVmOpCodes.OpLessOrEqual );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Greater:
+            case BinaryOperationBaseNode.BinaryOperatorType.Greater:
                 EmitByteCode( BiteVmOpCodes.OpGreater );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.GreaterOrEqual:
+            case BinaryOperationBaseNode.BinaryOperatorType.GreaterOrEqual:
                 EmitByteCode( BiteVmOpCodes.OpGreaterEqual );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.And:
+            case BinaryOperationBaseNode.BinaryOperatorType.And:
                 EmitByteCode( BiteVmOpCodes.OpAnd );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.Or:
+            case BinaryOperationBaseNode.BinaryOperatorType.Or:
                 EmitByteCode( BiteVmOpCodes.OpOr );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.BitwiseOr:
+            case BinaryOperationBaseNode.BinaryOperatorType.BitwiseOr:
                 EmitByteCode( BiteVmOpCodes.OpBitwiseOr );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.BitwiseAnd:
+            case BinaryOperationBaseNode.BinaryOperatorType.BitwiseAnd:
                 EmitByteCode( BiteVmOpCodes.OpBitwiseAnd );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.BitwiseXor:
+            case BinaryOperationBaseNode.BinaryOperatorType.BitwiseXor:
                 EmitByteCode( BiteVmOpCodes.OpBitwiseXor );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.ShiftLeft:
+            case BinaryOperationBaseNode.BinaryOperatorType.ShiftLeft:
                 EmitByteCode( BiteVmOpCodes.OpBitwiseLeftShift );
 
                 break;
 
-            case BinaryOperationNode.BinaryOperatorType.ShiftRight:
+            case BinaryOperationBaseNode.BinaryOperatorType.ShiftRight:
                 EmitByteCode( BiteVmOpCodes.OpBitwiseRightShift );
 
                 break;
@@ -1416,7 +1416,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( TernaryOperationNode node )
+    public override object Visit( TernaryOperationBaseNode node )
     {
         Compile( node.RightOperand );
         Compile( node.MidOperand );
@@ -1426,11 +1426,11 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( PrimaryNode node )
+    public override object Visit( PrimaryBaseNode node )
     {
         switch ( node.PrimaryType )
         {
-            case PrimaryNode.PrimaryTypes.Identifier:
+            case PrimaryBaseNode.PrimaryTypes.Identifier:
             {
                 int d = 0;
                 Symbol symbol = node.AstScopeNode.resolve( node.PrimaryId.Id, out int moduleId, ref d );
@@ -1458,7 +1458,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 return null;
             }
 
-            case PrimaryNode.PrimaryTypes.ThisReference:
+            case PrimaryBaseNode.PrimaryTypes.ThisReference:
                 int d2 = 0;
                 Symbol thisSymbol = node.AstScopeNode.resolve( "this", out int moduleId2, ref d2 );
                 AddToConstuctingByteCodeInstruction( moduleId2 );
@@ -1468,27 +1468,27 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
 
                 return null;
 
-            case PrimaryNode.PrimaryTypes.BooleanLiteral:
+            case PrimaryBaseNode.PrimaryTypes.BooleanLiteral:
                 EmitConstant( new ConstantValue( node.BooleanLiteral.Value ) );
 
                 return null;
 
-            case PrimaryNode.PrimaryTypes.IntegerLiteral:
+            case PrimaryBaseNode.PrimaryTypes.IntegerLiteral:
                 EmitConstant( new ConstantValue( node.IntegerLiteral.Value ) );
 
                 return null;
 
-            case PrimaryNode.PrimaryTypes.FloatLiteral:
+            case PrimaryBaseNode.PrimaryTypes.FloatLiteral:
                 EmitConstant( new ConstantValue( node.FloatLiteral.Value ) );
 
                 return null;
 
-            case PrimaryNode.PrimaryTypes.StringLiteral:
+            case PrimaryBaseNode.PrimaryTypes.StringLiteral:
                 EmitConstant( new ConstantValue( node.StringLiteral ) );
 
                 return null;
             
-            case PrimaryNode.PrimaryTypes.InterpolatedString:
+            case PrimaryBaseNode.PrimaryTypes.InterpolatedString:
                 int i = 0;
                 foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
                 {
@@ -1497,7 +1497,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     {
                         EmitByteCode( BiteVmOpCodes.OpAdd );
                     }
-                    Compile( interpolatedStringStringPart.ExpressionNode );
+                    Compile( interpolatedStringStringPart.ExpressionBaseNode );
                     EmitByteCode( BiteVmOpCodes.OpAdd );
                     i++;
                 }
@@ -1505,17 +1505,17 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                 EmitByteCode( BiteVmOpCodes.OpAdd );
                 return null;
 
-            case PrimaryNode.PrimaryTypes.Expression:
+            case PrimaryBaseNode.PrimaryTypes.Expression:
                 node.Expression.Accept( this );
 
                 return null;
 
-            case PrimaryNode.PrimaryTypes.NullReference:
+            case PrimaryBaseNode.PrimaryTypes.NullReference:
                 EmitConstant( new ConstantValue( null ) );
 
                 return null;
 
-            case PrimaryNode.PrimaryTypes.Default:
+            case PrimaryBaseNode.PrimaryTypes.Default:
             default:
                 throw new ArgumentOutOfRangeException(
                     nameof( node.PrimaryType ),
@@ -1524,7 +1524,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         }
     }
 
-    public override object Visit( StructDeclarationNode node )
+    public override object Visit( StructDeclarationBaseNode node )
     {
         return null;
     }
@@ -1631,77 +1631,77 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( HeteroAstNode node )
+    public override object Visit( AstBaseNode baseNode )
     {
-        switch ( node )
+        switch ( baseNode )
         {
-            case ProgramNode program:
+            case ProgramBaseNode program:
                 return Visit( program );
 
-            case ModuleNode module:
+            case ModuleBaseNode module:
                 return Visit( module );
 
-            case ClassDeclarationNode classDeclarationNode:
+            case ClassDeclarationBaseNode classDeclarationNode:
                 return Visit( classDeclarationNode );
 
-            case StructDeclarationNode structDeclaration:
+            case StructDeclarationBaseNode structDeclaration:
                 return Visit( structDeclaration );
 
-            case FunctionDeclarationNode functionDeclarationNode:
+            case FunctionDeclarationBaseNode functionDeclarationNode:
                 return Visit( functionDeclarationNode );
 
-            case LocalVariableDeclarationNode localVar:
+            case LocalVariableDeclarationBaseNode localVar:
                 return Visit( localVar );
 
-            case LocalVariableInitializerNode initializer:
+            case LocalVariableInitializerBaseNode initializer:
                 return Visit( initializer );
 
-            case VariableDeclarationNode variable:
+            case VariableDeclarationBaseNode variable:
                 return Visit( variable );
 
-            case ClassInstanceDeclarationNode classInstance:
+            case ClassInstanceDeclarationBaseNode classInstance:
                 return Visit( classInstance );
 
-            case UsingStatementNode usingStatementNode:
+            case UsingStatementBaseNode usingStatementNode:
                 return Visit( usingStatementNode );
 
-            case ExpressionStatementNode expressionStatementNode:
+            case ExpressionStatementBaseNode expressionStatementNode:
                 return Visit( expressionStatementNode );
 
-            case ForStatementNode forStatementNode:
+            case ForStatementBaseNode forStatementNode:
                 return Visit( forStatementNode );
 
-            case WhileStatementNode whileStatement:
+            case WhileStatementBaseNode whileStatement:
                 return Visit( whileStatement );
 
-            case IfStatementNode ifStatementNode:
+            case IfStatementBaseNode ifStatementNode:
                 return Visit( ifStatementNode );
 
-            case ReturnStatementNode returnStatement:
+            case ReturnStatementBaseNode returnStatement:
                 return Visit( returnStatement );
 
-            case BreakStatementNode returnStatement:
+            case BreakStatementBaseNode returnStatement:
                 return Visit( returnStatement );
 
-            case BlockStatementNode blockStatementNode:
+            case BlockStatementBaseNode blockStatementNode:
                 return Visit( blockStatementNode );
 
-            case AssignmentNode assignmentNode:
+            case AssignmentBaseNode assignmentNode:
                 return Visit( assignmentNode );
 
-            case CallNode callNode:
+            case CallBaseNode callNode:
                 return Visit( callNode );
 
-            case BinaryOperationNode binaryOperation:
+            case BinaryOperationBaseNode binaryOperation:
                 return Visit( binaryOperation );
 
-            case TernaryOperationNode ternaryOperationNode:
+            case TernaryOperationBaseNode ternaryOperationNode:
                 return Visit( ternaryOperationNode );
 
-            case PrimaryNode primaryNode:
+            case PrimaryBaseNode primaryNode:
                 return Visit( primaryNode );
 
-            case DeclarationsNode declarationsNode:
+            case DeclarationsBaseNode declarationsNode:
                 return Visit( declarationsNode );
 
             case UnaryPostfixOperation postfixOperation:
@@ -1710,13 +1710,13 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
             case UnaryPrefixOperation prefixOperation:
                 return Visit( prefixOperation );
 
-            case StatementNode stat:
+            case StatementBaseNode stat:
                 return Visit( stat );
 
-            case ExpressionNode expression:
+            case ExpressionBaseNode expression:
                 return Visit( expression );
 
-            case InitializerNode initializerNode:
+            case InitializerBaseNode initializerNode:
                 return Visit( initializerNode.Expression );
 
             default:
@@ -1740,19 +1740,19 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         m_ConstructingLine = line;
     }
 
-    public void Compile( ProgramNode programNode )
+    public void Compile( ProgramBaseNode programBaseNode )
     {
-        programNode.Accept( this );
+        programBaseNode.Accept( this );
     }
 
-    public void Compile( ModuleNode moduleNode )
+    public void Compile( ModuleBaseNode moduleBaseNode )
     {
-        moduleNode.Accept( this );
+        moduleBaseNode.Accept( this );
     }
 
-    private object Compile( HeteroAstNode astNode )
+    private object Compile( AstBaseNode astBaseNode )
     {
-        return astNode.Accept( this );
+        return astBaseNode.Accept( this );
     }
 
     private int EmitByteCode( BiteVmOpCodes byteCode, int line = 0 )

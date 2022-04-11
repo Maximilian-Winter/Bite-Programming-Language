@@ -1,20 +1,13 @@
+using System.Collections.Generic;
+
 namespace Bite.Ast
 {
 
-public class Identifier : AstBaseNode
+public class ParametersBaseNode : AstBaseNode
 {
-    public string Id;
+    public List < Identifier > Identifiers;
 
     #region Public
-
-    public Identifier()
-    {
-    }
-
-    public Identifier( string id )
-    {
-        Id = id;
-    }
 
     public override object Accept( IAstVisitor visitor )
     {

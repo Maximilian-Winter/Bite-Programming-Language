@@ -5,7 +5,7 @@ namespace Bite.Symbols
 
 public class DynamicVariable : SymbolWithScope, TypedSymbol
 {
-    public HeteroAstNode DefinitionNode = null;
+    public AstBaseNode DefinitionBaseNode = null;
 
     public ClassAndMemberModifiers ClassAndMemberModifiers => m_ClassAndMemberModifier;
 

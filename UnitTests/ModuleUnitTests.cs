@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Bite.Compiler;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
+using Bite.Symbols;
 using Xunit;
 
 namespace UnitTests
@@ -26,9 +28,15 @@ public class ModuleUnitTests
 
         string subModuleA = "module SubModuleA; var Hello = \"Hi\"; var World = \"Fellow Kids!\";";
         string subModuleB = "module SubModuleB; var Hello = \"Hello\"; var World = \"World!\";";
-        BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
-        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( "Hello World!", result.ReturnValue.StringData );
+
+        try
+        {
+            BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
+        }
+        catch ( BiteSymbolTableException e )
+        {
+            Assert.Equal( "Symbol Table Error: Ambiguous references: Hello", e.BiteSymbolTableExceptionMessage );
+        }
     }
 
 
