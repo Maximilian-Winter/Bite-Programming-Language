@@ -74,7 +74,7 @@ To compile the bite modules in `.\TestProgram` and start the execution, just sta
 You can use your favorite editor to create Bite programs, but we have a [Visual Studio Code Extension](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases/tag/alpha). that gives .bite programs syntax highlighting.
 
 
-##If you want to use BiteVM in your Unity or C# application, do the following:
+## If you want to use BiteVM in your Unity or C# application, do the following:
 
 
 Install the Nuget package for BiteVM
