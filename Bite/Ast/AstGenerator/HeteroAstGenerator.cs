@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Antlr4.Runtime.Tree;
 using AntlrBiteParser;
@@ -6,6 +7,15 @@ using Bite.Ast;
 
 namespace MemoizeSharp
 {
+
+public class AstGeneratorException : ApplicationException
+{
+    public AstGeneratorException( string message ) : base( message )
+    {
+        AstGeneratorExceptionMessage = message;
+    }
+    public string AstGeneratorExceptionMessage { get; }
+}
 
 public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
 {
@@ -1356,7 +1366,6 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
         List < ModuleIdentifier > importedModules = new List < ModuleIdentifier >();
         List < ModuleIdentifier > usedModules = new List < ModuleIdentifier >();
         moduleName = context.moduleDeclaration().Identifier( 0 ).Symbol.Text;
-
         for ( int i = 1; i < context.moduleDeclaration().Identifier().Length; i++ )
         {
             parentModules.Add( moduleName );
@@ -1377,6 +1386,12 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
             }
 
             importedModules.Add( new ModuleIdentifier( nextIdentifier, pModules ) );
+
+            if ( moduleNode.ModuleIdent.ToString().Equals( importedModules[importedModules.Count - 1].ToString() ) )
+            {
+                throw new AstGeneratorException(
+                    $"Ast Generation Error: Imported module with name: '{importedModules[importedModules.Count - 1]}' has the same name as currently compiled Module! " );
+            }
         }
 
         for ( int i = 0; i < context.usingDirective().Length; i++ )

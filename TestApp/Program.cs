@@ -29,7 +29,7 @@ public class Program
 
         if ( program != null )
         {
-            int k = 10;
+            int k = 1;
             long elapsedMillisecondsAccu = 0;
         
             for ( int i = 0; i < k; i++ )

@@ -126,6 +126,8 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
             
         }
         m.CheckForAmbiguousReferences();
+
+      
         return null;
     }
 
