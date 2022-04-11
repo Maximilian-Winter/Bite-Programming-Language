@@ -30,14 +30,9 @@ The reference virtual machine, BiteVM, is a stack-based virtual machine written 
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
 * [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
-
-# Syntax
-[Information about the Bite Language Syntax on the Wiki]https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax
-
-
-
 # Overall Status
 Most of Language Features are implemented.
+
 Still has to be integrated into unity!
 
 ToDo:
@@ -48,95 +43,17 @@ ToDo:
 * Better Error Messages for Users
 
 
+# Syntax
+[Information about the Bite Language Syntax are here on the Wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax)
 
 
 # Example Code
 
-You can find the following Examples as Code here:
-
-[Examples](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Example-Code)
-
+[Code for the following example and more examples can be found here!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Example-Code)
 
 The following code will calculate the first 50 fibonacci numbers and print them on the console:
 
 ![BiteFibo](https://user-images.githubusercontent.com/24946356/162203003-13b87476-4d38-4187-9b76-fbdcc2ae5c6a.PNG)
-
-
-
-
-
-
-The following code will calculate and print the 2-, 4-, 8-, 16-, 32- and 64-th Prime Number:
-
-![BitePrime](https://user-images.githubusercontent.com/24946356/161903979-3d4cbdc5-8d22-4bcd-9719-a75428227d6a.PNG)
-
-
-
-
-
-
-The following code will create a dynamic array and fill it with strings. Then it will print out the array elements:
-
-![biteDynamic](https://user-images.githubusercontent.com/24946356/161903997-fe14fa25-9b80-4962-aeec-a977052b834a.PNG)
-
-
-
-
-
-The following code show the use of classes, constructors and inheritance:
-
-![BiteClasses](https://user-images.githubusercontent.com/24946356/162202377-444a4156-d257-48bc-b3ba-7dfdd215ff7e.PNG)
-
-
-
-The following code will create a function, that returns a function and call that function afterwards:
-
-![BiteFuncAsReturn](https://user-images.githubusercontent.com/24946356/162301361-dc4e0d2b-8d1a-450a-ac9f-ddf94d666230.PNG)
-
-
-
-
-The following code will pass a function, to a function and call that passed function:
-
-![BiteFuncAsArg](https://user-images.githubusercontent.com/24946356/162301881-122c8cc9-dc18-4fcf-9102-65412efc6820.PNG)
-
-
-
-The following code shows the C# Type Import System. It shows how to create an C# Object by calling his constructor and the use after it:
-
-![BiteFFI](https://user-images.githubusercontent.com/24946356/161910038-cfa41e5d-ecb6-4e75-a912-2a7517dfe967.PNG)
-
-
-
-The following code shows the corresponding C# Class used for type import above. 
-
-```C#
-public class Foo
-{
-    public int i = 5;
-}
-
-public class TestClassCSharp
-{
-    private readonly int i = 5;
-
-    public Foo testfield { get; set; } = new Foo();
-
-    #region Public
-
-    public TestClassCSharp( int n )
-    {
-        i = n;
-    }
-
-    public void PrintVar()
-    {
-        Console.WriteLine( i );
-    }
-
-    #endregion
-}
-```
 
 
 
