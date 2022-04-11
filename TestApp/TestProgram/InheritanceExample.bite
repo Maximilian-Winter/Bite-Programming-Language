@@ -1,0 +1,26 @@
+module HelloWorld;
+
+import System; 
+using System;
+
+class Foo
+{
+    var x = 2;
+    var y = 4;
+    var z = 8;
+
+    function FooFunc()
+    {
+        return x * y * z;
+    }
+}
+
+class Bar : Foo
+{
+}
+
+var a = new Bar();
+PrintLine(a.x);
+PrintLine(a.y);
+PrintLine(a.z);
+PrintLine(a.FooFunc());

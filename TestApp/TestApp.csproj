@@ -57,7 +57,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="TestProgram\CSharpSystemModule.bak">
+    <None Include="TestProgram\CSharpSystemModule.bite.bak">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestProgram\MainModule.bite">
@@ -69,6 +69,15 @@
       <Project>{2b941484-fb5e-4b3f-af7d-bf61238d6f16}</Project>
       <Name>Bite</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestProgram\BinaryOpChaining.bite" />
+    <Content Include="TestProgram\BranchingTest.bite" />
+    <Content Include="TestProgram\ConstructorTest.bite" />
+    <Content Include="TestProgram\DynamicArray.bite" />
+    <Content Include="TestProgram\FibonacciExample.bite" />
+    <Content Include="TestProgram\InheritanceExample.bite" />
+    <Content Include="TestProgram\PrimeNumber.bite" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

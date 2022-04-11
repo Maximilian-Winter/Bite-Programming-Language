@@ -1,0 +1,40 @@
+module HelloWorld;
+
+import System; 
+using System;
+
+var a = "foo";
+
+var b = "bar";
+
+var c = 0;
+
+if( a == "test")
+{
+    c = 2;
+}
+else if( b == "bar1")
+{
+   c = 4;
+}
+else if( b == "bar2")
+{
+   c = 8;
+}
+else if( b == "bar5")
+{
+   c = 16;
+}
+else if( b == "bar")
+{
+   c = 32;
+}
+else if( b == "bar4")
+{
+   c = 64;
+}
+else
+{
+    c = 42;
+}
+PrintLine(c);

@@ -1,0 +1,14 @@
+module HelloWorld;
+
+import System; 
+using System;
+
+var a = 1 * 2 + 3 * 4;
+var b = 2 * 5 - 4 / 2 + 6;
+var c = 2 * 5 - (4 / 2 + 6);
+var d = 2 * 5 - 4 / (2 + 6);
+
+PrintLine(a);
+PrintLine(b);
+PrintLine(c);
+PrintLine(d);
