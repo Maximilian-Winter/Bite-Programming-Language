@@ -47,7 +47,7 @@ extern callable function PrintLine ( object ) {
             moduleId2,
             d2,
             classSymbol.InsertionOrderNumber,
-            1024 );
+            5 );
 
         Chunk chunk = new Chunk();
 
