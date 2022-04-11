@@ -652,7 +652,7 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     }
                     else
                     {
-                        if ( var.IsExternal )
+                        if ( var == null )
                         {
                             EmitByteCode( BiteVmOpCodes.OpGetVarExternal,
                                 new ConstantValue( node.Primary.PrimaryId.Id ) );

@@ -38,25 +38,6 @@ public class SymbolTable
     }
 
     /// <summary>
-    /// Defines external objects as variables to the Global scope
-    /// </summary>
-    /// <param name="externalObjects"></param>
-    /// <returns></returns>
-    public SymbolTable WithExternalObjects( Dictionary<string, object> externalObjects = null )
-    {
-        if (externalObjects != null)
-        {
-            foreach (var module in externalObjects)
-            {
-                VariableSymbol variableSymbol =
-                    new VariableSymbol( module.Key, AccesModifierType.Public, ClassAndMemberModifiers.Static, true );
-                RootScope.DefineVariable( variableSymbol );
-            }
-        }
-        return this;
-    }
-
-    /// <summary>
     /// Returns a new <see cref="SymbolTable"/> with the System module defined
     /// </summary>
     public static SymbolTable Default => new SymbolTable().WithSystem();

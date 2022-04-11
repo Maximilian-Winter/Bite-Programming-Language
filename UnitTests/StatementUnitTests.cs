@@ -14,7 +14,7 @@ public class StatementUnitTests
     {
         var compiler = new BiteCompiler();
 
-        BiteProgram program = compiler.CompileStatements( statements, externalObjects );
+        BiteProgram program = compiler.CompileStatements( statements );
 
         return program.Run( externalObjects );
     }

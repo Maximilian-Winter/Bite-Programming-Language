@@ -17,19 +17,11 @@ public class VariableSymbol : BaseSymbol, TypedSymbol
         m_AccessModifier = accesModifierType;
         m_ClassAndMemberModifier = classAndMemberModifiers;
     }
+        
 
-    public VariableSymbol(
-        string name,
-        AccesModifierType accesModifierType,
-        ClassAndMemberModifiers classAndMemberModifiers, bool isExternal ) : base( name, isExternal )
-    {
-        m_AccessModifier = accesModifierType;
-        m_ClassAndMemberModifier = classAndMemberModifiers;
-    }
+    #endregion
 
-        #endregion
-
-        protected internal AccesModifierType m_AccessModifier;
+    protected internal AccesModifierType m_AccessModifier;
     protected internal ClassAndMemberModifiers m_ClassAndMemberModifier;
 }
 

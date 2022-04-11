@@ -54,14 +54,14 @@ extern callable function PrintLine ( object );";
     {
         IReadOnlyCollection < StatementNode > statementNodes = ParseStatements( statements );
 
-        return CompileStatementsInternal( statementNodes, null, symbolTable );
+        return CompileStatementsInternal( statementNodes, symbolTable );
     }
 
-    public BiteProgram CompileStatements( string statements, Dictionary < string, object > externalObjects )
+    public BiteProgram CompileStatements( string statements )
     {
         IReadOnlyCollection < StatementNode > statementNodes = ParseStatements( statements );
 
-        return CompileStatementsInternal( statementNodes, externalObjects );
+        return CompileStatementsInternal( statementNodes );
     }
 
 
@@ -254,8 +254,7 @@ extern callable function PrintLine ( object );";
         return biteProgram;
     }
 
-    private BiteProgram CompileStatementsInternal( IReadOnlyCollection < StatementNode > statements,
-        Dictionary < string, object > externalObjects, SymbolTable symbolTable = null )
+    private BiteProgram CompileStatementsInternal( IReadOnlyCollection < StatementNode > statements, SymbolTable symbolTable = null )
     {
 
         ModuleNode module = new ModuleNode
@@ -266,7 +265,7 @@ extern callable function PrintLine ( object );";
 
         if ( symbolTable == null )
         {
-            symbolTable = SymbolTable.Default.WithExternalObjects( externalObjects );
+            symbolTable = SymbolTable.Default; //.WithExternalObjects( externalObjects );
         }
 
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );

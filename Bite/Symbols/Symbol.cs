@@ -12,8 +12,6 @@ public interface Symbol
     string Name { get; }
 
     Scope SymbolScope { get; set; }
-
-    bool IsExternal { get; }
 }
 
 }
