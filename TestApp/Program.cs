@@ -20,7 +20,7 @@ public class Program
         
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "DynamicArray.bite",
+            "*.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
