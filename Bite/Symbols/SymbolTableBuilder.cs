@@ -123,9 +123,9 @@ public class SymbolTableBuilder : HeteroAstVisitor < object >, IAstVisitor
         if ( defineModule )
         {
             m_SymbolTable.CurrentScope.define( m );
-            m.CheckForAmbiguousReferences();
+            
         }
-
+        m.CheckForAmbiguousReferences();
         return null;
     }
 

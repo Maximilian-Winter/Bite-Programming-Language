@@ -8,7 +8,7 @@ namespace Bite.Runtime
 
 public class FastMemoryStack
 {
-    private readonly FastMemorySpace[] m_FastMemorySpaces = new FastMemorySpace[1024];
+    private FastMemorySpace[] m_FastMemorySpaces = new FastMemorySpace[128];
 
     public int Count { get; private set; } = 0;
 
@@ -30,13 +30,14 @@ public class FastMemoryStack
 
     public void Push( FastMemorySpace fastMemorySpace )
     {
-        m_FastMemorySpaces[Count] = fastMemorySpace;
-
-        if ( Count >= 1023 )
+        if ( Count >= m_FastMemorySpaces.Length )
         {
-            throw new IndexOutOfRangeException( "Call Stack Overflow" );
+            FastMemorySpace[] newProperties = new FastMemorySpace[m_FastMemorySpaces.Length * 2];
+            Array.Copy( m_FastMemorySpaces, newProperties, m_FastMemorySpaces.Length );
+            m_FastMemorySpaces = newProperties;
         }
-
+        
+        m_FastMemorySpaces[Count] = fastMemorySpace;
         Count++;
     }
 
@@ -45,7 +46,7 @@ public class FastMemoryStack
 
 public class DynamicBiteVariableStack
 {
-    private readonly DynamicBiteVariable[] m_DynamicVariables = new DynamicBiteVariable[1024];
+    private DynamicBiteVariable[] m_DynamicVariables = new DynamicBiteVariable[128];
 
     public int Count { get; set; } = 0;
 
@@ -74,12 +75,14 @@ public class DynamicBiteVariableStack
 
     public void Push( DynamicBiteVariable dynamicVar )
     {
-        m_DynamicVariables[Count] = dynamicVar;
-
-        if ( Count >= 1023 )
+        if ( Count >= m_DynamicVariables.Length )
         {
-            throw new IndexOutOfRangeException( "Stack Overflow" );
+            DynamicBiteVariable[] newProperties = new DynamicBiteVariable[m_DynamicVariables.Length * 2];
+            Array.Copy( m_DynamicVariables, newProperties, m_DynamicVariables.Length );
+            m_DynamicVariables = newProperties;
         }
+        
+        m_DynamicVariables[Count] = dynamicVar;
 
         Count++;
     }
@@ -137,7 +140,7 @@ public class BytecodeListStack
 
 public class UsingStatementStack
 {
-    private readonly object[] m_UsedObjects = new object[128];
+    private object[] m_UsedObjects = new object[128];
 
     public int Count { get; set; } = 0;
 
@@ -151,6 +154,13 @@ public class UsingStatementStack
 
     public void Push( object usedObject )
     {
+        if ( Count >= m_UsedObjects.Length )
+        {
+            object[] newProperties = new object[m_UsedObjects.Length * 2];
+            Array.Copy( m_UsedObjects, newProperties, m_UsedObjects.Length );
+            m_UsedObjects = newProperties;
+        }
+        
         m_UsedObjects[Count] = usedObject;
 
         if ( Count >= 1023 )
