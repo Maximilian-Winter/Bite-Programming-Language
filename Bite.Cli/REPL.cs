@@ -47,6 +47,9 @@ public class REPL
 
         program = compiler.Compile( new[] { module } );
 
+        // Write system chunks to memory
+        biteVm.Interpret( program );
+
         bool running = true;
         bool declaring = false;
         bool resetting = false;
