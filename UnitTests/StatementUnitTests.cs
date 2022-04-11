@@ -98,6 +98,32 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void ClassConstructorMultipleArguments()
+    {
+        string statements = @"class TestClass
+            {
+                var x = 0;
+                var y = 0;
+                var z = 0;
+
+                function TestClass( a, b, c )
+                {
+                    x = a;
+                    y = b;
+                    z = c;
+                }
+            }
+
+            var a = new TestClass(1, 3, 7);
+
+            a.x + a.y + a.z;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 11, result.ReturnValue.NumberData );
+    }
+
+        [Fact]
     public void ClassFields()
     {
         string statements = @"class TestClass
@@ -710,6 +736,7 @@ public class StatementUnitTests
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( "${Hello} ${World}", result.ReturnValue.StringData );
     }
+
 
     [Fact]
     public void StringInterpolationStringExpressions()
