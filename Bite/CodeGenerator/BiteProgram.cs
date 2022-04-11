@@ -37,6 +37,22 @@ public class BiteProgram
         CompiledChunks = new Dictionary < string, BinaryChunk >();
     }
 
+    public Dictionary < string, BinaryChunk > GetChunks()
+    {
+        return CompiledChunks;
+    }
+
+    public void RestoreChunks( Dictionary<string, BinaryChunk> chunks )
+    {
+        foreach ( var compiledChunk in chunks)
+        {
+            if ( !CompiledChunks.ContainsKey( compiledChunk.Key ) )
+            {
+                CompiledChunks.Add( compiledChunk.Key, compiledChunk.Value );
+            }
+        }
+    }
+    
     /// <summary>
     ///     Creates a new <see cref="BiteVm" /> and executes the <see cref="BiteProgram" />
     /// </summary>

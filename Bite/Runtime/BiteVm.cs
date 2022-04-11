@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
@@ -77,12 +78,16 @@ namespace Bite.Runtime
             m_GlobalMemorySpace =
                 new FastGlobalMemorySpace( 10 );
 
+            CompiledChunks = new Dictionary < string, BinaryChunk >();
         }
 
+        
         public BiteVmInterpretResult Interpret( BiteProgram context )
         {
             m_CurrentChunk = context.CompiledMainChunk;
+
             CompiledChunks = context.CompiledChunks;
+           
             m_CurrentInstructionPointer = 0;
             return Run();
         }
@@ -95,18 +100,6 @@ namespace Bite.Runtime
         public void RegisterCallable( string linkId, IBiteVmCallable callable )
         {
             m_Callables.Add( linkId, callable );
-        }
-
-        public void ResetVm()
-        {
-            m_VmStack = new DynamicBiteVariableStack();
-            m_UsingStatementStack = new UsingStatementStack();
-            m_CallStack = new FastMemoryStack();
-            m_PoolFastMemoryFastMemory = new ObjectPoolFastMemory();
-
-            m_GlobalMemorySpace =
-                new FastGlobalMemorySpace( 10 );
-
         }
 
         #endregion
@@ -192,7 +185,7 @@ namespace Bite.Runtime
 
                                 m_CurrentInstructionPointer += 4;
                                 FastMemorySpace fastMemorySpace = m_GlobalMemorySpace.GetModule( $"$module_{moduleName}" );
-
+                                
                                 if (fastMemorySpace == null)
                                 {
                                     FastModuleMemorySpace callSpace = new FastModuleMemorySpace(

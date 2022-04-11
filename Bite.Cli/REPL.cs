@@ -126,7 +126,9 @@ public class REPL
 
                         try
                         {
+                            var chunks = program.GetChunks();
                             program = compiler.CompileStatements( bufferString, program.SymbolTable );
+                            program.RestoreChunks( chunks );
                             BiteVmInterpretResult result = biteVm.Interpret( program );
                         }
                         catch (Exception e)
