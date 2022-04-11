@@ -24,12 +24,12 @@ class Object {
 }
 
 class CSharpInterface {
-    var Type = new Object();
-    var Method = new Object();
-    var Arguments = new Object();
-    var ConstructorArguments = new Object();
-    var ConstructorArgumentsTypes = new Object();
-    var ObjectInstance = new Object();
+var Type = new Object();
+var Method = new Object();
+var Arguments = new Object();
+var ConstructorArguments = new Object();
+var ConstructorArgumentsTypes = new Object();
+var ObjectInstance = new Object();
 }
 
 extern callable function CSharpInterfaceCall ( object );

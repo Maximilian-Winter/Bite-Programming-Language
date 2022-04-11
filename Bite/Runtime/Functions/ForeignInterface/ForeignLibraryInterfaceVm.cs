@@ -197,49 +197,37 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         FastMemorySpace constructorArgumentsTypes =
                             ( FastMemorySpace ) fliObject.Get( "ConstructorArgumentsTypes" ).ObjectData;
 
-                        if ( constructorArguments != null && constructorArguments.CurrentMemoryPointer > 0 )
-                        {
-                            for ( int i = 0; i < constructorArguments.CurrentMemoryPointer; i++ )
-                            {
-                                constructorArgTypes.Add(
-                                    Type.GetType( constructorArgumentsTypes.Properties[i].StringData ) );
-                            }
-                        }
-                        else if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
+                     if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
                         {
                             foreach ( KeyValuePair < string, DynamicBiteVariable > constructorArgumentsNamesToProperty
                                      in constructorArgumentsTypes.NamesToProperties )
                             {
-                                constructorArgTypes.Add(
-                                    Type.GetType( constructorArgumentsNamesToProperty.Value.StringData ) );
+                                if ( constructorArgumentsNamesToProperty.Key != "this" )
+                                {
+                                    constructorArgTypes.Add(
+                                        Type.GetType( constructorArgumentsNamesToProperty.Value.StringData ) );
+                                }
                             }
                         }
 
                         List < object > constructorArgs = new List < object >();
 
-                        if ( constructorArguments != null && constructorArguments.CurrentMemoryPointer > 0 )
-                        {
-                            for ( int i = 0; i < constructorArguments.CurrentMemoryPointer; i++ )
-                            {
-                                constructorArgs.Add(
-                                    Convert.ChangeType(
-                                        constructorArguments.Properties[i].ToObject(),
-                                        constructorArgTypes[i] ) );
-                            }
-                        }
-                        else if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
+                        if ( constructorArguments != null )
                         {
                             int i = 0;
 
                             foreach ( KeyValuePair < string, DynamicBiteVariable > constructorArgumentsNamesToProperty
                                      in constructorArguments.NamesToProperties )
                             {
-                                constructorArgs.Add(
-                                    Convert.ChangeType(
-                                        constructorArgumentsNamesToProperty.Value.ToObject(),
-                                        constructorArgTypes[i] ) );
+                                if ( constructorArgumentsNamesToProperty.Key != "this" )
+                                {
+                                    constructorArgs.Add(
+                                        Convert.ChangeType(
+                                            constructorArgumentsNamesToProperty.Value.ToObject(),
+                                            constructorArgTypes[i] ) );
 
-                                i++;
+                                    i++;
+                                }
                             }
                         }
 

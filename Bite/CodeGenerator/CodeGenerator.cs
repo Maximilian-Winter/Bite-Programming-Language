@@ -734,7 +734,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                             out int moduleId2,
                             ref d2, false ) as ClassSymbol;
 
-                    isClassSymbol = true;
+                    isClassSymbol = classSymbol != null;
                 }
             }
 
@@ -857,7 +857,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                                 EmitByteCode( byteCode );
                             }
-                            else if ( isClassSymbol )
+                            else if ( isClassSymbol  )
                             {
                                 int d4 = 0;
 

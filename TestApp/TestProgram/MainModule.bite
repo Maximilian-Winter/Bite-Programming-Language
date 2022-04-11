@@ -3,8 +3,24 @@ module HelloWorld;
 import System; 
 using System;
 
-import CSharpSystem; 
-using CSharpSystem;
+var testClassInterface = new CSharpInterface();
+testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
+
+testClassInterface.ConstructorArguments[0] = 0;
+testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
+
+
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+PrintLine(TestCSharp.testfield.i);
+for(var i = 0; i < 5000; i++)
+{
+    TestCSharp.testfield.i += 25;
+    PrintLine(TestCSharp.testfield.i);
+}
+/*
+
+
 var testClassInterface = new CSharpInterface();
 
 testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
