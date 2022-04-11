@@ -57,8 +57,7 @@ public partial class BITEParser : Parser {
 		SquarebracketRight=66, CommaSeperator=67, SemicolonSeperator=68, DollarOperator=69, 
 		BooleanLiteral=70, False_=71, True_=72, IntegerLiteral=73, FloatingLiteral=74, 
 		DecimalLiteral=75, Identifier=76, COMMENT=77, WS=78, LINE_COMMENT=79, 
-		CURLY_L=80, CURLY_R=81, OPEN_STRING=82, ENTER_EXPR_INTERP=83, ID_INTERP=84, 
-		ESCAPED_DOLLAR=85, TEXT=86, CLOSE_STRING=87;
+		DQUOTE=80, CURLY_L=81, CURLY_R=82, TEXT=83, BACKSLASH_PAREN=84, ESCAPE_SEQUENCE=85;
 	public const int
 		RULE_program = 0, RULE_module = 1, RULE_moduleDeclaration = 2, RULE_importDirective = 3, 
 		RULE_usingDirective = 4, RULE_declaration = 5, RULE_classDeclaration = 6, 
@@ -102,7 +101,7 @@ public partial class BITEParser : Parser {
 		"'-'", "'--'", "'+'", "'++'", "'/'", "'*'", "'!'", "'.'", "'?'", "':'", 
 		"'->'", "'%'", "'~'", "'&'", "'^'", "'|'", "'('", "')'", "'['", "']'", 
 		"','", "';'", "'$'", null, "'false'", "'true'", null, null, null, null, 
-		null, null, null, "'{'", "'}'", null, "'${'", null, "'\\$'"
+		null, null, null, null, "'{'", "'}'", null, "'${'"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, "DeclareModule", "DeclareClass", "DeclareStruct", "DeclareClassInstance", 
@@ -124,8 +123,8 @@ public partial class BITEParser : Parser {
 		"OpeningRoundBracket", "ClosingRoundBracket", "SquarebracketLeft", "SquarebracketRight", 
 		"CommaSeperator", "SemicolonSeperator", "DollarOperator", "BooleanLiteral", 
 		"False_", "True_", "IntegerLiteral", "FloatingLiteral", "DecimalLiteral", 
-		"Identifier", "COMMENT", "WS", "LINE_COMMENT", "CURLY_L", "CURLY_R", "OPEN_STRING", 
-		"ENTER_EXPR_INTERP", "ID_INTERP", "ESCAPED_DOLLAR", "TEXT", "CLOSE_STRING"
+		"Identifier", "COMMENT", "WS", "LINE_COMMENT", "DQUOTE", "CURLY_L", "CURLY_R", 
+		"TEXT", "BACKSLASH_PAREN", "ESCAPE_SEQUENCE"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -294,7 +293,7 @@ public partial class BITEParser : Parser {
 			State = 131;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << ExternModifier) | (1L << CallableModifier) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (CURLY_L - 70)) | (1L << (OPEN_STRING - 70)))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << ExternModifier) | (1L << CallableModifier) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (DQUOTE - 70)) | (1L << (CURLY_L - 70)))) != 0)) {
 				{
 				{
 				State = 128;
@@ -1259,7 +1258,7 @@ public partial class BITEParser : Parser {
 				State = 273;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ReferenceOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (OPEN_STRING - 22)))) != 0)) {
+				if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ReferenceOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (DQUOTE - 22)))) != 0)) {
 					{
 					State = 272;
 					arguments();
@@ -1304,7 +1303,7 @@ public partial class BITEParser : Parser {
 				State = 290;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ReferenceOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (OPEN_STRING - 22)))) != 0)) {
+				if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ReferenceOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (DQUOTE - 22)))) != 0)) {
 					{
 					State = 289;
 					arguments();
@@ -1439,9 +1438,9 @@ public partial class BITEParser : Parser {
 			case IntegerLiteral:
 			case FloatingLiteral:
 			case Identifier:
+			case DQUOTE:
 			case CURLY_L:
 			case CURLY_R:
-			case OPEN_STRING:
 				{
 				State = 307;
 				ErrorHandler.Sync(this);
@@ -1512,7 +1511,7 @@ public partial class BITEParser : Parser {
 			State = 316;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << ExternModifier) | (1L << CallableModifier) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (CURLY_L - 70)) | (1L << (OPEN_STRING - 70)))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << ExternModifier) | (1L << CallableModifier) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (DQUOTE - 70)) | (1L << (CURLY_L - 70)))) != 0)) {
 				{
 				{
 				State = 313;
@@ -1595,7 +1594,7 @@ public partial class BITEParser : Parser {
 			case IntegerLiteral:
 			case FloatingLiteral:
 			case Identifier:
-			case OPEN_STRING:
+			case DQUOTE:
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 319;
@@ -1886,7 +1885,7 @@ public partial class BITEParser : Parser {
 			case IntegerLiteral:
 			case FloatingLiteral:
 			case Identifier:
-			case OPEN_STRING:
+			case DQUOTE:
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 347;
@@ -2036,7 +2035,7 @@ public partial class BITEParser : Parser {
 			State = 368;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareVariable) | (1L << NullReference) | (1L << ThisReference) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (OPEN_STRING - 70)))) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareVariable) | (1L << NullReference) | (1L << ThisReference) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (DQUOTE - 70)))) != 0)) {
 				{
 				State = 367;
 				forInitializer();
@@ -2048,7 +2047,7 @@ public partial class BITEParser : Parser {
 			State = 372;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (OPEN_STRING - 22)))) != 0)) {
+			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (DQUOTE - 22)))) != 0)) {
 				{
 				State = 371;
 				_localctx.condition = expression();
@@ -2060,7 +2059,7 @@ public partial class BITEParser : Parser {
 			State = 376;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (OPEN_STRING - 22)))) != 0)) {
+			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (DQUOTE - 22)))) != 0)) {
 				{
 				State = 375;
 				forIterator();
@@ -2195,7 +2194,7 @@ public partial class BITEParser : Parser {
 			State = 393;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (OPEN_STRING - 22)))) != 0)) {
+			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (DQUOTE - 22)))) != 0)) {
 				{
 				State = 392;
 				expression();
@@ -2398,7 +2397,7 @@ public partial class BITEParser : Parser {
 			State = 416;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << ExternModifier) | (1L << CallableModifier) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (CURLY_L - 70)) | (1L << (OPEN_STRING - 70)))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DeclareClass) | (1L << DeclareStruct) | (1L << ExternModifier) | (1L << CallableModifier) | (1L << DeclareFunction) | (1L << DeclareVariable) | (1L << DeclareForLoop) | (1L << DeclareWhileLoop) | (1L << DeclareStatic) | (1L << DeclareAbstract) | (1L << DeclarePublic) | (1L << DeclarePrivate) | (1L << ControlFlowIf) | (1L << FunctionReturn) | (1L << Break) | (1L << NullReference) | (1L << ThisReference) | (1L << UsingDirective) | (1L << MinusOperator) | (1L << MinusMinusOperator) | (1L << PlusOperator) | (1L << PlusPlusOperator) | (1L << LogicalNegationOperator) | (1L << ComplimentOperator) | (1L << OpeningRoundBracket))) != 0) || ((((_la - 70)) & ~0x3f) == 0 && ((1L << (_la - 70)) & ((1L << (BooleanLiteral - 70)) | (1L << (IntegerLiteral - 70)) | (1L << (FloatingLiteral - 70)) | (1L << (Identifier - 70)) | (1L << (DQUOTE - 70)) | (1L << (CURLY_L - 70)))) != 0)) {
 				{
 				{
 				State = 413;
@@ -3448,7 +3447,7 @@ public partial class BITEParser : Parser {
 			case IntegerLiteral:
 			case FloatingLiteral:
 			case Identifier:
-			case OPEN_STRING:
+			case DQUOTE:
 				{
 				State = 530;
 				call();
@@ -3688,7 +3687,7 @@ public partial class BITEParser : Parser {
 				Match(Identifier);
 				}
 				break;
-			case OPEN_STRING:
+			case DQUOTE:
 				EnterOuterAlt(_localctx, 8);
 				{
 				State = 560;
@@ -4077,7 +4076,7 @@ public partial class BITEParser : Parser {
 			State = 597;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ReferenceOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (OPEN_STRING - 22)))) != 0)) {
+			if (((((_la - 22)) & ~0x3f) == 0 && ((1L << (_la - 22)) & ((1L << (NullReference - 22)) | (1L << (ThisReference - 22)) | (1L << (MinusOperator - 22)) | (1L << (MinusMinusOperator - 22)) | (1L << (PlusOperator - 22)) | (1L << (PlusPlusOperator - 22)) | (1L << (LogicalNegationOperator - 22)) | (1L << (ReferenceOperator - 22)) | (1L << (ComplimentOperator - 22)) | (1L << (OpeningRoundBracket - 22)) | (1L << (BooleanLiteral - 22)) | (1L << (IntegerLiteral - 22)) | (1L << (FloatingLiteral - 22)) | (1L << (Identifier - 22)) | (1L << (DQUOTE - 22)))) != 0)) {
 				{
 				State = 596;
 				arguments();
@@ -4324,8 +4323,10 @@ public partial class BITEParser : Parser {
 	}
 
 	public partial class StringContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OPEN_STRING() { return GetToken(BITEParser.OPEN_STRING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CLOSE_STRING() { return GetToken(BITEParser.CLOSE_STRING, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] DQUOTE() { return GetTokens(BITEParser.DQUOTE); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DQUOTE(int i) {
+			return GetToken(BITEParser.DQUOTE, i);
+		}
 		[System.Diagnostics.DebuggerNonUserCode] public StringPartContext[] stringPart() {
 			return GetRuleContexts<StringPartContext>();
 		}
@@ -4354,11 +4355,11 @@ public partial class BITEParser : Parser {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 621;
-			Match(OPEN_STRING);
+			Match(DQUOTE);
 			State = 625;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while (((((_la - 83)) & ~0x3f) == 0 && ((1L << (_la - 83)) & ((1L << (ENTER_EXPR_INTERP - 83)) | (1L << (ID_INTERP - 83)) | (1L << (TEXT - 83)))) != 0)) {
+			while (((((_la - 83)) & ~0x3f) == 0 && ((1L << (_la - 83)) & ((1L << (TEXT - 83)) | (1L << (BACKSLASH_PAREN - 83)) | (1L << (ESCAPE_SEQUENCE - 83)))) != 0)) {
 				{
 				{
 				State = 622;
@@ -4370,7 +4371,7 @@ public partial class BITEParser : Parser {
 				_la = TokenStream.LA(1);
 			}
 			State = 628;
-			Match(CLOSE_STRING);
+			Match(DQUOTE);
 			}
 		}
 		catch (RecognitionException re) {
@@ -4386,8 +4387,8 @@ public partial class BITEParser : Parser {
 
 	public partial class StringPartContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TEXT() { return GetToken(BITEParser.TEXT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ID_INTERP() { return GetToken(BITEParser.ID_INTERP, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ENTER_EXPR_INTERP() { return GetToken(BITEParser.ENTER_EXPR_INTERP, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ESCAPE_SEQUENCE() { return GetToken(BITEParser.ESCAPE_SEQUENCE, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BACKSLASH_PAREN() { return GetToken(BITEParser.BACKSLASH_PAREN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ExpressionContext expression() {
 			return GetRuleContext<ExpressionContext>(0);
 		}
@@ -4420,18 +4421,18 @@ public partial class BITEParser : Parser {
 				Match(TEXT);
 				}
 				break;
-			case ID_INTERP:
+			case ESCAPE_SEQUENCE:
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 631;
-				Match(ID_INTERP);
+				Match(ESCAPE_SEQUENCE);
 				}
 				break;
-			case ENTER_EXPR_INTERP:
+			case BACKSLASH_PAREN:
 				EnterOuterAlt(_localctx, 3);
 				{
 				State = 632;
-				Match(ENTER_EXPR_INTERP);
+				Match(BACKSLASH_PAREN);
 				State = 633;
 				expression();
 				State = 634;
@@ -4468,7 +4469,7 @@ public partial class BITEParser : Parser {
 
 	private static char[] _serializedATN = {
 		'\x3', '\x608B', '\xA72A', '\x8133', '\xB9ED', '\x417C', '\x3BE7', '\x7786', 
-		'\x5964', '\x3', 'Y', '\x281', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
+		'\x5964', '\x3', 'W', '\x281', '\x4', '\x2', '\t', '\x2', '\x4', '\x3', 
 		'\t', '\x3', '\x4', '\x4', '\t', '\x4', '\x4', '\x5', '\t', '\x5', '\x4', 
 		'\x6', '\t', '\x6', '\x4', '\a', '\t', '\a', '\x4', '\b', '\t', '\b', 
 		'\x4', '\t', '\t', '\t', '\x4', '\n', '\t', '\n', '\x4', '\v', '\t', '\v', 
@@ -4862,12 +4863,12 @@ public partial class BITEParser : Parser {
 		'\x199', '\a', '\xF', '\x2', '\x2', '\x199', '\x19A', '\a', '\x41', '\x2', 
 		'\x2', '\x19A', '\x19B', '\x5', '\x36', '\x1C', '\x2', '\x19B', '\x19C', 
 		'\a', '\x42', '\x2', '\x2', '\x19C', '\x19D', '\x5', '\x34', '\x1B', '\x2', 
-		'\x19D', '\x33', '\x3', '\x2', '\x2', '\x2', '\x19E', '\x1A2', '\a', 'R', 
+		'\x19D', '\x33', '\x3', '\x2', '\x2', '\x2', '\x19E', '\x1A2', '\a', 'S', 
 		'\x2', '\x2', '\x19F', '\x1A1', '\x5', '\f', '\a', '\x2', '\x1A0', '\x19F', 
 		'\x3', '\x2', '\x2', '\x2', '\x1A1', '\x1A4', '\x3', '\x2', '\x2', '\x2', 
 		'\x1A2', '\x1A0', '\x3', '\x2', '\x2', '\x2', '\x1A2', '\x1A3', '\x3', 
 		'\x2', '\x2', '\x2', '\x1A3', '\x1A5', '\x3', '\x2', '\x2', '\x2', '\x1A4', 
-		'\x1A2', '\x3', '\x2', '\x2', '\x2', '\x1A5', '\x1A6', '\a', 'S', '\x2', 
+		'\x1A2', '\x3', '\x2', '\x2', '\x2', '\x1A5', '\x1A6', '\a', 'T', '\x2', 
 		'\x2', '\x1A6', '\x35', '\x3', '\x2', '\x2', '\x2', '\x1A7', '\x1AA', 
 		'\x5', '\x38', '\x1D', '\x2', '\x1A8', '\x1AA', '\x5', ':', '\x1E', '\x2', 
 		'\x1A9', '\x1A7', '\x3', '\x2', '\x2', '\x2', '\x1A9', '\x1A8', '\x3', 
@@ -5012,15 +5013,15 @@ public partial class BITEParser : Parser {
 		'\x26B', '\x3', '\x2', '\x2', '\x2', '\x26B', '\x26C', '\x5', '\x36', 
 		'\x1C', '\x2', '\x26C', 'm', '\x3', '\x2', '\x2', '\x2', '\x26D', '\x26E', 
 		'\a', 'N', '\x2', '\x2', '\x26E', 'o', '\x3', '\x2', '\x2', '\x2', '\x26F', 
-		'\x273', '\a', 'T', '\x2', '\x2', '\x270', '\x272', '\x5', 'r', ':', '\x2', 
+		'\x273', '\a', 'R', '\x2', '\x2', '\x270', '\x272', '\x5', 'r', ':', '\x2', 
 		'\x271', '\x270', '\x3', '\x2', '\x2', '\x2', '\x272', '\x275', '\x3', 
 		'\x2', '\x2', '\x2', '\x273', '\x271', '\x3', '\x2', '\x2', '\x2', '\x273', 
 		'\x274', '\x3', '\x2', '\x2', '\x2', '\x274', '\x276', '\x3', '\x2', '\x2', 
 		'\x2', '\x275', '\x273', '\x3', '\x2', '\x2', '\x2', '\x276', '\x277', 
-		'\a', 'Y', '\x2', '\x2', '\x277', 'q', '\x3', '\x2', '\x2', '\x2', '\x278', 
-		'\x27F', '\a', 'X', '\x2', '\x2', '\x279', '\x27F', '\a', 'V', '\x2', 
-		'\x2', '\x27A', '\x27B', '\a', 'U', '\x2', '\x2', '\x27B', '\x27C', '\x5', 
-		'\x36', '\x1C', '\x2', '\x27C', '\x27D', '\a', 'S', '\x2', '\x2', '\x27D', 
+		'\a', 'R', '\x2', '\x2', '\x277', 'q', '\x3', '\x2', '\x2', '\x2', '\x278', 
+		'\x27F', '\a', 'U', '\x2', '\x2', '\x279', '\x27F', '\a', 'W', '\x2', 
+		'\x2', '\x27A', '\x27B', '\a', 'V', '\x2', '\x2', '\x27B', '\x27C', '\x5', 
+		'\x36', '\x1C', '\x2', '\x27C', '\x27D', '\a', 'T', '\x2', '\x2', '\x27D', 
 		'\x27F', '\x3', '\x2', '\x2', '\x2', '\x27E', '\x278', '\x3', '\x2', '\x2', 
 		'\x2', '\x27E', '\x279', '\x3', '\x2', '\x2', '\x2', '\x27E', '\x27A', 
 		'\x3', '\x2', '\x2', '\x2', '\x27F', 's', '\x3', '\x2', '\x2', '\x2', 

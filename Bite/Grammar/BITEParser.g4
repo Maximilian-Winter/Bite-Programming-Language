@@ -306,10 +306,10 @@ elementIdentifier       : (IntegerLiteral|string|call);
 argumentExpression      : (ReferenceOperator)? expression;
 parametersIdentifier    : Identifier;
 
-string: OPEN_STRING stringPart* CLOSE_STRING;
+string: DQUOTE stringPart* DQUOTE;
 
 stringPart:
   TEXT
-  | ID_INTERP
-  | ENTER_EXPR_INTERP expression CURLY_R
+  | ESCAPE_SEQUENCE
+  | BACKSLASH_PAREN expression CURLY_R
 ;

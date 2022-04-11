@@ -128,25 +128,19 @@ WS  :   [ \r\t\u000C\n]+ -> skip;
 
 LINE_COMMENT: '//' ~[\r\n]* '\r'? '\n' -> skip;
 
+DQUOTE: '"' -> pushMode(IN_STRING);
 CURLY_L: '{' -> pushMode(DEFAULT_MODE);
-CURLY_R: '}' -> popMode; // When we see this, revert to the previous context.
+CURLY_R: '}' -> popMode; // When we
 
-OPEN_STRING: '"' -> pushMode(STRING); // Switch context
+mode IN_STRING;
 
-// Define rules on how tokens are recognized within a string.
-// Note that complex escapes, like Unicode, are not illustrated here.
-mode STRING;
+TEXT: ~[$\\"]+ ;
 
-ESCAPED_DOLLAR: '\\$';
+BACKSLASH_PAREN: '${' -> pushMode(DEFAULT_MODE);
 
-ENTER_EXPR_INTERP: '${' -> pushMode(DEFAULT_MODE); // When we see this, start parsing program tokens.
+ESCAPE_SEQUENCE: '\\' . ;
 
-ID_INTERP: '$'[A-Za-z_][A-Za-z0-9_]*;
-
-
-
-TEXT: (ESCAPED_DOLLAR|(~('$'|'\n'|'"')))+; // This doesn't cover escapes, FYI.
-CLOSE_STRING: '"' -> popMode; // Revert to the previous mode; our string is closed.
+DQUOTE_IN_STRING: '"' -> type(DQUOTE), popMode;
 	
 
 

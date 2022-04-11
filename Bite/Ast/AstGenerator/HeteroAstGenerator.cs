@@ -1549,6 +1549,7 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
             primaryNode.PrimaryType = PrimaryNode.PrimaryTypes.StringLiteral;
             
             string lastText = "";
+            string interPolated = "";
             foreach ( BITEParser.StringPartContext stringContent in context.@string().stringPart() )
             {
                 if ( stringContent.expression() != null )
@@ -1562,20 +1563,30 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
                     ExpressionNode expressionNode = ( ExpressionNode ) VisitExpression( stringContent.expression() );
                     if ( expressionNode != null )
                     {
-                        primaryNode.InterpolatedString.StringParts.Add( new InterpolatedStringPart(lastText, expressionNode) );
-                        lastText = "";
+                        primaryNode.InterpolatedString.StringParts.Add( new InterpolatedStringPart( interPolated, expressionNode) );
+                        interPolated = "";
                     }
                 }
                 
                 if ( stringContent.TEXT() != null )
                 {
                     lastText = stringContent.TEXT().Symbol.Text;
+                    interPolated += lastText; 
                     primaryNode.StringLiteral += lastText;
                 }
+                
+                if ( stringContent.ESCAPE_SEQUENCE() != null )
+                {
+                    lastText = stringContent.ESCAPE_SEQUENCE().Symbol.Text;
+                    lastText = lastText.Substring( 1, lastText.Length - 1 );
+                    interPolated += lastText; 
+                    primaryNode.StringLiteral += lastText;
+                }
+                
             }
             if ( primaryNode.PrimaryType == PrimaryNode.PrimaryTypes.InterpolatedString )
             {
-                primaryNode.InterpolatedString.TextAfterLastExpression = lastText;
+                primaryNode.InterpolatedString.TextAfterLastExpression = interPolated;
             }
             
         }

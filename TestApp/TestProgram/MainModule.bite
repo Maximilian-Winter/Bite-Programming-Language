@@ -4,7 +4,7 @@ import System;
 
 var a = 5;
 
-System.PrintLine("Number: \${a}");
+System.PrintLine("Number: \${a} ${a}");
 /*
 
 
