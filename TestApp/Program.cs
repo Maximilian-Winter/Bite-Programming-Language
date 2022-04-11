@@ -36,7 +36,11 @@ public class Program
             {
                 Stopwatch stopwatch2 = new Stopwatch();
                 stopwatch2.Start();
-                program.Run();
+                program.Run(new Dictionary < string, object >()
+                {
+                    { "a", 1 },
+                    { "b", 2 }
+                });
                 stopwatch2.Stop();
                 Console.WriteLine( "--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds );
                 elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;

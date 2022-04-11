@@ -492,9 +492,12 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
         if ( node.Arguments != null && node.Arguments.Expressions != null )
         {
             m_PostfixInstructions.Push( new BytecodeList() );
+            
             foreach ( ExpressionNode argument in node.Arguments.Expressions )
             {
+                m_IsCompilingAssignmentRhs = true;
                 Compile( argument );
+                m_IsCompilingAssignmentRhs = false;
             }
            
             ByteCode byteCode = new ByteCode(
@@ -745,7 +748,9 @@ public class CodeGenerator : HeteroAstVisitor < object >, IAstVisitor
                     m_PostfixInstructions.Push( new BytecodeList() );
                     foreach ( ExpressionNode argumentsExpression in terminalNode.Arguments.Expressions )
                     {
+                        m_IsCompilingAssignmentRhs = true;
                         Compile( argumentsExpression );
+                        m_IsCompilingAssignmentRhs = false;
                     }
                     
                     

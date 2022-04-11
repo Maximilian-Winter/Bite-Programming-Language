@@ -2,7 +2,10 @@ module HelloWorld;
 
 import System; 
 
-System.PrintLine("Hello World!");
+var a = 5;
+var b = 5;
+
+System.PrintLine(a += b);
 /*
 
 

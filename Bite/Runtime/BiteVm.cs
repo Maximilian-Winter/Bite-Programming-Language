@@ -7123,6 +7123,11 @@ namespace Bite.Runtime
                     }
                     else
                     {
+                        if (m_VmStack.Count > 0)
+                        {
+                            ReturnValue = m_VmStack.Peek();
+                        }
+
                         return BiteVmInterpretResult.InterpretOk;
                     }
                 }
