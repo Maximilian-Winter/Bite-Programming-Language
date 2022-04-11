@@ -46,7 +46,8 @@ ToDo:
 # Syntax
 
 For an introduction about how to write Code in the Bite Language, go [here](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki#writing-code-in-bite).
-Get more information about the Bite Language Syntax [here on the Wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax).
+
+And get more information about the Bite Language Syntax [here on the Wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki/Language-Syntax).
 
 
 # Example Code
