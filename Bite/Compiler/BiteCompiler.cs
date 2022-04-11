@@ -28,14 +28,11 @@ class CSharpInterface {
     var ObjectInstance;
 }
 
-extern callable function CSharpInterfaceCall ( object ) {
-}
+extern callable function CSharpInterfaceCall ( object );
 
-extern callable function Print ( object ) {
-}
+extern callable function Print ( object );
 
-extern callable function PrintLine ( object ) {
-}";
+extern callable function PrintLine ( object );";
 
     #region Public Compilers
 

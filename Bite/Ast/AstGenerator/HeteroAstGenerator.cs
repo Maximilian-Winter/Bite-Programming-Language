@@ -826,6 +826,11 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
             return VisitStructDeclaration( context.structDeclaration() );
         }
 
+        if (context.externalFunctionDeclaration() != null)
+        {
+            return VisitExternalFunctionDeclaration( context.externalFunctionDeclaration() );
+        }
+
         if ( context.functionDeclaration() != null )
         {
             return VisitFunctionDeclaration( context.functionDeclaration() );
@@ -1074,21 +1079,16 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
         return forStatementNode;
     }
 
-    public override HeteroAstNode VisitFunctionDeclaration( BITEParser.FunctionDeclarationContext context )
+    public override HeteroAstNode VisitExternalFunctionDeclaration( BITEParser.ExternalFunctionDeclarationContext context )
     {
         FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
         functionDeclarationNode.FunctionId = new Identifier();
-        functionDeclarationNode.FunctionId.Id = context.Identifier().Symbol.Text;
+        functionDeclarationNode.FunctionId.Id = context.Identifier()[0].Symbol.Text;
         functionDeclarationNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
         functionDeclarationNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
 
         functionDeclarationNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
         functionDeclarationNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
-
-        if ( context.block() != null )
-        {
-            functionDeclarationNode.FunctionBlock = ( BlockStatementNode ) VisitBlock( context.block() );
-        }
 
         string accessToken;
         string abstractStaticMod = null;
@@ -1122,10 +1122,64 @@ public class HeteroAstGenerator : BITEParserBaseVisitor < HeteroAstNode >
         {
             isCallable = true;
             // TODO: define callable link name semantics
-            functionDeclarationNode.LinkFunctionId = new Identifier( context.Identifier().GetText() );
+            string linkName = context.Identifier()[0].GetText();
+            if ( context.Identifier().Length > 1 )
+            {
+                linkName = context.Identifier()[0].GetText();
+            }
+            functionDeclarationNode.LinkFunctionId = new Identifier( linkName );
         }
 
         ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod, isExtern, isCallable );
+
+        functionDeclarationNode.Modifiers = Modifiers;
+
+        if ( context.parameters() != null )
+        {
+            functionDeclarationNode.Parameters = ( ParametersNode ) VisitParameters( context.parameters() );
+        }
+
+        return functionDeclarationNode;
+    }
+
+    public override HeteroAstNode VisitFunctionDeclaration( BITEParser.FunctionDeclarationContext context )
+    {
+        FunctionDeclarationNode functionDeclarationNode = new FunctionDeclarationNode();
+        functionDeclarationNode.FunctionId = new Identifier();
+        functionDeclarationNode.FunctionId.Id = context.Identifier().Symbol.Text;
+        functionDeclarationNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
+        functionDeclarationNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
+
+        functionDeclarationNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
+        functionDeclarationNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
+        if ( context.block() != null )
+        {
+            functionDeclarationNode.FunctionBlock = ( BlockStatementNode ) VisitBlock( context.block() );
+        }
+
+        string accessToken;
+        string abstractStaticMod = null;
+
+        if ( context.publicModifier() != null )
+        {
+            accessToken = "public";
+        }
+        else
+        {
+            accessToken = "private";
+        }
+
+        if ( context.abstractModifier() != null )
+        {
+            abstractStaticMod = "abstract";
+        }
+        else if ( context.staticModifier() != null )
+        {
+            abstractStaticMod = "static";
+        }
+
+        ModifiersNode Modifiers = new ModifiersNode( accessToken, abstractStaticMod, false, false );
 
         functionDeclarationNode.Modifiers = Modifiers;
 

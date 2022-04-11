@@ -19,6 +19,20 @@ public class ModuleUnitTests
     }
 
     [Fact]
+    public void AmbiguousReferences()
+    {
+        string mainModule =
+            "module MainModule; import SubModuleA; import SubModuleB; using SubModuleA; using SubModuleB; var greeting = Hello + \" \" + World; greeting;";
+
+        string subModuleA = "module SubModuleA; var Hello = \"Hi\"; var World = \"Fellow Kids!\";";
+        string subModuleB = "module SubModuleB; var Hello = \"Hello\"; var World = \"World!\";";
+        BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello World!", result.ReturnValue.StringData );
+    }
+
+
+    [Fact]
     public void LoadModuleDependencyBehavior()
     {
         string moduleA = "module ModuleA; import ModuleC; import ModuleB; var a = 1; ModuleB.foo();";
@@ -73,6 +87,14 @@ public class ModuleUnitTests
     }
 
     [Fact]
+    public void ModuleFunctionCallWithoutUsing()
+    {
+        string mainModule = "module MainModule; import System; System.PrintLine( \"Hello World!\" );";
+        BiteResult result = ExecModules( new[] { mainModule } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+    }
+
+    [Fact]
     public void ReferenceStringsFromSubmodule()
     {
         string mainModule =
@@ -83,20 +105,6 @@ public class ModuleUnitTests
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( "Hello World!", result.ReturnValue.StringData );
     }
-
-    [Fact]
-    public void AmbiguousReferences()
-    {
-        string mainModule =
-            "module MainModule; import SubModuleA; import SubModuleB; using SubModuleA; using SubModuleB; var greeting = Hello + \" \" + World; greeting;";
-
-        string subModuleA = "module SubModuleA; var Hello = \"Hi\"; var World = \"Fellow Kids!\";";
-        string subModuleB = "module SubModuleB; var Hello = \"Hello\"; var World = \"World!\";";
-        BiteResult result = ExecModules( new[] { mainModule, subModuleA, subModuleB } );
-        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( "Hello World!", result.ReturnValue.StringData );
-    }
-
 
     [Fact]
     public void VariableDeclaration()
@@ -113,6 +121,7 @@ public class ModuleUnitTests
         BiteResult result = ExecModules( new[] { mainModule } );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
+
 
     }
 

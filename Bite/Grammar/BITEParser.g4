@@ -102,6 +102,7 @@ usingDirective
 declaration 
     : classDeclaration
     | structDeclaration
+    | externalFunctionDeclaration
     | functionDeclaration
     | classInstanceDeclaration
     | variableDeclaration
@@ -118,9 +119,14 @@ structDeclaration :
     DeclareStruct Identifier (block|SemicolonSeperator)
     ; 
 
+externalFunctionDeclaration :
+    ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
+    ExternModifier? CallableModifier? DeclareFunction Identifier ( AsKeyword Identifier )? OpeningRoundBracket parameters? ClosingRoundBracket SemicolonSeperator
+    ;
+
 functionDeclaration :
     ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
-    ExternModifier? CallableModifier? DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeperator )
+    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeperator )
     ;
 
 classInstanceDeclaration : 

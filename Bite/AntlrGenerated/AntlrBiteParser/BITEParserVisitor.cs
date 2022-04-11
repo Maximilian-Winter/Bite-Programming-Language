@@ -81,6 +81,12 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStructDeclaration([NotNull] BITEParser.StructDeclarationContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.externalFunctionDeclaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExternalFunctionDeclaration([NotNull] BITEParser.ExternalFunctionDeclarationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.functionDeclaration"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

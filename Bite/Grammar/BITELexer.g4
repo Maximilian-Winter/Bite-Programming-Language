@@ -10,6 +10,7 @@ DeclareModule: 'module';
 DeclareClass: 'class';
 DeclareStruct: 'struct';
 DeclareClassInstance: 'new';
+AsKeyword: 'as';
 ExternModifier: 'extern';
 CallableModifier: 'callable';
 DeclareFunction: 'function';
