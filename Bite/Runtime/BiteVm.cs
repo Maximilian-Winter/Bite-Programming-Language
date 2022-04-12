@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+#if NET462
+using System.Windows.Threading;
+#endif
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -63,7 +66,9 @@ namespace Bite.Runtime
         private readonly Dictionary<string, IBiteVmCallable> m_Callables = new Dictionary<string, IBiteVmCallable>();
 
         public Dictionary<string, BinaryChunk> CompiledChunks { get; private set; }
-
+#if NET462
+        public Dispatcher Dispatcher { get; set; }
+#endif 
         public DynamicBiteVariable ReturnValue { get; private set; }
 
         #region Public
@@ -1178,70 +1183,95 @@ namespace Bite.Runtime
                                         if (obj != null)
                                         {
                                             Type type = obj.GetType();
-
-                                            if (m_CachedProperties.ContainsKey( type ))
+                                                if (m_CachedProperties.ContainsKey( type ))
                                             {
-                                                for (int i = 0; i < m_CachedProperties[type].Length; i++)
+
+#if NET462
+                                                Dispatcher.Invoke( () =>
                                                 {
-                                                    if (m_CachedProperties[type][i].Name == m_MemberWithStringToSet)
+#endif //NET462
+
+                                                    for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
                                                     {
-                                                        if (m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                             m_VmStack.Peek().DynamicType < DynamicVariableType.True)
+                                                        if ( m_CachedProperties[type][i].Name ==
+                                                             m_MemberWithStringToSet )
                                                         {
-                                                            m_CachedProperties[type][i].
-                                                                SetValue( obj, m_VmStack.Pop().NumberData );
-                                                        }
-                                                        else if (m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                                  m_VmStack.Peek().DynamicType < DynamicVariableType.True)
-                                                        {
-                                                            m_CachedProperties[type][i].
-                                                                SetValue( obj, (float) m_VmStack.Pop().NumberData );
-                                                        }
-                                                        else if (m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                                  m_VmStack.Peek().DynamicType < DynamicVariableType.True)
-                                                        {
-                                                            m_CachedProperties[type][i].
-                                                                SetValue( obj, (int) m_VmStack.Pop().NumberData );
-                                                        }
-                                                        else if (m_CachedProperties[type][i].PropertyType ==
-                                                                  typeof( string ) &&
-                                                                  m_VmStack.Peek().DynamicType == DynamicVariableType.String)
-                                                        {
-                                                            m_CachedProperties[type][i].
-                                                                SetValue( obj, m_VmStack.Pop().StringData );
-                                                        }
-                                                        else if (m_CachedProperties[type][i].PropertyType == typeof( bool ) &&
-                                                                  (m_VmStack.Peek().DynamicType == DynamicVariableType.True ||
-                                                                    m_VmStack.Peek().DynamicType ==
-                                                                    DynamicVariableType.False))
-                                                        {
-                                                            if (m_VmStack.Peek().DynamicType == DynamicVariableType.True)
+                                                            if ( m_CachedProperties[type][i].PropertyType ==
+                                                                 typeof( double ) &&
+                                                                 m_VmStack.Peek().DynamicType <
+                                                                 DynamicVariableType.True )
                                                             {
-                                                                m_CachedProperties[type][i].SetValue( obj, true );
+                                                                m_CachedProperties[type][i].
+                                                                    SetValue( obj, m_VmStack.Pop().NumberData );
+                                                            }
+                                                            else if ( m_CachedProperties[type][i].PropertyType ==
+                                                                      typeof( float ) &&
+                                                                      m_VmStack.Peek().DynamicType <
+                                                                      DynamicVariableType.True )
+                                                            {
+                                                                m_CachedProperties[type][i].
+                                                                    SetValue( obj,
+                                                                        ( float ) m_VmStack.Pop().NumberData );
+                                                            }
+                                                            else if ( m_CachedProperties[type][i].PropertyType ==
+                                                                      typeof( int ) &&
+                                                                      m_VmStack.Peek().DynamicType <
+                                                                      DynamicVariableType.True )
+                                                            {
+                                                                m_CachedProperties[type][i].
+                                                                    SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
+                                                            }
+                                                            else if ( m_CachedProperties[type][i].PropertyType ==
+                                                                      typeof( string ) &&
+                                                                      m_VmStack.Peek().DynamicType ==
+                                                                      DynamicVariableType.String )
+                                                            {
+                                                                m_CachedProperties[type][i].
+                                                                    SetValue( obj, m_VmStack.Pop().StringData );
+                                                            }
+                                                            else if ( m_CachedProperties[type][i].PropertyType ==
+                                                                      typeof( bool ) &&
+                                                                      ( m_VmStack.Peek().DynamicType ==
+                                                                        DynamicVariableType.True ||
+                                                                        m_VmStack.Peek().DynamicType ==
+                                                                        DynamicVariableType.False ) )
+                                                            {
+                                                                if ( m_VmStack.Peek().DynamicType ==
+                                                                     DynamicVariableType.True )
+                                                                {
+                                                                    m_CachedProperties[type][i].SetValue( obj, true );
+                                                                }
+
+                                                                if ( m_VmStack.Peek().DynamicType ==
+                                                                     DynamicVariableType.False )
+                                                                {
+                                                                    m_CachedProperties[type][i].SetValue( obj, false );
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                m_CachedProperties[type][i].
+                                                                    SetValue( obj, m_VmStack.Pop().ObjectData );
                                                             }
 
-                                                            if (m_VmStack.Peek().DynamicType == DynamicVariableType.False)
-                                                            {
-                                                                m_CachedProperties[type][i].SetValue( obj, false );
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            m_CachedProperties[type][i].
-                                                                SetValue( obj, m_VmStack.Pop().ObjectData );
-                                                        }
+                                                            valuePushed = true;
 
-                                                        valuePushed = true;
-
-                                                        break;
+                                                            break;
+                                                        }
                                                     }
-                                                }
+#if NET462
+                                                } );
+#endif //NET462
                                             }
-                                            else
+                                        else
                                             {
                                                 m_CachedProperties.Add( type, type.GetProperties() );
+#if NET462
+                                                Dispatcher.Invoke( () =>
+                                                {
+#endif //NET462
 
-                                                for (int i = 0; i < m_CachedProperties[type].Length; i++)
+                                                    for (int i = 0; i < m_CachedProperties[type].Length; i++)
                                                 {
                                                     if (m_CachedProperties[type][i].Name == m_MemberWithStringToSet)
                                                     {
@@ -1287,8 +1317,8 @@ namespace Bite.Runtime
                                                         }
                                                         else
                                                         {
-                                                            m_CachedProperties[type][i].
-                                                                SetValue( obj, m_VmStack.Pop().ObjectData );
+                                                                m_CachedProperties[type][i].
+                                                                    SetValue( obj, m_VmStack.Pop().ObjectData );
                                                         }
 
                                                         valuePushed = true;
@@ -1296,6 +1326,10 @@ namespace Bite.Runtime
                                                         break;
                                                     }
                                                 }
+#if NET462
+
+                                                } );
+#endif
                                             }
 
                                             if (!valuePushed)
