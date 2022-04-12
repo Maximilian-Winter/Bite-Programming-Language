@@ -14,11 +14,24 @@ public class InterpolatedStringPart
         ExpressionBaseNode = expressionBaseNode;
     }
 }
+
 public class InterpolatedString : ExpressionBaseNode
 {
     public List < InterpolatedStringPart > StringParts;
     public string TextAfterLastExpression;
 }
+
+public class ArrayExpressionNode : ExpressionBaseNode
+    {
+    public List < ExpressionBaseNode > Expressions;
+}
+
+public class DictionaryInitializerNode : ExpressionBaseNode
+    {
+    public Dictionary<Identifier, ExpressionBaseNode> ElementInitializers;
+}
+
+
 public class PrimaryBaseNode : ExpressionBaseNode
 {
     public enum PrimaryTypes
@@ -32,7 +45,9 @@ public class PrimaryBaseNode : ExpressionBaseNode
         InterpolatedString,
         Expression,
         NullReference,
-        ThisReference
+        ThisReference,
+        ArrayExpression,
+        DictionaryExpression
     }
 
     public PrimaryTypes PrimaryType;

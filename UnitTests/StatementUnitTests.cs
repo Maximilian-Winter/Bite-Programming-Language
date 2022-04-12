@@ -20,6 +20,42 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void ArrayInitializers()
+    {
+        string statements = @"
+            function foo() {
+                return 5;
+            }
+
+            var a = [ 10, 20, 30, ""Hello"", foo(), foo ];";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+    }
+
+    [Fact]
+    public void DictionaryInitializers()
+    {
+        string statements = @"
+            function foo() {
+                return 5;
+            }
+
+            var a = {
+                x: 10,
+                y: 20,
+                z: 30,
+                a: ""Hello"",
+                b: foo(),
+                c: foo 
+            };";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+    }
+
+
+    [Fact]
     public void AfterMultiArgumentPostFix()
     {
         string statements = @"
@@ -191,7 +227,7 @@ public class StatementUnitTests
         Assert.Equal( "Hello105", result.ReturnValue.StringData );
     }
 
-        [Fact]
+    [Fact]
     public void ClassInstanceAsArgument()
     {
         string statements = @"class TestClass

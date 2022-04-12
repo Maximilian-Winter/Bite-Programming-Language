@@ -85,11 +85,11 @@ BitwiseOrOperator:'|';
 OpeningRoundBracket: '(';
 ClosingRoundBracket: ')';
 
-SquarebracketLeft : '[';
-SquarebracketRight: ']';
+SquareBracketLeft  : '[';
+SquareBracketRight : ']';
 
-CommaSeperator: ',';
-SemicolonSeperator: ';';
+CommaSeparator: ',';
+SemicolonSeparator: ';';
 
 DollarOperator:'$';
 

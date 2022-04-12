@@ -297,6 +297,24 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitCall([NotNull] BITEParser.CallContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.arrayExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArrayExpression([NotNull] BITEParser.ArrayExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.elementInitialization"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitElementInitialization([NotNull] BITEParser.ElementInitializationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.dictionaryExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDictionaryExpression([NotNull] BITEParser.DictionaryExpressionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.primary"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

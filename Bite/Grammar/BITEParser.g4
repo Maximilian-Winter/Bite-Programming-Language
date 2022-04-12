@@ -88,15 +88,15 @@ module
     ; 
 
 moduleDeclaration 
-    : DeclareModule Identifier ( DotOperator Identifier )* SemicolonSeperator
+    : DeclareModule Identifier ( DotOperator Identifier )* SemicolonSeparator
     ;
 
 importDirective 
-    : ImportDirective Identifier ( DotOperator Identifier )* SemicolonSeperator
+    : ImportDirective Identifier ( DotOperator Identifier )* SemicolonSeparator
     ;
 
 usingDirective 
-    : UsingDirective Identifier ( DotOperator Identifier )* SemicolonSeperator
+    : UsingDirective Identifier ( DotOperator Identifier )* SemicolonSeparator
     ;
 
 declaration 
@@ -111,33 +111,33 @@ declaration
 
 classDeclaration : 
     ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
-    DeclareClass Identifier (ColonOperator inheritance)? ( block | SemicolonSeperator )
+    DeclareClass Identifier (ColonOperator inheritance)? ( block | SemicolonSeparator )
     ;
 
 structDeclaration : 
     ( privateModifier | publicModifier )? 
-    DeclareStruct Identifier (block|SemicolonSeperator)
+    DeclareStruct Identifier (block|SemicolonSeparator)
     ; 
 
 externalFunctionDeclaration :
     ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
-    ExternModifier? CallableModifier? DeclareFunction Identifier ( AsKeyword Identifier )? OpeningRoundBracket parameters? ClosingRoundBracket SemicolonSeperator
+    ExternModifier? CallableModifier? DeclareFunction Identifier ( AsKeyword Identifier )? OpeningRoundBracket parameters? ClosingRoundBracket SemicolonSeparator
     ;
 
 functionDeclaration :
     ( privateModifier | publicModifier )? ( staticModifier | abstractModifier )? 
-    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeperator )
+    DeclareFunction Identifier OpeningRoundBracket parameters? ClosingRoundBracket ( block | SemicolonSeparator )
     ;
 
 classInstanceDeclaration : 
     ( privateModifier | publicModifier )? ( staticModifier )? 
-    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket (SemicolonSeperator |  CURLY_L initializerExpression CURLY_R )
-    | Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeperator
+    DeclareVariable Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket (SemicolonSeparator |  CURLY_L initializerExpression CURLY_R )
+    | Identifier AssignOperator DeclareClassInstance Identifier ( DotOperator Identifier )* OpeningRoundBracket arguments? ClosingRoundBracket SemicolonSeparator
     ;
 
 variableDeclaration 
     : ( privateModifier | publicModifier )? ( staticModifier )? 
-    DeclareVariable Identifier ( ( AssignOperator exprStatement )? | SemicolonSeperator )
+    DeclareVariable Identifier ( ( AssignOperator exprStatement )? | SemicolonSeparator )
     ;
    
 statements 
@@ -158,7 +158,7 @@ statement
     ;  
             
 exprStatement 
-    : expression SemicolonSeperator 
+    : expression SemicolonSeparator 
     ;
     
 localVarDeclaration 
@@ -166,22 +166,22 @@ localVarDeclaration
     ;
 
 localVarInitializer 
-    : DeclareVariable localVarDeclaration ( CommaSeperator localVarDeclaration )*
+    : DeclareVariable localVarDeclaration ( CommaSeparator localVarDeclaration )*
     ;
 
 forInitializer 
     : localVarInitializer 
-    | expression ( CommaSeperator expression )*
+    | expression ( CommaSeparator expression )*
     ;
 
 forIterator
-    : expression ( CommaSeperator expression )* 
+    : expression ( CommaSeparator expression )* 
     ;
 
 forStatement
     : DeclareForLoop OpeningRoundBracket ( forInitializer )?  
-    SemicolonSeperator ( condition = expression )?  
-    SemicolonSeperator ( forIterator )? 
+    SemicolonSeparator ( condition = expression )?  
+    SemicolonSeparator ( forIterator )? 
     ClosingRoundBracket ( statement )?
     ;
                      
@@ -191,11 +191,11 @@ ifStatement
     ;
                      
 returnStatement     
-    : FunctionReturn expression? SemicolonSeperator
+    : FunctionReturn expression? SemicolonSeparator
     ;
 
 breakStatement      
-    : Break SemicolonSeperator
+    : Break SemicolonSeparator
     ;
 
 usingStatement      
@@ -292,6 +292,15 @@ call
     : primary ( callArguments | DotOperator Identifier | elementAccess )*
     ;
 
+arrayExpression
+    : SquareBracketLeft expression ( CommaSeparator expression )* SquareBracketRight;
+
+elementInitialization
+    : Identifier ColonOperator expression;
+
+dictionaryExpression
+    : CURLY_L elementInitialization ( CommaSeparator elementInitialization )* CURLY_R;
+
 primary
     : BooleanLiteral 
     | NullReference 
@@ -301,6 +310,8 @@ primary
     | OpeningRoundBracket expression ClosingRoundBracket
     | Identifier 
     | string
+    | arrayExpression
+    | dictionaryExpression
     ;
 
 propertyInitialization  : Identifier AssignOperator expression;
@@ -309,14 +320,14 @@ privateModifier         : DeclarePrivate;
 publicModifier          : DeclarePublic;
 abstractModifier        : DeclareAbstract;
 staticModifier          : DeclareStatic;                     
-initializerExpression   : propertyInitialization ( CommaSeperator propertyInitialization )*;           
-parameters              : parametersIdentifier ( CommaSeperator parametersIdentifier )* ;
-arguments               : argumentExpression ( CommaSeperator argumentExpression )* ; 
-inheritance             : Identifier ( CommaSeperator Identifier )* ;                  
+initializerExpression   : propertyInitialization ( CommaSeparator propertyInitialization )*;           
+parameters              : parametersIdentifier ( CommaSeparator parametersIdentifier )* ;
+arguments               : argumentExpression ( CommaSeparator argumentExpression )* ; 
+inheritance             : Identifier ( CommaSeparator Identifier )* ;                  
 callArguments           : OpeningRoundBracket arguments? ClosingRoundBracket;
-elementAccess           : (SquarebracketLeft elementIdentifier SquarebracketRight)+;    
-elementIdentifier       : (IntegerLiteral|string|call);   
-argumentExpression      : (ReferenceOperator)? expression;
+elementAccess           : ( SquareBracketLeft elementIdentifier SquareBracketRight )+;    
+elementIdentifier       : ( IntegerLiteral | string | call );   
+argumentExpression      : ( ReferenceOperator )? expression;
 parametersIdentifier    : Identifier;
 
 string: DQUOTE stringPart* DQUOTE;

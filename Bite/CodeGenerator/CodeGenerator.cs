@@ -1557,6 +1557,13 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                 return null;
 
+            case PrimaryBaseNode.PrimaryTypes.ArrayExpression:
+                throw new NotImplementedException( "TODO" );
+
+
+            case PrimaryBaseNode.PrimaryTypes.DictionaryExpression:
+                throw new NotImplementedException( "TODO" );
+
             case PrimaryBaseNode.PrimaryTypes.Default:
             default:
                 throw new ArgumentOutOfRangeException(

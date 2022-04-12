@@ -1583,10 +1583,10 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
             primaryBaseNode.FloatLiteral = double.Parse( context.FloatingLiteral().Symbol.Text, NumberFormatInfo.InvariantInfo );
         }
 
-        if(context.@string() != null)
+        if ( context.@string() != null )
         {
             primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.StringLiteral;
-            
+
             string lastText = "";
             string interPolated = "";
             foreach ( BITEParser.StringPartContext stringContent in context.@string().stringPart() )
@@ -1606,43 +1606,94 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                         interPolated = "";
                     }
                 }
-                
+
                 if ( stringContent.TEXT() != null )
                 {
                     lastText = stringContent.TEXT().Symbol.Text;
-                    interPolated += lastText; 
+                    interPolated += lastText;
                     primaryBaseNode.StringLiteral += lastText;
                 }
-                
+
                 if ( stringContent.ESCAPE_SEQUENCE() != null )
                 {
                     lastText = stringContent.ESCAPE_SEQUENCE().Symbol.Text;
                     lastText = lastText.Substring( 1, lastText.Length - 1 );
-                    interPolated += lastText; 
+                    interPolated += lastText;
                     primaryBaseNode.StringLiteral += lastText;
                 }
-                
+
             }
+
             if ( primaryBaseNode.PrimaryType == PrimaryBaseNode.PrimaryTypes.InterpolatedString )
             {
                 primaryBaseNode.InterpolatedString.TextAfterLastExpression = interPolated;
             }
-            
+
         }
-        
+
         /**/
-        
-        
+
+
         if ( context.Identifier() != null )
         {
             primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.Identifier;
             primaryBaseNode.PrimaryId = new Identifier( context.Identifier().Symbol.Text );
         }
 
+        if ( context.arrayExpression() != null )
+        {
+            primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.ArrayExpression;
+            primaryBaseNode.Expression = ( ArrayExpressionNode ) VisitArrayExpression( context.arrayExpression() );
+        }
+
+        if ( context.dictionaryExpression() != null )
+        {
+            primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.DictionaryExpression;
+            primaryBaseNode.Expression = ( DictionaryInitializerNode ) VisitDictionaryExpression( context.dictionaryExpression() );
+        }
+
         return primaryBaseNode;
     }
 
-    public override AstBaseNode VisitProgram( BITEParser.ProgramContext context )
+    public override AstBaseNode VisitArrayExpression( BITEParser.ArrayExpressionContext context )
+    {
+        var initializerNode = new ArrayExpressionNode();
+
+        if ( context.expression() != null )
+        {
+            initializerNode.Expressions = new List < ExpressionBaseNode >();
+            foreach ( var expression in context.expression() )
+            {
+                initializerNode.Expressions.Add( (ExpressionBaseNode) VisitExpression( expression ) );
+            }
+        }
+
+        return initializerNode;
+    }
+
+    public override AstBaseNode VisitDictionaryExpression( BITEParser.DictionaryExpressionContext context )
+    {
+        var initializerNode = new DictionaryInitializerNode();
+
+        if (context.elementInitialization() != null)
+        {
+            initializerNode.ElementInitializers = new Dictionary < Identifier, ExpressionBaseNode >();
+
+            foreach ( var initialization in context.elementInitialization() )
+            {
+                initializerNode.ElementInitializers.Add(
+                    new Identifier( initialization.Identifier().Symbol.Text ),
+                    ( ExpressionBaseNode ) VisitExpression( initialization.expression() )
+                );
+            }
+        }
+
+        return initializerNode;
+    }
+
+
+
+        public override AstBaseNode VisitProgram( BITEParser.ProgramContext context )
     {
         m_ProgramBaseNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
         m_ProgramBaseNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
