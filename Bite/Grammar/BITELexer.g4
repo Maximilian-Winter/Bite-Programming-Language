@@ -31,9 +31,9 @@ NullReference: 'null';
 ThisReference: 'this';
 UsingDirective: 'using';
 ImportDirective: 'import';
-StartStatement: 'start';
-UseStatement: 'use';
-ThreadStatement: 'thread';
+ExecuteOnMainThread: 'execute on main thread';
+StartOperator: 'start';
+ThreadOperator: 'thread';
 
 
 AssignOperator: '=';

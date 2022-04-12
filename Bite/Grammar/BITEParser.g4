@@ -152,7 +152,7 @@ statement
     | breakStatement
     | usingStatement
     | startThreadStatement
-    | useThreadStatement
+    | executeOnMainThreadStatement
     | whileStatement
     | block 
     ;  
@@ -203,11 +203,11 @@ usingStatement
     ;
 
 startThreadStatement
-    : StartStatement ThreadStatement OpeningRoundBracket expression ClosingRoundBracket
+    : StartOperator ThreadOperator  block
     ;
-
-useThreadStatement
-    : UseStatement ThreadStatement OpeningRoundBracket expression ClosingRoundBracket
+    
+executeOnMainThreadStatement
+    : ExecuteOnMainThread block
     ;
     
 whileStatement

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from BITEParser.g4 by ANTLR 4.9.2
+// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITEParser.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -183,11 +183,11 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStartThreadStatement([NotNull] BITEParser.StartThreadStatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="BITEParser.useThreadStatement"/>.
+	/// Visit a parse tree produced by <see cref="BITEParser.executeOnMainThreadStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitUseThreadStatement([NotNull] BITEParser.UseThreadStatementContext context);
+	Result VisitExecuteOnMainThreadStatement([NotNull] BITEParser.ExecuteOnMainThreadStatementContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.whileStatement"/>.
 	/// </summary>

@@ -1923,6 +1923,11 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
             return VisitWhileStatement( context.whileStatement() );
         }
 
+        if ( context.executeOnMainThreadStatement() != null )
+        {
+            return VisitExecuteOnMainThreadStatement( context.executeOnMainThreadStatement() );
+        }
+        
         if ( context.returnStatement() != null )
         {
             return VisitReturnStatement( context.returnStatement() );
@@ -2102,6 +2107,13 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         variableDeclarationBaseNode.ModifiersBase = modifiersBase;
 
         return variableDeclarationBaseNode;
+    }
+
+    public override AstBaseNode VisitExecuteOnMainThreadStatement( BITEParser.ExecuteOnMainThreadStatementContext context )
+    {
+        ExecuteOnMainThreadNode executeOnMainThreadNode = new ExecuteOnMainThreadNode();
+        executeOnMainThreadNode.BlockToExecuteOnMainThread = (BlockStatementBaseNode)VisitBlock( context.block() );
+        return executeOnMainThreadNode;
     }
 
     public override AstBaseNode VisitWhileStatement( BITEParser.WhileStatementContext context )

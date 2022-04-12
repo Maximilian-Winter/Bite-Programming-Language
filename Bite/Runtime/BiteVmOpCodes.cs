@@ -79,6 +79,8 @@ public enum BiteVmOpCodes : byte
     OpSetMemberWithString,
     OpKeepLastItemOnStack,
     OpBreak,
+    OpExecuteOnMainThread,
+    OpStopExecutingOnMainThread,
     OpReturn
 }
 
