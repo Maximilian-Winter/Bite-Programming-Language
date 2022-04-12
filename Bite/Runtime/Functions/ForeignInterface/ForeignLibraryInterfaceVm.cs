@@ -24,6 +24,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
     public ForeignLibraryInterfaceVm()
     {
+        m_TypeRegistry = new TypeRegistry();
     }
 
     public ForeignLibraryInterfaceVm(TypeRegistry typeRegistry)
@@ -58,7 +59,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                             }
                         }
 
-                        MethodInfo method = type.GetMethod( methodString.StringData, argTypes.ToArray() );
+                        MethodInfo method = m_TypeRegistry.GetMethod( type, methodString.StringData, argTypes.ToArray() );
 
                         if ( method != null && method.IsStatic )
                         {
@@ -121,7 +122,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                                     }
                                 }
 
-                                ConstructorInfo constructor = type.GetConstructor( constructorArgTypes.ToArray() );
+                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type, constructorArgTypes.ToArray() );
                                 object classObject = constructor.Invoke( constructorArgs.ToArray() );
 
                                 fliObject.Put(
@@ -179,7 +180,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                             if ( constructorArgs.Count == 0 )
                             {
-                                ConstructorInfo constructor = type.GetConstructor( Type.EmptyTypes );
+                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type );
                                 object classObject = constructor.Invoke( new object[] { } );
 
                                 fliObject.Put(
@@ -190,7 +191,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                             }
                             else
                             {
-                                ConstructorInfo constructor = type.GetConstructor( constructorArgTypes.ToArray() );
+                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type, constructorArgTypes.ToArray() );
                                 object classObject = constructor.Invoke( constructorArgs.ToArray() );
 
                                 fliObject.Put(
@@ -227,7 +228,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                                 if ( constructorArgumentsNamesToProperty.Key != "this" )
                                 {
                                     constructorArgTypes.Add(
-                                        Type.GetType( constructorArgumentsNamesToProperty.Value.StringData ) );
+                                        ResolveType( constructorArgumentsNamesToProperty.Value.StringData ) );
                                 }
                             }
                         }
@@ -255,7 +256,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                         if ( constructorArgs.Count == 0 )
                         {
-                            ConstructorInfo constructor = type.GetConstructor( Type.EmptyTypes );
+                            ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type );
                             object classObject = constructor.Invoke( new object[] { } );
 
                             fliObject.Put(
@@ -266,7 +267,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         }
                         else
                         {
-                            ConstructorInfo constructor = type.GetConstructor( constructorArgTypes.ToArray() );
+                            ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type, constructorArgTypes.ToArray() );
 
                             object classObject = constructor.Invoke( constructorArgs.ToArray() );
 

@@ -66,7 +66,7 @@ public static class DynamicVariableExtension
 
         return biteVariable;
     }
-
+        
     public static DynamicBiteVariable ToDynamicVariable( object data )
     {
         DynamicBiteVariable biteVariable = new DynamicBiteVariable();

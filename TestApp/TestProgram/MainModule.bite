@@ -3,10 +3,10 @@ module HelloWorld;
 import System; 
 using System;
 
-var testClassInterface = new CSharpInterface() {
+var testClassInterface = new CSharpInterface();
 testClassInterface.Type = "TestClassCSharp";
 testClassInterface.ConstructorArguments[0] = 0;
-testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
+testClassInterface.ConstructorArgumentsTypes[0] = "int";
 
 
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
