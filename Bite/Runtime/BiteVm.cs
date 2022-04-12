@@ -113,6 +113,11 @@ namespace Bite.Runtime
             return Run();
             
         }
+        
+        public BiteVmInterpretResult ContinueInterpret( )
+        {
+            return Run();
+        }
 
         public void RegisterExternalGlobalObject( string varName, object data )
         {
@@ -166,22 +171,26 @@ namespace Bite.Runtime
 
         private BiteVmInterpretResult Run()
         {
-            bool waitForOtherThread = m_RunBiteProgramOnSecondThread && (m_MainThread == Thread.CurrentThread);
+            bool waitForOtherThread = m_RunBiteProgramOnSecondThread && (m_MainThread == Thread.CurrentThread) && !m_SwitchToMainThreadForExecution;
             while (true)
             {
                 while ( waitForOtherThread )
                 {
-                    if ( m_ReturnWhenWaitingForMainThreadExecution )
-                    {
-                        return BiteVmInterpretResult.InterpretOk;
-                    }
+                    
                     lock ( m_ThreadLock )
                     {
                         if ( (m_SwitchToMainThreadForExecution && m_MainThread == Thread.CurrentThread) || (m_MainThread != Thread.CurrentThread && !m_SwitchToMainThreadForExecution) )
                         {
                             waitForOtherThread = false;
+                            break;
                         }
+                        
                     }
+                    if ( m_ReturnWhenWaitingForMainThreadExecution && m_MainThread == Thread.CurrentThread)
+                    {
+                        return BiteVmInterpretResult.InterpretOk;
+                    }
+                   
                 }
                 if (m_CurrentInstructionPointer < m_CurrentChunk.Code.Length)
                 {
