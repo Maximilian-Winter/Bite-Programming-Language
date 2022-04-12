@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Bite.Modules.Callables;
 using Bite.Runtime.Bytecode;
+using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Symbols;
 
 namespace Bite.Runtime.CodeGen
@@ -34,17 +35,18 @@ public class BiteProgram
         CurrentChunk = MainChunk;
         CompiledChunks = new Dictionary < string, BinaryChunk >();
     }
-    
+
+    public TypeRegistry TypeRegistry { get; } = new TypeRegistry();
     
     /// <summary>
-    ///     Creates a new <see cref="BiteVm" /> and executes the <see cref="BiteProgram" />
+    /// Creates a new <see cref="BiteVm" /> and executes the <see cref="BiteProgram" />
     /// </summary>
     /// <returns></returns>
     public BiteResult Run( Dictionary < string, object > externalObjects = null )
     {
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
-        biteVm.RegisterSystemModuleCallables();
+        biteVm.RegisterSystemModuleCallables( TypeRegistry );
         biteVm.RegisterExternalGlobalObjects( externalObjects );
 
         BiteVmInterpretResult result = biteVm.Interpret( this );

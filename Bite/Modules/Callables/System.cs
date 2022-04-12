@@ -7,9 +7,9 @@ namespace Bite.Modules.Callables
 
 public static class SystemModule
 {
-    public static void RegisterSystemModuleCallables( this BiteVm biteVm )
+    public static void RegisterSystemModuleCallables( this BiteVm biteVm, TypeRegistry typeRegistry = null )
     {
-        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
+        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm( typeRegistry ) );
         biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
         biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
     }

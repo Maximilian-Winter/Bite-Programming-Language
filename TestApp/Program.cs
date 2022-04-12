@@ -20,7 +20,7 @@ public class Program
         
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "*.bite",
+            "MainModule.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
@@ -32,6 +32,8 @@ public class Program
             biteProg.Add( File.ReadAllText( file ) );
             BiteProgram program = compiler.Compile(biteProg);
 
+            program.TypeRegistry.RegisterType<TestClassCSharp>();
+            
             if ( program != null )
             {
                 program.Run();
@@ -74,7 +76,9 @@ public class Program
 
             }
         }
-       
+
+        Console.ReadLine();
+
     }
 
     #endregion

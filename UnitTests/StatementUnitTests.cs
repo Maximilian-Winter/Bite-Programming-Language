@@ -243,7 +243,7 @@ public class StatementUnitTests
         Assert.Equal( 5, result.ReturnValue.NumberData );
     }
 
-        [Fact]
+    [Fact]
     public void ClassFieldsInitializers()
     {
         string statements = @"class TestClass

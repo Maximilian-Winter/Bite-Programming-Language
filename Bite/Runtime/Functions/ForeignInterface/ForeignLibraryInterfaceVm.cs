@@ -8,7 +8,28 @@ namespace Bite.Runtime.Functions.ForeignInterface
 
 public class ForeignLibraryInterfaceVm : IBiteVmCallable
 {
+    private readonly TypeRegistry m_TypeRegistry;
+
+    public Type ResolveType( string name )
+    {
+        if (m_TypeRegistry == null || !m_TypeRegistry.TryResolveType( name, out Type type ))
+        {
+            type = Type.GetType( name );
+        }
+
+        return type;
+    }
+
     #region Public
+
+    public ForeignLibraryInterfaceVm()
+    {
+    }
+
+    public ForeignLibraryInterfaceVm(TypeRegistry typeRegistry)
+    {
+        m_TypeRegistry = typeRegistry;
+    }
 
     public object Call( List < DynamicBiteVariable > arguments )
     {
@@ -20,7 +41,8 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                 if ( !string.IsNullOrEmpty( typeString ) )
                 {
-                    Type type = Type.GetType( typeString );
+                    Type type = ResolveType( typeString );
+
                     DynamicBiteVariable methodString = fliObject.Get( "Method" );
 
                     if ( methodString.DynamicType == DynamicVariableType.String &&
