@@ -3,6 +3,7 @@ using System.Text;
 using Antlr4.Runtime;
 using AntlrBiteParser;
 using Bite.Ast;
+using Bite.Modules;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 using Bite.Symbols;
@@ -13,39 +14,6 @@ namespace Bite.Compiler
 
 public class BiteCompiler
 {
-    // TODO: Move somewhere else?
-    /// <summary>
-    /// System Module Declaration
-    /// </summary>
-    public string SystemModule = @"module System;
-
-class Object {
-
-}
-
-class CSharpInterface {
-var Type = new Object();
-var Method = new Object();
-var Arguments = new Object();
-var ConstructorArguments = new Object();
-var ConstructorArgumentsTypes = new Object();
-var ObjectInstance = new Object();
-}
-
-extern callable function CSharpInterfaceCall ( object );
-
-function CreateFromType( typeName, arguments, types ) {
-    var interface = new CSharpInterface();
-    interface.Type = typeName;
-    interface.ConstructorArguments = arguments;
-    interface.ConstructorArgumentsTypes = types;
-    return CSharpInterfaceCall ( interface );
-}
-
-extern callable function Print ( object );
-
-extern callable function PrintLine ( object );";
-
     #region Public Compilers
 
     public BiteProgram Compile( IEnumerable < string > modules )
@@ -99,11 +67,24 @@ extern callable function PrintLine ( object );";
 
     #region Parsers
 
+    private static string m_SystemModule;
+
+    private string GetSystemModule()
+    {
+        // Memoize system module so we don't load it from the assembly resource every time we compile
+        if ( m_SystemModule == null )
+        {
+            m_SystemModule = ModuleLoader.LoadModule( "System" );
+        }
+        return m_SystemModule;
+    }
+
     private ProgramBaseNode ParseModules( IEnumerable < string > modules )
     {
         ProgramBaseNode programBase = new ProgramBaseNode();
 
-        ModuleBaseNode systemModuleBase = ParseModule( SystemModule );
+
+        ModuleBaseNode systemModuleBase = ParseModule( GetSystemModule() );
         programBase.AddModule( systemModuleBase );
 
         foreach (string biteModule in modules)

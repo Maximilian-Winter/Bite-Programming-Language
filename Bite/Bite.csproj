@@ -17,6 +17,14 @@
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <None Remove="Modules\System.bite" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Modules\System.bite" />
+	</ItemGroup>
+
 
 	<ItemGroup>
 	  <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />

@@ -1,0 +1,36 @@
+﻿// Bite System Module
+
+module System;
+
+class Object {
+
+}
+
+class CSharpInterface {
+    var Type = new Object();
+    var Method = new Object();
+    var Arguments = new Object();
+    var ConstructorArguments = new Object();
+    var ConstructorArgumentsTypes = new Object();
+    var ObjectInstance = new Object();
+}
+
+// Linked to ForeignLibraryInterfaceVm
+
+extern callable function CSharpInterfaceCall ( object );
+
+function CreateFromType( typeName, arguments, types ) {
+    var interface = new CSharpInterface();
+    interface.Type = typeName;
+    interface.ConstructorArguments = arguments;
+    interface.ConstructorArgumentsTypes = types;
+    return CSharpInterfaceCall ( interface );
+}
+
+// Linked to PrintFunctionVm
+
+extern callable function Print ( object );
+
+// Linked to PrintLineFunctionVm
+
+extern callable function PrintLine ( object );
