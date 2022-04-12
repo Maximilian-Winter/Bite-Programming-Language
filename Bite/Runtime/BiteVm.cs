@@ -184,7 +184,7 @@ namespace Bite.Runtime
                         }
                         
                     }
-                    if ( m_ReturnWhenWaitingForMainThreadExecution && m_MainThread == Thread.CurrentThread && !m_SwitchToMainThreadForExecution)
+                    if ( m_ReturnWhenWaitingForMainThreadExecution && m_MainThread == Thread.CurrentThread )
                     {
                         return BiteVmInterpretResult.InterpretOk;
                     }

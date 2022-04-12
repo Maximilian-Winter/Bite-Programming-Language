@@ -18,7 +18,7 @@ public class PrintLineFunctionVm : IBiteVmCallable
             
             for ( int i = 0; i < arraySize; i++ )
             {
-                Console.WriteLine( arguments[i].ToString() );
+                Console.WriteLine( arguments[i].ToString() + " " + Thread.CurrentThread.IsBackground );
             }
         }
         else
