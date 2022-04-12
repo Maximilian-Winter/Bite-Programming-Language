@@ -202,6 +202,48 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void ClassExpressionAssignment()
+    {
+        string statements = @"class Foo {
+              var x = 5;
+            }
+
+            class Bar {
+               var foo;
+            }
+
+            var a = new Bar();
+
+            a.foo = new Foo();
+
+            a.foo.x;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 5, result.ReturnValue.NumberData );
+    }
+
+    [Fact]
+    public void ClassExpressionArgument()
+    {
+        string statements = @"class Foo {
+              var x = 5;
+            }
+
+            function bar(foo) {
+                return foo.x;
+            }
+
+            var a = bar(new Foo());
+            
+            a;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( 5, result.ReturnValue.NumberData );
+    }
+
+        [Fact]
     public void ClassFieldsInitializers()
     {
         string statements = @"class TestClass
