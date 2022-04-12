@@ -321,11 +321,11 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitPrimary([NotNull] BITEParser.PrimaryContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="BITEParser.propertyInitialization"/>.
+	/// Visit a parse tree produced by <see cref="BITEParser.memberInitialization"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitPropertyInitialization([NotNull] BITEParser.PropertyInitializationContext context);
+	Result VisitMemberInitialization([NotNull] BITEParser.MemberInitializationContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.privateModifier"/>.
 	/// </summary>

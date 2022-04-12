@@ -1,7 +1,7 @@
 namespace Bite.Ast
 {
 
-public class PropertyInitializationNode : AstBaseNode
+public class MemberInitializationNode : AstBaseNode
 {
     public Identifier Identifier;
     public ExpressionBaseNode Expression;

@@ -229,7 +229,7 @@ arrayExpression
 elementInitialization
 dictionaryExpression
 primary
-propertyInitialization
+memberInitialization
 privateModifier
 publicModifier
 abstractModifier

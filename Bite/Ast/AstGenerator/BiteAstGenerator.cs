@@ -779,9 +779,9 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
     }
 
 
-    public override AstBaseNode VisitPropertyInitialization( BITEParser.PropertyInitializationContext context )
+    public override AstBaseNode VisitMemberInitialization( BITEParser.MemberInitializationContext context )
     {
-        return new PropertyInitializationNode()
+        return new MemberInitializationNode()
         {
             Identifier = new Identifier( context.Identifier().Symbol.Text ),
             Expression = (ExpressionBaseNode) VisitExpression( context.expression() )
@@ -836,11 +836,11 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
         if ( initializerExpression != null )
         {
-            classInstanceDeclarationBaseNode.Initializers = new List < PropertyInitializationNode >();
-            foreach ( var initialization in initializerExpression.propertyInitialization() )
+            classInstanceDeclarationBaseNode.Initializers = new List < MemberInitializationNode >();
+            foreach ( var initialization in initializerExpression.memberInitialization() )
             {
                 classInstanceDeclarationBaseNode.Initializers.Add(
-                    ( PropertyInitializationNode ) VisitPropertyInitialization( initialization ) );
+                    ( MemberInitializationNode ) VisitMemberInitialization( initialization ) );
             }
         }
 

@@ -74,7 +74,7 @@ public partial class BITEParser : Parser {
 		RULE_bitwiseXor = 35, RULE_bitwiseAnd = 36, RULE_equality = 37, RULE_relational = 38, 
 		RULE_shift = 39, RULE_additive = 40, RULE_multiplicative = 41, RULE_unary = 42, 
 		RULE_call = 43, RULE_arrayExpression = 44, RULE_elementInitialization = 45, 
-		RULE_dictionaryExpression = 46, RULE_primary = 47, RULE_propertyInitialization = 48, 
+		RULE_dictionaryExpression = 46, RULE_primary = 47, RULE_memberInitialization = 48, 
 		RULE_privateModifier = 49, RULE_publicModifier = 50, RULE_abstractModifier = 51, 
 		RULE_staticModifier = 52, RULE_initializerExpression = 53, RULE_parameters = 54, 
 		RULE_arguments = 55, RULE_inheritance = 56, RULE_callArguments = 57, RULE_elementAccess = 58, 
@@ -91,7 +91,7 @@ public partial class BITEParser : Parser {
 		"ternary", "logicOr", "logicAnd", "bitwiseOr", "bitwiseXor", "bitwiseAnd", 
 		"equality", "relational", "shift", "additive", "multiplicative", "unary", 
 		"call", "arrayExpression", "elementInitialization", "dictionaryExpression", 
-		"primary", "propertyInitialization", "privateModifier", "publicModifier", 
+		"primary", "memberInitialization", "privateModifier", "publicModifier", 
 		"abstractModifier", "staticModifier", "initializerExpression", "parameters", 
 		"arguments", "inheritance", "callArguments", "elementAccess", "elementIdentifier", 
 		"argumentExpression", "parametersIdentifier", "string", "stringPart"
@@ -4058,29 +4058,29 @@ public partial class BITEParser : Parser {
 		return _localctx;
 	}
 
-	public partial class PropertyInitializationContext : ParserRuleContext {
+	public partial class MemberInitializationContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode Identifier() { return GetToken(BITEParser.Identifier, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode AssignOperator() { return GetToken(BITEParser.AssignOperator, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ExpressionContext expression() {
 			return GetRuleContext<ExpressionContext>(0);
 		}
-		public PropertyInitializationContext(ParserRuleContext parent, int invokingState)
+		public MemberInitializationContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_propertyInitialization; } }
+		public override int RuleIndex { get { return RULE_memberInitialization; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IBITEParserVisitor<TResult> typedVisitor = visitor as IBITEParserVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitPropertyInitialization(this);
+			if (typedVisitor != null) return typedVisitor.VisitMemberInitialization(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public PropertyInitializationContext propertyInitialization() {
-		PropertyInitializationContext _localctx = new PropertyInitializationContext(Context, State);
-		EnterRule(_localctx, 96, RULE_propertyInitialization);
+	public MemberInitializationContext memberInitialization() {
+		MemberInitializationContext _localctx = new MemberInitializationContext(Context, State);
+		EnterRule(_localctx, 96, RULE_memberInitialization);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
@@ -4252,11 +4252,11 @@ public partial class BITEParser : Parser {
 	}
 
 	public partial class InitializerExpressionContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public PropertyInitializationContext[] propertyInitialization() {
-			return GetRuleContexts<PropertyInitializationContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public MemberInitializationContext[] memberInitialization() {
+			return GetRuleContexts<MemberInitializationContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public PropertyInitializationContext propertyInitialization(int i) {
-			return GetRuleContext<PropertyInitializationContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public MemberInitializationContext memberInitialization(int i) {
+			return GetRuleContext<MemberInitializationContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] CommaSeparator() { return GetTokens(BITEParser.CommaSeparator); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CommaSeparator(int i) {
@@ -4284,7 +4284,7 @@ public partial class BITEParser : Parser {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 637;
-			propertyInitialization();
+			memberInitialization();
 			State = 642;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -4294,7 +4294,7 @@ public partial class BITEParser : Parser {
 				State = 638;
 				Match(CommaSeparator);
 				State = 639;
-				propertyInitialization();
+				memberInitialization();
 				}
 				}
 				State = 644;

@@ -314,13 +314,13 @@ primary
     | dictionaryExpression
     ;
 
-propertyInitialization  : Identifier AssignOperator expression;
+memberInitialization    : Identifier AssignOperator expression;
 
 privateModifier         : DeclarePrivate;
 publicModifier          : DeclarePublic;
 abstractModifier        : DeclareAbstract;
 staticModifier          : DeclareStatic;                     
-initializerExpression   : propertyInitialization ( CommaSeparator propertyInitialization )*;           
+initializerExpression   : memberInitialization ( CommaSeparator memberInitialization )*;           
 parameters              : parametersIdentifier ( CommaSeparator parametersIdentifier )* ;
 arguments               : argumentExpression ( CommaSeparator argumentExpression )* ; 
 inheritance             : Identifier ( CommaSeparator Identifier )* ;                  

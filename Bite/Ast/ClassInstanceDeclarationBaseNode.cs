@@ -11,7 +11,7 @@ public class ClassInstanceDeclarationBaseNode : DeclarationBaseNode
     public Identifier ClassName;
     public List < Identifier > ClassPath;
     public bool IsVariableRedeclaration;
-    public List < PropertyInitializationNode > Initializers;
+    public List < MemberInitializationNode > Initializers;
 
     #region Public
 
