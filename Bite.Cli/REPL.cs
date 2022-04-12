@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Bite.Compiler;
+using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -36,10 +37,8 @@ public class REPL
 
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
-        // TODO: move somewhere else!
-        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
-        biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
-        biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
+
+        biteVm.RegisterSystemModuleCallables();
 
         BiteProgram program = null;
 

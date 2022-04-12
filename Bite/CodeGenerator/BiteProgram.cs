@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using Bite.Ast;
+using Bite.Modules.Callables;
 using Bite.Runtime.Bytecode;
-using Bite.Runtime.Functions;
-using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Symbols;
 
 namespace Bite.Runtime.CodeGen
@@ -46,18 +44,8 @@ public class BiteProgram
     {
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
-        // TODO: move somewhere else!
-        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm() );
-        biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
-        biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
-
-        if ( externalObjects != null )
-        {
-            foreach ( KeyValuePair < string, object > externalCSharpObject in externalObjects )
-            {
-                biteVm.RegisterExternalGlobalObject( externalCSharpObject.Key, externalCSharpObject.Value );
-            }
-        }
+        biteVm.RegisterSystemModuleCallables();
+        biteVm.RegisterExternalGlobalObjects( externalObjects );
 
         BiteVmInterpretResult result = biteVm.Interpret( this );
 

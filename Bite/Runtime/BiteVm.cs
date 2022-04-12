@@ -105,7 +105,13 @@ namespace Bite.Runtime
         
         public void RegisterExternalGlobalObjects( Dictionary <string, object> externalObjects )
         {
-            m_ExternalObjects = externalObjects;
+            if ( externalObjects != null )
+            {
+                foreach (var externalObject in externalObjects)
+                {
+                    m_ExternalObjects.Add( externalObject.Key, externalObject.Value );
+                }
+            }
         }
 
         public void RegisterCallable( string linkId, IBiteVmCallable callable )
