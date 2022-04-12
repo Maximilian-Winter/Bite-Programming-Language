@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -57,7 +59,12 @@ namespace Bite.Runtime
         private string m_SetVarExternalName = "";
         private bool m_GetNextVarByRef = false;
         private bool m_PushNextAssignmentOnStack = false;
+        private bool m_RunBiteProgramOnSecondThread = false;
+        private bool m_SwitchToMainThreadForExecution = false;
+
         private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
+        static readonly object m_ThreadLock = new object();
+        private Thread m_MainThread;
 
         private Dictionary<string, object> m_ExternalObjects = new Dictionary<string, object>();
         private readonly Dictionary<string, IBiteVmCallable> m_Callables = new Dictionary<string, IBiteVmCallable>();
@@ -82,10 +89,11 @@ namespace Bite.Runtime
         }
 
         
-        public BiteVmInterpretResult Interpret( BiteProgram context )
+        public BiteVmInterpretResult Interpret( BiteProgram context, bool runBiteProgramOnSecondThread = false )
         {
+            m_MainThread = Thread.CurrentThread;
             m_CurrentChunk = context.CompiledMainChunk;
-            
+            m_RunBiteProgramOnSecondThread = runBiteProgramOnSecondThread;
             foreach ( var compiledChunk in CompiledChunks)
             {
                 if ( !context.CompiledChunks.ContainsKey( compiledChunk.Key ) )
@@ -95,7 +103,17 @@ namespace Bite.Runtime
             }
             CompiledChunks = context.CompiledChunks;
             m_CurrentInstructionPointer = 0;
-            return Run();
+
+            if ( m_RunBiteProgramOnSecondThread )
+            {
+                Task.Run( Run );
+                return Run();
+            }
+            else
+            {
+                return Run();
+            }
+            
         }
 
         public void RegisterExternalGlobalObject( string varName, object data )
@@ -150,8 +168,19 @@ namespace Bite.Runtime
 
         private BiteVmInterpretResult Run()
         {
+            bool waitForOtherThread = m_RunBiteProgramOnSecondThread && (m_MainThread == Thread.CurrentThread);
             while (true)
             {
+                while ( waitForOtherThread )
+                {
+                    lock ( m_ThreadLock )
+                    {
+                        if ( (m_SwitchToMainThreadForExecution && m_MainThread == Thread.CurrentThread) || (m_MainThread != Thread.CurrentThread && !m_SwitchToMainThreadForExecution) )
+                        {
+                            waitForOtherThread = false;
+                        }
+                    }
+                }
                 if (m_CurrentInstructionPointer < m_CurrentChunk.Code.Length)
                 {
 #if BITE_VM_DEBUG_TRACE_EXECUTION
@@ -167,6 +196,7 @@ namespace Bite.Runtime
                 m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer );
 #endif
 
+                   
                     BiteVmOpCodes instruction = ReadInstruction();
 
                     switch (instruction)
@@ -189,6 +219,29 @@ namespace Bite.Runtime
 
                                 break;
                             }
+                        
+                        case BiteVmOpCodes.OpExecuteOnMainThread:
+                        {
+                            if ( m_MainThread != Thread.CurrentThread )
+                            {
+                                lock ( m_ThreadLock )
+                                {
+                                    m_SwitchToMainThreadForExecution = true;
+                                    waitForOtherThread = true;
+                                }
+                            }
+                            break;
+                        }
+                        
+                        case BiteVmOpCodes.OpStopExecutingOnMainThread:
+                        {
+                            lock ( m_ThreadLock )
+                            {
+                                m_SwitchToMainThreadForExecution = false;
+                                waitForOtherThread = true;
+                            }
+                            break;
+                        }
 
                         case BiteVmOpCodes.OpDefineModule:
                             {
@@ -7133,6 +7186,13 @@ namespace Bite.Runtime
                     }
                     else
                     {
+                        if ( m_MainThread != Thread.CurrentThread )
+                        {
+                            lock ( m_ThreadLock )
+                            {
+                                m_SwitchToMainThreadForExecution = true;
+                            }
+                        }
                         if (m_VmStack.Count > 0)
                         {
                             ReturnValue = m_VmStack.Peek();
