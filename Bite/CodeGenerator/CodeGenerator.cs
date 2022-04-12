@@ -35,14 +35,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     public override object Visit( ProgramBaseNode node )
     {
-        m_BiteProgram.PushChunk();
-
-        //m_BiteProgram.SetCurrentChunk( SystemModuleCodeGenerator.GenerateFrom( node ) );
-
-        //m_BiteProgram.SaveCurrentChunk( "System.CSharpInterface" );
-
-        m_BiteProgram.PopChunk();
-
         foreach ( ModuleBaseNode module in node.GetModulesInDepedencyOrder() )
         {
             Compile( module );
@@ -372,6 +364,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         return null;
     }
 
+
     public override object Visit( ClassInstanceDeclarationBaseNode node )
     {
         int d = 0;
@@ -424,17 +417,18 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         d,
                         -1,
                         variableSymbol.InsertionOrderNumber );
-                    
+
                     ByteCode byteCode2 = new ByteCode(
                         BiteVmOpCodes.OpGetNextVarByRef );
 
                     m_PostfixInstructions.Push( new BytecodeList() );
+
                     foreach ( ExpressionBaseNode argument in node.ArgumentsBase.Expressions )
                     {
                         Compile( argument );
                     }
-                    
-                    
+
+
                     EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.ArgumentsBase.Expressions.Count, 0 );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
@@ -442,6 +436,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     {
                         EmitByteCode( code );
                     }
+
                     EmitByteCode( byteCode2 );
                     EmitByteCode( byteCode );
                     EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
@@ -463,6 +458,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                     ByteCode byteCode2 = new ByteCode(
                         BiteVmOpCodes.OpGetNextVarByRef );
+
                     EmitByteCode( byteCode2 );
                     EmitByteCode( byteCode );
                     EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
@@ -484,6 +480,52 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.QualifiedName ) );
             }
         }*/
+
+        if ( node.Initializers != null )
+        {
+            foreach ( var initializer in node.Initializers )
+            {
+                initializer.Expression.AstScopeNode = node.AstScopeNode;
+
+                ExpressionBaseNode assignment = new ExpressionBaseNode()
+                {
+                    AssignmentBase = new AssignmentBaseNode()
+                    {
+                        AstScopeNode = node.AstScopeNode,
+                        AssignmentBase = initializer.Expression.AssignmentBase,
+                        CallBase = new CallBaseNode()
+                        {
+                            AstScopeNode = node.AstScopeNode,
+                            PrimaryBase = new PrimaryBaseNode()
+                            {
+                                AstScopeNode = node.AstScopeNode,
+                                PrimaryType = PrimaryBaseNode.PrimaryTypes.Identifier,
+                                PrimaryId = node.InstanceId
+                            },
+                            CallEntries = new List < CallEntry >()
+                            {
+                                new CallEntry()
+                                {
+                                    PrimaryBase = new PrimaryBaseNode()
+                                    {
+                                        AstScopeNode = node.AstScopeNode,
+                                        PrimaryType = PrimaryBaseNode.PrimaryTypes.Identifier,
+                                        PrimaryId = initializer.Identifier
+                                    }
+                                }
+                            },
+                            CallType = CallTypes.PrimaryCall
+                        },
+                        OperatorType = AssignmentOperatorTypes.Assign,
+                        Type = AssignmentTypes.Assignment
+
+                    }
+                };
+
+                Visit( assignment );
+            }
+        }
+
         return null;
     }
 

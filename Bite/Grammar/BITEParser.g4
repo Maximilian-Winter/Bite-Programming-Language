@@ -288,7 +288,7 @@ unary
     ;
 
 call
-    : primary (callArguments | DotOperator Identifier| elementAccess )*
+    : primary ( callArguments | DotOperator Identifier | elementAccess )*
     ;
 
 primary
@@ -302,11 +302,13 @@ primary
     | string
     ;
 
+propertyInitialization  : Identifier AssignOperator expression;
+
 privateModifier         : DeclarePrivate;
 publicModifier          : DeclarePublic;
 abstractModifier        : DeclareAbstract;
 staticModifier          : DeclareStatic;                     
-initializerExpression   : expression ( CommaSeperator expression )*;           
+initializerExpression   : propertyInitialization ( CommaSeperator propertyInitialization )*;           
 parameters              : parametersIdentifier ( CommaSeperator parametersIdentifier )* ;
 arguments               : argumentExpression ( CommaSeperator argumentExpression )* ; 
 inheritance             : Identifier ( CommaSeperator Identifier )* ;                  

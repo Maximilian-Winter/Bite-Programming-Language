@@ -123,7 +123,7 @@ public class StatementUnitTests
         Assert.Equal( 11, result.ReturnValue.NumberData );
     }
 
-        [Fact]
+    [Fact]
     public void ClassFields()
     {
         string statements = @"class TestClass
@@ -141,6 +141,57 @@ public class StatementUnitTests
     }
 
     [Fact]
+    public void ClassFieldsAssignment()
+    {
+        string statements = @"class TestClass
+            {
+                var x;
+                var y;
+            }
+
+            var a = new TestClass();
+
+            function foo () {
+               return 5;
+            }
+
+            a.x = foo();
+            a.y = ""five"";
+
+            a.x + a.y;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "5five", result.ReturnValue.StringData );
+    }
+
+    [Fact]
+    public void ClassFieldsInitializers()
+    {
+        string statements = @"class TestClass
+            {
+                var x;
+                var y;
+            }
+
+            function foo () {
+               return 5;
+            }
+
+            var a = new TestClass() {
+                x = ""Hello"",
+                y = 10,
+                z = foo()
+            }
+
+            a.x + a.y + a.z;";
+
+        BiteResult result = ExecStatements( statements );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+        Assert.Equal( "Hello105", result.ReturnValue.StringData );
+    }
+
+        [Fact]
     public void ClassInstanceAsArgument()
     {
         string statements = @"class TestClass

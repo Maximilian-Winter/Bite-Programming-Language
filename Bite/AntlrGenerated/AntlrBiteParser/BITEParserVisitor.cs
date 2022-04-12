@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Language Dev 3/Bite Programming Language/Bite/Grammar\BITEParser.g4 by ANTLR 4.9.2
+// Generated from BITEParser.g4 by ANTLR 4.9.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -177,6 +177,18 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitUsingStatement([NotNull] BITEParser.UsingStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.startThreadStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStartThreadStatement([NotNull] BITEParser.StartThreadStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.useThreadStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUseThreadStatement([NotNull] BITEParser.UseThreadStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.whileStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -291,6 +303,12 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitPrimary([NotNull] BITEParser.PrimaryContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.propertyInitialization"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPropertyInitialization([NotNull] BITEParser.PropertyInitializationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.privateModifier"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -314,6 +332,12 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStaticModifier([NotNull] BITEParser.StaticModifierContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.initializerExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInitializerExpression([NotNull] BITEParser.InitializerExpressionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.parameters"/>.
 	/// </summary>
