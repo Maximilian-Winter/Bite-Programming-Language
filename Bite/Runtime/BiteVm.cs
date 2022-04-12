@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-#if NET462
-using System.Windows.Threading;
-#endif
+using System.Threading;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -66,10 +64,10 @@ namespace Bite.Runtime
         private readonly Dictionary<string, IBiteVmCallable> m_Callables = new Dictionary<string, IBiteVmCallable>();
 
         public Dictionary<string, BinaryChunk> CompiledChunks { get; private set; }
-#if NET462
-        public Dispatcher Dispatcher { get; set; }
-#endif 
+
         public DynamicBiteVariable ReturnValue { get; private set; }
+
+        public SynchronizationContext SynchronizationContext { get; set; }
 
         #region Public
 
@@ -86,7 +84,10 @@ namespace Bite.Runtime
             CompiledChunks = new Dictionary < string, BinaryChunk >();
         }
 
-        
+        private bool m_ContextSwitch;
+        private bool m_ExitForContextSwitch;
+        private SemaphoreSlim m_SemaphoreSlim = new SemaphoreSlim( 0 );
+
         public BiteVmInterpretResult Interpret( BiteProgram context )
         {
             m_CurrentChunk = context.CompiledMainChunk;
@@ -100,7 +101,30 @@ namespace Bite.Runtime
             }
             CompiledChunks = context.CompiledChunks;
             m_CurrentInstructionPointer = 0;
-            return Run();
+
+            BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
+
+            while ( result == BiteVmInterpretResult.Continue )
+            {
+                m_ExitForContextSwitch = false;
+
+                if ( m_ContextSwitch )
+                {
+                    SynchronizationContext.Post( new SendOrPostCallback( ( o ) =>
+                    {
+                        result = Run();
+                    } ), null );
+
+                    m_SemaphoreSlim.Wait();
+                }
+                else
+                {
+                    result = Run();
+                }
+
+            }
+
+            return result;
         }
 
         public void RegisterExternalGlobalObject( string varName, object data )
@@ -155,7 +179,9 @@ namespace Bite.Runtime
 
         private BiteVmInterpretResult Run()
         {
-            while (true)
+            BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
+
+            while ( !m_ExitForContextSwitch )
             {
                 if (m_CurrentInstructionPointer < m_CurrentChunk.Code.Length)
                 {
@@ -176,6 +202,22 @@ namespace Bite.Runtime
 
                     switch (instruction)
                     {
+                        case BiteVmOpCodes.OpSwitchContext:
+                            {
+                                m_ContextSwitch = true;
+                                m_ExitForContextSwitch = true;
+
+                                break;
+                            }
+
+                        case BiteVmOpCodes.OpReturnContext:
+                            {
+                                m_ContextSwitch = false;
+                                m_ExitForContextSwitch = true;
+                                m_SemaphoreSlim.Release();
+                                break;
+                            }
+
                         case BiteVmOpCodes.OpNone:
                             {
                                 break;
@@ -1186,11 +1228,6 @@ namespace Bite.Runtime
                                                 if (m_CachedProperties.ContainsKey( type ))
                                             {
 
-#if NET462
-                                                Dispatcher.Invoke( () =>
-                                                {
-#endif //NET462
-
                                                     for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
                                                     {
                                                         if ( m_CachedProperties[type][i].Name ==
@@ -1259,17 +1296,10 @@ namespace Bite.Runtime
                                                             break;
                                                         }
                                                     }
-#if NET462
-                                                } );
-#endif //NET462
                                             }
                                         else
                                             {
                                                 m_CachedProperties.Add( type, type.GetProperties() );
-#if NET462
-                                                Dispatcher.Invoke( () =>
-                                                {
-#endif //NET462
 
                                                     for (int i = 0; i < m_CachedProperties[type].Length; i++)
                                                 {
@@ -1326,10 +1356,7 @@ namespace Bite.Runtime
                                                         break;
                                                     }
                                                 }
-#if NET462
 
-                                                } );
-#endif
                                             }
 
                                             if (!valuePushed)
@@ -7176,6 +7203,8 @@ namespace Bite.Runtime
                     }
                 }
             }
+
+            return result;
         }
 
         #endregion

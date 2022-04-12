@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Threading;
@@ -19,6 +20,7 @@ namespace ThreadTest
     {
         private BiteVm vm = new BiteVm();
         public Particle particle;
+        private System.Windows.Forms.Timer Timer;
 
         public Form1()
         {
@@ -27,11 +29,20 @@ namespace ThreadTest
 
         private void Form1_Load( object sender, EventArgs e )
         {
+            //Timer = new System.Windows.Forms.Timer();
+            //Timer.Interval = 166;
+            //Timer.Tick += ( o, args ) =>
+            //{
+            //    pictureBox1.Invalidate();
+            //};
+            //Timer.Start();
+
             Task.Run( () => MainThread() );
 
             vm.InitVm();
             vm.RegisterSystemModuleCallables();
-            vm.Dispatcher = Dispatcher.CurrentDispatcher;
+            vm.SynchronizationContext = SynchronizationContext.Current;
+
 
             vm.RegisterExternalGlobalObjects( new Dictionary < string, object >()
             {
@@ -52,7 +63,10 @@ namespace ThreadTest
                     if ( particle.Y >= 400 || particle.Y <= 0 ) {
                         particle.dY = -particle.dY;
                     }
-                    textbox.Text = particle.X + ""px"";
+
+                    sync {
+                        textbox.Text = particle.X + ""px"";
+                    }
                 }";
 
             var program = compiler.Compile( new[] { mod } );
@@ -73,15 +87,22 @@ namespace ThreadTest
 
             while (true)
             {
-                pictureBox1.Invalidate();
+
+                this.Invalidate();
+
+                Thread.Sleep( 6 );
             }
         }
 
         private void pictureBox1_Paint( object sender, PaintEventArgs e )
         {
+        }
+
+        private void Form1_Paint( object sender, PaintEventArgs e )
+        {
             var g = e.Graphics;
             g.Clear( Color.White );
-            g.DrawEllipse( Pens.Black, particle.X, particle.Y, 10, 10 );
+            g.FillEllipse( Brushes.Black, particle.X, particle.Y, 10, 10 );
         }
     }
 }

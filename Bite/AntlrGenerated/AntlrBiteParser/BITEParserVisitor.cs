@@ -195,6 +195,12 @@ public interface IBITEParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitWhileStatement([NotNull] BITEParser.WhileStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="BITEParser.syncBlock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSyncBlock([NotNull] BITEParser.SyncBlockContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="BITEParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
