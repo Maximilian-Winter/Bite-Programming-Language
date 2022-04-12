@@ -12,6 +12,46 @@ execute on main thread
     b = 5;
     PrintLine("Hello World!" + b);
 }
+
+PrintLine("Hello World!" + b);
+
+execute on main thread
+{
+    b = 5;
+    PrintLine("Hello World!" + b);
+}
+
+PrintLine("Hello World!" + b);
+
+execute on main thread
+{
+    b = 5;
+    PrintLine("Hello World!" + b);
+}
+
+PrintLine("Hello World!" + b);
+
+execute on main thread
+{
+    b = 5;
+    PrintLine("Hello World!" + b);
+}
+
+PrintLine("Hello World!" + b);
+
+execute on main thread
+{
+    b = 5;
+    PrintLine("Hello World!" + b);
+}
+
+PrintLine("Hello World!" + b);
+
+execute on main thread
+{
+    b = 5;
+    PrintLine("Hello World!" + b);
+}
 /*
 
 
