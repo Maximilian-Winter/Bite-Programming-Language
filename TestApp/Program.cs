@@ -39,7 +39,7 @@ public class Program
             
             if ( program != null )
             {
-                biteVm.Interpret( program, true );
+                biteVm.Interpret( program, false, true );
                 /*int k = 1;
                 long elapsedMillisecondsAccu = 0;
             

@@ -3,7 +3,15 @@ module HelloWorld;
 import System; 
 using System;
 
-PrintLine("Hello World!");
+var b = 4;
+
+PrintLine("Hello World!" + b);
+
+execute on main thread
+{
+    b = 5;
+    PrintLine("Hello World!" + b);
+}
 /*
 
 

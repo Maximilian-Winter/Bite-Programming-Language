@@ -1149,6 +1149,13 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             return null;
         }
 
+        if ( node is ExecuteOnMainThreadNode executeOnMainThreadNode )
+        {
+            Compile( executeOnMainThreadNode );
+
+            return null;
+        }
+        
         if ( node is ReturnStatementBaseNode returnStatement )
         {
             Compile( returnStatement );
@@ -1734,6 +1741,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
             case IfStatementBaseNode ifStatementNode:
                 return Visit( ifStatementNode );
+            
+            case ExecuteOnMainThreadNode executeOnMainThreadNode:
+                return Visit( executeOnMainThreadNode );
 
             case ReturnStatementBaseNode returnStatement:
                 return Visit( returnStatement );
