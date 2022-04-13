@@ -69,6 +69,10 @@ public class BiteVm
 
     public SynchronizationContext SynchronizationContext { get; set; }
 
+    public CancellationTokenSource CancellationTokenSource { get; set; }
+
+    private CancellationToken m_CancellationToken;
+
     #region Public
 
     public void InitVm()
@@ -86,10 +90,18 @@ public class BiteVm
 
     private bool m_ContextSwitch;
     private bool m_ExitForContextSwitch;
+    private SemaphoreSlim m_SemaphoreSlim = new SemaphoreSlim( 0 );
 
     public BiteVmInterpretResult Interpret( BiteProgram context )
     {
         m_CurrentChunk = context.CompiledMainChunk;
+
+        if ( CancellationTokenSource == null )
+        {
+            CancellationTokenSource = new CancellationTokenSource();
+        }
+
+        m_CancellationToken = CancellationTokenSource.Token;
 
         foreach ( var compiledChunk in CompiledChunks )
         {
@@ -110,8 +122,9 @@ public class BiteVm
 
             if ( m_ContextSwitch )
             {
-                SynchronizationContext.Send( new SendOrPostCallback( ( o ) => { result = Run(); } ), null );
+                SynchronizationContext.Post( new SendOrPostCallback( ( o ) => { result = Run(); } ), null );
 
+                m_SemaphoreSlim.Wait();
             }
             else
             {
@@ -121,6 +134,12 @@ public class BiteVm
         }
 
         return result;
+    }
+
+
+    public void Stop()
+    {
+        CancellationTokenSource.Cancel();
     }
 
     public void RegisterExternalGlobalObject( string varName, object data )
@@ -179,6 +198,11 @@ public class BiteVm
 
         while ( !m_ExitForContextSwitch )
         {
+            if (m_CancellationToken != null && m_CancellationToken.IsCancellationRequested )
+            {
+                return BiteVmInterpretResult.Cancelled;
+            }
+
             if ( m_CurrentInstructionPointer < m_CurrentChunk.Code.Length )
             {
 #if BITE_VM_DEBUG_TRACE_EXECUTION
@@ -210,6 +234,7 @@ public class BiteVm
                     {
                         m_ContextSwitch = false;
                         m_ExitForContextSwitch = true;
+                        m_SemaphoreSlim.Release();
 
                         break;
                     }
@@ -568,7 +593,7 @@ public class BiteVm
                                     m_CachedMethods.Add( callString, fastMethodInfo );
 
                                     object returnVal = fastMethodInfo.Invoke(
-                                        dynamicBiteVariable.ObjectData,
+                                        dynamicBiteVariable.ToObject(),
                                         functionArguments );
 
                                     if ( returnVal != null )
@@ -1860,7 +1885,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         float valueLhs =
                                                             ( float ) m_CachedFields[type][i].GetValue( obj );
@@ -1881,7 +1906,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         int valueLhs =
                                                             ( int ) m_CachedFields[type][i].GetValue( obj );
@@ -1943,7 +1968,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         float valueLhs =
                                                             ( float ) m_CachedFields[type][i].GetValue( obj );
@@ -1964,7 +1989,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         int valueLhs =
                                                             ( int ) m_CachedFields[type][i].GetValue( obj );
@@ -2394,7 +2419,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         float valueLhs =
                                                             ( float ) m_CachedFields[type][i].GetValue( obj );
@@ -2415,7 +2440,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         int valueLhs =
                                                             ( int ) m_CachedFields[type][i].GetValue( obj );
@@ -2477,7 +2502,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         float valueLhs =
                                                             ( float ) m_CachedFields[type][i].GetValue( obj );
@@ -2498,7 +2523,7 @@ public class BiteVm
                                                         }
                                                     }
                                                     else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
+                                                              valueRhs.DynamicType < DynamicVariableType.True )
                                                     {
                                                         int valueLhs =
                                                             ( int ) m_CachedFields[type][i].GetValue( obj );
@@ -7728,6 +7753,7 @@ public class BiteVm
     }
 
     #endregion
+
 }
 
 }

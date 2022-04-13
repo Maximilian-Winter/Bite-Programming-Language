@@ -51,6 +51,8 @@ namespace ThreadTest
             } );
 
 
+            vm.Stop();
+
             BiteCompiler compiler = new BiteCompiler();
 
             var mod = @"module Main;  
