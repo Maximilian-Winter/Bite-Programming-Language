@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Bite.Compiler;
 using Bite.Modules.Callables;
@@ -28,7 +29,7 @@ public class Program
         BiteCompiler compiler = new BiteCompiler();
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
-     
+        
         foreach ( string file in files )
         {
             Console.WriteLine($"File: {file}");
@@ -38,13 +39,20 @@ public class Program
 
             program.TypeRegistry.RegisterType<TestClassCSharp>();
             biteVm.RegisterSystemModuleCallables(program.TypeRegistry);
+            biteVm.SynchronizationContext = new SynchronizationContext();
             if ( program != null )
             {
                 Task.Run(
                     () =>
                     {
                         biteVm.Interpret( program );
-                    } );
+                    } ).ContinueWith(t=>
+                {
+                    if (t.IsFaulted)
+                    {
+                        Console.WriteLine(t.Exception.InnerException.Message);
+                    }
+                }); 
 
                 /*int k = 1;
                 long elapsedMillisecondsAccu = 0;
