@@ -88,9 +88,14 @@ public class BiteVm
         CompiledChunks = new Dictionary < string, BinaryChunk >();
     }
 
-    private bool m_ContextSwitch;
-    private bool m_ExitForContextSwitch;
-    private SemaphoreSlim m_SemaphoreSlim = new SemaphoreSlim( 0 );
+    private enum ContextMode
+    {  
+        CurrentContext,
+        SynchronizedContext,
+    }
+
+    private ContextMode m_ContextMode;
+    private bool m_ExitRunLoop;
 
     public BiteVmInterpretResult Interpret( BiteProgram context )
     {
@@ -118,19 +123,30 @@ public class BiteVm
 
         while ( result == BiteVmInterpretResult.Continue )
         {
-            m_ExitForContextSwitch = false;
+            m_ExitRunLoop = false;
 
-            if ( m_ContextSwitch )
+            switch ( m_ContextMode )
             {
-                SynchronizationContext.Post( new SendOrPostCallback( ( o ) => { result = Run(); } ), null );
+                // Execute instructions in the current context (thread)
+                case ContextMode.CurrentContext:
+                    result = Run();
 
-                m_SemaphoreSlim.Wait();
-            }
-            else
-            {
-                result = Run();
-            }
+                    break;
 
+                // Execute instructions synchronously in the specified synchronized context (thread)
+                case ContextMode.SynchronizedContext:
+                    if ( SynchronizationContext == null )
+                    {
+                        // No context, try to run normally
+                        result = Run();
+                    }
+                    else
+                    {
+                        SynchronizationContext.Send( new SendOrPostCallback( ( o ) => { result = Run(); } ), null );
+                    }
+
+                    break;
+            }
         }
 
         return result;
@@ -196,7 +212,7 @@ public class BiteVm
     {
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
 
-        while ( !m_ExitForContextSwitch )
+        while ( !m_ExitRunLoop )
         {
             if (m_CancellationToken != null && m_CancellationToken.IsCancellationRequested )
             {
@@ -224,17 +240,16 @@ public class BiteVm
                 {
                     case BiteVmOpCodes.OpSwitchContext:
                     {
-                        m_ContextSwitch = true;
-                        m_ExitForContextSwitch = true;
+                        m_ContextMode = ContextMode.SynchronizedContext;
+                        m_ExitRunLoop = true;
 
                         break;
                     }
 
                     case BiteVmOpCodes.OpReturnContext:
                     {
-                        m_ContextSwitch = false;
-                        m_ExitForContextSwitch = true;
-                        m_SemaphoreSlim.Release();
+                        m_ContextMode = ContextMode.CurrentContext;
+                        m_ExitRunLoop = true;
 
                         break;
                     }
