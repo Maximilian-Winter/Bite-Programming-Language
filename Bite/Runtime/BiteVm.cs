@@ -86,7 +86,6 @@ namespace Bite.Runtime
 
         private bool m_ContextSwitch;
         private bool m_ExitForContextSwitch;
-        private SemaphoreSlim m_SemaphoreSlim = new SemaphoreSlim( 0 );
 
         public BiteVmInterpretResult Interpret( BiteProgram context )
         {
@@ -110,12 +109,11 @@ namespace Bite.Runtime
 
                 if ( m_ContextSwitch )
                 {
-                    SynchronizationContext.Post( new SendOrPostCallback( ( o ) =>
+                    SynchronizationContext.Send( new SendOrPostCallback( ( o ) =>
                     {
                         result = Run();
                     } ), null );
 
-                    m_SemaphoreSlim.Wait();
                 }
                 else
                 {
@@ -214,7 +212,6 @@ namespace Bite.Runtime
                             {
                                 m_ContextSwitch = false;
                                 m_ExitForContextSwitch = true;
-                                m_SemaphoreSlim.Release();
                                 break;
                             }
 
