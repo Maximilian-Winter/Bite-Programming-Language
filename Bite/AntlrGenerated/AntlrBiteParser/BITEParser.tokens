@@ -23,9 +23,9 @@ NullReference=22
 ThisReference=23
 UsingDirective=24
 ImportDirective=25
-ExecuteOnMainThread=26
-StartOperator=27
-ThreadOperator=28
+StartStatement=26
+UseStatement=27
+ThreadStatement=28
 AssignOperator=29
 PlusAssignOperator=30
 MinusAssignOperator=31
@@ -111,8 +111,8 @@ ESCAPE_SEQUENCE=88
 'this'=23
 'using'=24
 'import'=25
-'execute on main thread'=26
-'start'=27
+'start'=26
+'use'=27
 'thread'=28
 '='=29
 '+='=30

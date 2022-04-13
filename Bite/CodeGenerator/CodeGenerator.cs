@@ -1354,15 +1354,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ExecuteOnMainThreadNode node )
-    {
-        EmitByteCode( BiteVmOpCodes.OpExecuteOnMainThread );
-        Compile( node.BlockToExecuteOnMainThread );
-        EmitByteCode( BiteVmOpCodes.OpStopExecutingOnMainThread );
-        
-        return null;
-    }
-
     public override object Visit( BinaryOperationBaseNode node )
     {
         Compile( node.LeftOperand );

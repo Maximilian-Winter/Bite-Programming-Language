@@ -970,12 +970,6 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
         return null;
     }
 
-    public override object Visit( ExecuteOnMainThreadNode node )
-    {
-        Resolve( node.BlockToExecuteOnMainThread );
-        return null;
-    }
-
     public override object Visit( BinaryOperationBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;

@@ -62,8 +62,6 @@ public abstract class AstVisitor<T>
     public abstract T Visit( BreakStatementBaseNode node );
 
     public abstract T Visit( InitializerBaseNode node );
-    
-    public abstract T Visit( ExecuteOnMainThreadNode node );
 
     public abstract T Visit( BinaryOperationBaseNode node );
 
