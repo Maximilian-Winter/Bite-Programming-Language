@@ -155,7 +155,12 @@ public class BiteVm
 
     public void Stop()
     {
-        CancellationTokenSource.Cancel();
+        if ( m_ExitRunLoop == false && CancellationTokenSource != null )
+        {
+            CancellationTokenSource.Cancel();
+
+            CancellationTokenSource = new CancellationTokenSource();
+        }
     }
 
     public void RegisterExternalGlobalObject( string varName, object data )
