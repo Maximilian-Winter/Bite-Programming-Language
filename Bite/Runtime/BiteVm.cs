@@ -107,8 +107,7 @@ namespace Bite.Runtime
 
             if ( m_RunBiteProgramOnSecondThread )
             {
-                SynchronizationContext.SetSynchronizationContext( new SynchronizationContext() );
-                Task.Factory.StartNew( Run );
+                Task.Run( Run );
                 return Run();
             }
             return Run();
@@ -187,7 +186,7 @@ namespace Bite.Runtime
                         }
                         
                     }
-                    if ( m_ReturnWhenWaitingForMainThreadExecution && m_MainThread == Thread.CurrentThread && !m_SwitchToMainThreadForExecution)
+                    if ( m_ReturnWhenWaitingForMainThreadExecution && m_MainThread == Thread.CurrentThread)
                     {
                         return BiteVmInterpretResult.InterpretOk;
                     }
@@ -249,11 +248,8 @@ namespace Bite.Runtime
                         {
                             lock ( m_ThreadLock )
                             {
-                                if ( m_SwitchToMainThreadForExecution )
-                                {
-                                    m_SwitchToMainThreadForExecution = false;
-                                    waitForOtherThread = true;
-                                }
+                                m_SwitchToMainThreadForExecution = false;
+                                waitForOtherThread = true;
                             }
                             break;
                         }
