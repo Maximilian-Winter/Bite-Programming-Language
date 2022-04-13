@@ -90,6 +90,15 @@ public static class DynamicVariableExtension
                 biteVariable.NumberData = d;
 
                 break;
+            
+            case float f:
+                biteVariable.DynamicType = 0;
+                biteVariable.StringData = null;
+                biteVariable.ObjectData = null;
+                biteVariable.ArrayData = null;
+                biteVariable.NumberData = f;
+
+                break;
 
             case bool b when b:
                 biteVariable.NumberData = 0;
