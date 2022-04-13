@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Bite.Compiler;
+using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
@@ -24,7 +26,9 @@ public class Program
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
-
+        BiteVm biteVm = new BiteVm();
+        biteVm.InitVm();
+     
         foreach ( string file in files )
         {
             Console.WriteLine($"File: {file}");
@@ -33,10 +37,15 @@ public class Program
             BiteProgram program = compiler.Compile(biteProg);
 
             program.TypeRegistry.RegisterType<TestClassCSharp>();
-            
+            biteVm.RegisterSystemModuleCallables(program.TypeRegistry);
             if ( program != null )
             {
-                program.Run();
+                Task.Run(
+                    () =>
+                    {
+                        biteVm.Interpret( program );
+                    } );
+
                 /*int k = 1;
                 long elapsedMillisecondsAccu = 0;
             
