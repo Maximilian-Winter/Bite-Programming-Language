@@ -465,6 +465,23 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         return blockStatementBaseNode;
     }
 
+    public override AstBaseNode VisitSyncBlock( BITEParser.SyncBlockContext context )
+    {
+        SyncBlockNode syncBlockNode = new SyncBlockNode();
+        syncBlockNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
+        syncBlockNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
+
+        if ( context.block() != null )
+        {
+            syncBlockNode.Block = ( BlockStatementBaseNode ) VisitBlock( context.block() );
+        }
+
+        syncBlockNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
+        syncBlockNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
+        return syncBlockNode;
+    }
+
     public override AstBaseNode VisitBreakStatement( BITEParser.BreakStatementContext context )
     {
         if ( context.Break() != null )
@@ -1926,6 +1943,11 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         if ( context.returnStatement() != null )
         {
             return VisitReturnStatement( context.returnStatement() );
+        }
+
+        if (context.syncBlock() != null)
+        {
+            return VisitSyncBlock( context.syncBlock() );
         }
 
         if ( context.block() != null )

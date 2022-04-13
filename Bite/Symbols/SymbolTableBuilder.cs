@@ -815,6 +815,13 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
         return null;
     }
 
+    public override object Visit( SyncBlockNode node )
+    {
+        Visit( node.Block );
+
+        return null;
+    }
+
     public override object Visit( StatementBaseNode node )
     {
         node.AstScopeNode = m_SymbolTable.CurrentScope;
@@ -857,6 +864,13 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
         if ( node is BlockStatementBaseNode blockStatementNode )
         {
             Resolve( blockStatementNode );
+
+            return null;
+        }
+
+        if (node is SyncBlockNode syncStatement)
+        {
+            Resolve( syncStatement );
 
             return null;
         }
@@ -1083,6 +1097,9 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
 
             case BlockStatementBaseNode blockStatementNode:
                 return Visit( blockStatementNode );
+
+            case SyncBlockNode syncBlockNode:
+                return Visit( syncBlockNode );
 
             case AssignmentBaseNode assignmentNode:
                 return Visit( assignmentNode );

@@ -5,7 +5,8 @@ public enum BiteVmInterpretResult
 {
     InterpretOk,
     InterpretCompileError,
-    InterpretRuntimeError
+    InterpretRuntimeError,
+    Continue,
 }
 
 }

@@ -34,6 +34,7 @@ ImportDirective: 'import';
 StartStatement: 'start';
 UseStatement: 'use';
 ThreadStatement: 'thread';
+SyncKeyword: 'sync';
 
 
 AssignOperator: '=';

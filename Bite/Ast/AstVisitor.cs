@@ -47,6 +47,8 @@ public abstract class AstVisitor<T>
 
     public abstract T Visit( BlockStatementBaseNode node );
 
+    public abstract T Visit( SyncBlockNode node );
+
     public abstract T Visit( StatementBaseNode node );
 
     public abstract T Visit( ExpressionStatementBaseNode node );

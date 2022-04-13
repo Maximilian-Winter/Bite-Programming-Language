@@ -1119,6 +1119,17 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         return null;
     }
 
+    public override object Visit( SyncBlockNode node )
+    {
+        EmitByteCode( BiteVmOpCodes.OpSwitchContext );
+
+        Compile( node.Block );
+
+        EmitByteCode( BiteVmOpCodes.OpReturnContext );
+
+        return null;
+    }
+
     public override object Visit( StatementBaseNode node )
     {
         if ( node is ExpressionStatementBaseNode expressionStatementNode )
@@ -1159,6 +1170,13 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         if ( node is BlockStatementBaseNode blockStatementNode )
         {
             Compile( blockStatementNode );
+
+            return null;
+        }
+
+        if (node is SyncBlockNode syncStatementNode)
+        {
+            Compile( syncStatementNode );
 
             return null;
         }
@@ -1734,6 +1752,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
             case BlockStatementBaseNode blockStatementNode:
                 return Visit( blockStatementNode );
+
+            case SyncBlockNode syncBlockNode:
+                return Visit( syncBlockNode );
 
             case AssignmentBaseNode assignmentNode:
                 return Visit( assignmentNode );

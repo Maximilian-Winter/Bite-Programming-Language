@@ -154,6 +154,7 @@ statement
     | startThreadStatement
     | useThreadStatement
     | whileStatement
+    | syncBlock
     | block 
     ;  
             
@@ -213,6 +214,9 @@ useThreadStatement
 whileStatement
     : DeclareWhileLoop OpeningRoundBracket expression ClosingRoundBracket block 
     ;
+
+syncBlock
+    : SyncKeyword block;
 
 block
     : CURLY_L declaration* CURLY_R 

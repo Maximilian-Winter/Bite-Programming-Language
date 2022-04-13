@@ -79,7 +79,9 @@ public enum BiteVmOpCodes : byte
     OpSetMemberWithString,
     OpKeepLastItemOnStack,
     OpBreak,
-    OpReturn
+    OpReturn,
+    OpSwitchContext,
+    OpReturnContext,
 }
 
 }

@@ -39,5 +39,9 @@
 	<ItemGroup>
 		<None Include="LICENSE" Pack="true" Visible="false" PackagePath="" />
   	</ItemGroup>
+	
+	<ItemGroup>
+	  <Reference Include="WindowsBase" />
+	</ItemGroup>
 
 </Project>
