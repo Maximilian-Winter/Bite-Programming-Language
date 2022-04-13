@@ -79,20 +79,6 @@ namespace WpfThreadTest
             {
                 { "gameObject", gameObject },
             } );
-            //particle.X += particle.dX;
-            //if (particle.X >= 600 || particle.X <= 0)
-            //{
-            //    particle.dX = -particle.dX;
-            //}
-            //particle.Y += particle.dY;
-            //if (particle.Y >= 400 || particle.Y <= 0)
-            //{
-            //    particle.dY = -particle.dY;
-            //}
-
-            //sync {
-            //    textbox.Text = particle.X + ""px"";
-            //}
 
             BiteCompiler compiler = new BiteCompiler();
 
