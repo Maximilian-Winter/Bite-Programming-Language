@@ -87,6 +87,7 @@ namespace Bite.Runtime
 
             CompiledChunks = new Dictionary < string, BinaryChunk >();
         }
+
         
         public BiteVmInterpretResult Interpret( BiteProgram context, bool returnWhenWaitingForMainThreadExecution = false, bool runBiteProgramOnSecondThread = false )
         {
@@ -106,10 +107,12 @@ namespace Bite.Runtime
 
             if ( m_RunBiteProgramOnSecondThread )
             {
+                SynchronizationContext.SetSynchronizationContext( new SynchronizationContext() );
                 Task.Factory.StartNew( Run );
                 return Run();
             }
             return Run();
+            
         }
         
         public BiteVmInterpretResult ContinueInterpret( )
