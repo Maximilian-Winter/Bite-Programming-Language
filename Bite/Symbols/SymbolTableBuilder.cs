@@ -853,13 +853,6 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
 
             return null;
         }
-        
-        if ( node is ExecuteOnMainThreadNode executeOnMainThreadNode )
-        {
-            Resolve( executeOnMainThreadNode );
-
-            return null;
-        }
 
         if ( node is BlockStatementBaseNode blockStatementNode )
         {
@@ -1093,9 +1086,6 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
 
             case ReturnStatementBaseNode returnStatement:
                 return Visit( returnStatement );
-            
-            case ExecuteOnMainThreadNode executeOnMainThreadNode:
-                return Visit( executeOnMainThreadNode );
 
             case BlockStatementBaseNode blockStatementNode:
                 return Visit( blockStatementNode );

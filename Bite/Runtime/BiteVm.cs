@@ -61,7 +61,7 @@ namespace Bite.Runtime
         private bool m_PushNextAssignmentOnStack = false;
         private bool m_RunBiteProgramOnSecondThread = false;
         private bool m_SwitchToMainThreadForExecution = false;
-        private bool m_ReturnWhenWaitingForMainThreadExecution = false;
+
         private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
         static readonly object m_ThreadLock = new object();
         private Thread m_MainThread;
@@ -89,12 +89,11 @@ namespace Bite.Runtime
         }
 
         
-        public BiteVmInterpretResult Interpret( BiteProgram context, bool returnWhenWaitingForMainThreadExecution = false, bool runBiteProgramOnSecondThread = false )
+        public BiteVmInterpretResult Interpret( BiteProgram context, bool runBiteProgramOnSecondThread = false )
         {
             m_MainThread = Thread.CurrentThread;
             m_CurrentChunk = context.CompiledMainChunk;
             m_RunBiteProgramOnSecondThread = runBiteProgramOnSecondThread;
-            m_ReturnWhenWaitingForMainThreadExecution = returnWhenWaitingForMainThreadExecution;
             foreach ( var compiledChunk in CompiledChunks)
             {
                 if ( !context.CompiledChunks.ContainsKey( compiledChunk.Key ) )
@@ -110,7 +109,10 @@ namespace Bite.Runtime
                 Task.Run( Run );
                 return Run();
             }
-            return Run();
+            else
+            {
+                return Run();
+            }
             
         }
 
@@ -171,10 +173,6 @@ namespace Bite.Runtime
             {
                 while ( waitForOtherThread )
                 {
-                    if ( m_ReturnWhenWaitingForMainThreadExecution )
-                    {
-                        return BiteVmInterpretResult.InterpretOk;
-                    }
                     lock ( m_ThreadLock )
                     {
                         if ( (m_SwitchToMainThreadForExecution && m_MainThread == Thread.CurrentThread) || (m_MainThread != Thread.CurrentThread && !m_SwitchToMainThreadForExecution) )
