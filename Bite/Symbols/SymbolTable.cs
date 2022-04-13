@@ -22,26 +22,6 @@ public class SymbolTable
         return this;
     }
 
-    /// <summary>
-    /// Creates the System module and defines it on the Global scope
-    /// </summary>
-    /// <returns></returns>
-    public SymbolTable WithSystem()
-    {
-        //var systemModuleBuilder = new SystemModuleBuilder();
-
-        //var systemModule = systemModuleBuilder.BuildSystemModule();
-
-        //RootScope.DefineModule( systemModule );
-
-        return this;
-    }
-
-    /// <summary>
-    /// Returns a new <see cref="SymbolTable"/> with the System module defined
-    /// </summary>
-    public static SymbolTable Default => new SymbolTable().WithSystem();
-
     internal void PopScope()
     {
         CurrentScope = CurrentScope.EnclosingScope;

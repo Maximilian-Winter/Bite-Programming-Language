@@ -79,6 +79,7 @@ while ( true ) {
         vm.RegisterSystemModuleCallables();
         vm.SynchronizationContext = SynchronizationContext.Current;
 
+        // Expose CSharp objects to the Bite virtual machine
         vm.RegisterExternalGlobalObjects( new Dictionary < string, object >()
         {
             { "gameObject", gameObject }
@@ -90,7 +91,7 @@ while ( true ) {
         {
             var program = compiler.Compile( new[] { Code.Text } );
 
-            Task.Run( () => { vm.Interpret( program ); } ).ContinueWith( t =>
+            vm.InterpretAsync( program, CancellationToken.None ).ContinueWith( t =>
             {
                 if ( t.IsFaulted )
                 {

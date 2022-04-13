@@ -16,27 +16,72 @@ public class BiteCompiler
 {
     #region Public Compilers
 
+    /// <summary>
+    /// Compiles a set of modules
+    /// </summary>
+    /// <param name="modules"></param>
+    /// <returns></returns>
     public BiteProgram Compile( IEnumerable < string > modules )
     {
         ProgramBaseNode programBase = ParseModules( modules );
 
-        return CompileProgramInternal( programBase );
+        SymbolTable symbolTable = new SymbolTable();
+
+        return CompileProgram( symbolTable, programBase );
     }
 
+    /// <summary>
+    /// Compiles a single expression. Used for unit tests.
+    /// </summary>
+    /// <param name="expression"></param>
+    /// <returns></returns>
     public BiteProgram CompileExpression( string expression )
     {
         ExpressionBaseNode expressionBaseNode = ParseExpression( expression );
 
-        return CompileExpressionInternal( expressionBaseNode );
+        ModuleBaseNode moduleBase = new ModuleBaseNode
+        {
+            ModuleIdent = new ModuleIdentifier( "MainModule" ),
+            Statements = new List < StatementBaseNode >
+                { new ExpressionStatementBaseNode { ExpressionBase = expressionBaseNode } }
+        };
+
+        SymbolTable symbolTable = new SymbolTable();
+
+        return CompileModule( symbolTable, moduleBase );
     }
 
+    /// <summary>
+    /// Compiles a set of statements, with the option to reuse an existing <see cref="SymbolTable"/>.
+    /// Primarily used for REPL, where the previous program context should be retained between compilations of new statements
+    /// </summary>
+    /// <param name="statements"></param>
+    /// <param name="symbolTable"></param>
+    /// <returns></returns>
     public BiteProgram CompileStatements( string statements, SymbolTable symbolTable = null )
     {
         IReadOnlyCollection < StatementBaseNode > statementNodes = ParseStatements( statements );
 
-        return CompileStatementsInternal( statementNodes, symbolTable );
+        ModuleBaseNode moduleBase = new ModuleBaseNode
+        {
+            ModuleIdent = new ModuleIdentifier( "MainModule" ),
+            Statements = statementNodes,
+        };
+
+        if ( symbolTable == null )
+        {
+            symbolTable = new SymbolTable();
+        }
+
+        return CompileModule( symbolTable, moduleBase );
     }
 
+    /// <summary>
+    /// Compiles a set of <see cref="Module"/> objects. You only need to use <see cref="Module"/> objects if you want to keep a reference
+    /// to module names and imports in your own code without needing to parse a module string
+    /// </summary>
+    /// <param name="modules"></param>
+    /// <returns></returns>
     public BiteProgram Compile( IReadOnlyCollection < Module > modules )
     {
         var moduleStrings = new List < string >();
@@ -60,7 +105,9 @@ public class BiteCompiler
 
         ProgramBaseNode programBase = ParseModules( moduleStrings );
 
-        return CompileProgramInternal( programBase );
+        SymbolTable symbolTable = new SymbolTable();
+
+        return CompileProgram( symbolTable, programBase );
     }
 
     #endregion
@@ -76,6 +123,7 @@ public class BiteCompiler
         {
             m_SystemModule = ModuleLoader.LoadModule( "System" );
         }
+
         return m_SystemModule;
     }
 
@@ -87,7 +135,7 @@ public class BiteCompiler
         ModuleBaseNode systemModuleBase = ParseModule( GetSystemModule() );
         programBase.AddModule( systemModuleBase );
 
-        foreach (string biteModule in modules)
+        foreach ( string biteModule in modules )
         {
             ModuleBaseNode moduleBase = ParseModule( biteModule );
             programBase.AddModule( moduleBase );
@@ -173,107 +221,38 @@ public class BiteCompiler
 
     #region Private Compilers
 
-    private BiteProgram CompileExpressionInternal( ExpressionBaseNode expressionBase )
+    private BiteProgram CompileModule( SymbolTable symbolTable, ModuleBaseNode moduleBase )
     {
-        ModuleBaseNode moduleBase = new ModuleBaseNode
-        {
-            ModuleIdent = new ModuleIdentifier( "MainModule" ),
-            Statements = new List < StatementBaseNode > { new ExpressionStatementBaseNode { ExpressionBase = expressionBase } }
-        };
-
-        var symbolTable = SymbolTable.Default;
-
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
         symbolTableBuilder.BuildModuleSymbolTable( moduleBase );
 
-        var biteProgram = new BiteProgram( symbolTable );
+        var context = new BiteCompilationContext( symbolTable );
 
-        CodeGenerator generator = new CodeGenerator( biteProgram );
-
-        generator.Compile( moduleBase );
-
-        biteProgram.Build();
-
-        return biteProgram;
-    }
-
-    private BiteProgram CompileProgramInternal( ProgramBaseNode programBaseNode )
-    {
-        var symbolTable = SymbolTable.Default;
-
-        var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
-
-        symbolTableBuilder.BuildProgramSymbolTable( programBaseNode );
-
-        var biteProgram = new BiteProgram( symbolTable );
-
-        CodeGenerator generator = new CodeGenerator( biteProgram );
-
-        generator.Compile( programBaseNode );
-
-        biteProgram.Build();
-
-        return biteProgram;
-    }
-
-    private BiteProgram CompileStatements( ModuleBaseNode moduleBase, Dictionary < string, object > externalObjects,
-        List < StatementBaseNode > statements )
-    {
-        moduleBase.Statements = statements;
-
-        var symbolTable = SymbolTable.Default; //.WithExternalObjects( externalObjects );
-
-        var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
-
-        symbolTableBuilder.BuildModuleSymbolTable( moduleBase );
-
-        var biteProgram = new BiteProgram( symbolTable );
-
-        CodeGenerator generator = new CodeGenerator( biteProgram );
+        CodeGenerator generator = new CodeGenerator( context );
 
         generator.Compile( moduleBase );
 
-        biteProgram.Build();
+        context.Build();
 
-        return biteProgram;
+        return BiteProgram.Create( symbolTable, context.CompiledMainChunk, context.CompiledChunks );
     }
 
-    private BiteProgram CompileStatementsInternal( IReadOnlyCollection < StatementBaseNode > statements, SymbolTable symbolTable = null )
+    private BiteProgram CompileProgram( SymbolTable symbolTable, ProgramBaseNode programBase )
     {
-
-        ModuleBaseNode moduleBase = new ModuleBaseNode
-        {
-            ModuleIdent = new ModuleIdentifier( "MainModule" ),
-            Statements = statements,
-        };
-
-        if ( symbolTable == null )
-        {
-            symbolTable = SymbolTable.Default; //.WithExternalObjects( externalObjects );
-        }
-
         var symbolTableBuilder = new SymbolTableBuilder( symbolTable );
 
-        symbolTableBuilder.BuildModuleSymbolTable( moduleBase );
+        symbolTableBuilder.BuildProgramSymbolTable( programBase );
 
-        var biteProgram = new BiteProgram( symbolTable );
+        var context = new BiteCompilationContext( symbolTable );
 
-        CodeGenerator generator = new CodeGenerator( biteProgram );
+        CodeGenerator generator = new CodeGenerator( context );
 
-        // TODO: Don't recompile system module everytime?
+        generator.Compile( programBase );
 
-        //ModuleNode systemModule = ParseModule( SystemModule );
+        context.Build();
 
-        //symbolTableBuilder.BuildModuleSymbolTable( systemModule );
-
-        //generator.Compile( systemModule );
-
-        generator.Compile( moduleBase );
-
-        biteProgram.Build();
-
-        return biteProgram;
+        return BiteProgram.Create( symbolTable, context.CompiledMainChunk, context.CompiledChunks );
     }
 
     #endregion

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Bite.Modules.Callables;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.Functions.ForeignInterface;
@@ -7,39 +9,38 @@ using Bite.Symbols;
 namespace Bite.Runtime.CodeGen
 {
 
+/// <summary>
+/// 
+/// </summary>
 public class BiteProgram
 {
-    public SymbolTable SymbolTable { get; }
+    public TypeRegistry TypeRegistry { get; } = new TypeRegistry();
 
-    private readonly Dictionary < string, Chunk > m_CompilingChunks;
-    private readonly Stack < Chunk > _savedChunks = new Stack < Chunk >();
-
-    internal BaseScope BaseScope { get; }
-
-    internal Dictionary < string, BinaryChunk > CompiledChunks { get; }
-
-    internal Chunk MainChunk { get; }
+    public SymbolTable SymbolTable { get; private set; }
 
     internal BinaryChunk CompiledMainChunk { get; private set; }
 
-    internal Chunk CurrentChunk { get; private set; }
+    internal Dictionary < string, BinaryChunk > CompiledChunks { get; private set; }
 
     #region Public
 
-    public BiteProgram( SymbolTable symbolTable )
+    internal BiteProgram()
     {
-        SymbolTable = symbolTable;
-        BaseScope = symbolTable.RootScope;
-        m_CompilingChunks = new Dictionary < string, Chunk >();
-        MainChunk = new Chunk();
-        CurrentChunk = MainChunk;
-        CompiledChunks = new Dictionary < string, BinaryChunk >();
     }
 
-    public TypeRegistry TypeRegistry { get; } = new TypeRegistry();
-    
+    internal static BiteProgram Create( SymbolTable symbolTable, BinaryChunk compiledMainChunk,
+        Dictionary < string, BinaryChunk > compiledChunks )
+    {
+        return new BiteProgram()
+        {
+            SymbolTable = symbolTable,
+            CompiledMainChunk = compiledMainChunk,
+            CompiledChunks = compiledChunks,
+        };
+    }
+
     /// <summary>
-    /// Creates a new <see cref="BiteVm" /> and executes the <see cref="BiteProgram" />
+    /// Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
     /// </summary>
     /// <returns></returns>
     public BiteResult Run( Dictionary < string, object > externalObjects = null )
@@ -49,59 +50,42 @@ public class BiteProgram
         biteVm.RegisterSystemModuleCallables( TypeRegistry );
         biteVm.RegisterExternalGlobalObjects( externalObjects );
 
-        BiteVmInterpretResult result = biteVm.Interpret( this );
+        BiteVmInterpretResult result = biteVm.Interpret( this, CancellationToken.None );
 
         return new BiteResult { InterpretResult = result, ReturnValue = biteVm.ReturnValue };
     }
 
-    internal void Build()
+    /// <summary>
+    /// Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
+    /// </summary>
+    /// <returns></returns>
+    public BiteResult Run( CancellationToken cancellationToken, Dictionary < string, object > externalObjects = null )
     {
-        foreach ( KeyValuePair < string, Chunk > compilingChunk in m_CompilingChunks )
-        {
-            CompiledChunks.Add(
-                compilingChunk.Key,
-                new BinaryChunk(
-                    compilingChunk.Value.SerializeToBytes(),
-                    compilingChunk.Value.Constants,
-                    compilingChunk.Value.Lines ) );
-        }
+        BiteVm biteVm = new BiteVm();
+        biteVm.InitVm();
+        biteVm.RegisterSystemModuleCallables( TypeRegistry );
+        biteVm.RegisterExternalGlobalObjects( externalObjects );
 
-        CompiledMainChunk = new BinaryChunk( MainChunk.SerializeToBytes(), MainChunk.Constants, MainChunk.Lines );
+        BiteVmInterpretResult result = biteVm.Interpret( this, cancellationToken );
+
+        return new BiteResult { InterpretResult = result, ReturnValue = biteVm.ReturnValue };
     }
 
-    internal bool HasChunk( string moduleName )
+    /// <summary>
+    /// Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
+    /// </summary>
+    /// <returns></returns>
+    public async Task < BiteResult > RunAsync( CancellationToken cancellationToken,
+        Dictionary < string, object > externalObjects = null )
     {
-        return m_CompilingChunks.ContainsKey( moduleName );
-    }
+        BiteVm biteVm = new BiteVm();
+        biteVm.InitVm();
+        biteVm.RegisterSystemModuleCallables( TypeRegistry );
+        biteVm.RegisterExternalGlobalObjects( externalObjects );
 
-    internal void NewChunk()
-    {
-        CurrentChunk = new Chunk();
-    }
-    internal void SetCurrentChunk( Chunk chunk )
-    {
-        CurrentChunk = chunk;
-    }
+        BiteVmInterpretResult result = await biteVm.InterpretAsync( this, cancellationToken );
 
-    internal void PopChunk()
-    {
-        CurrentChunk = _savedChunks.Pop();
-    }
-
-    internal void PushChunk()
-    {
-        // TODO: this is only ever one depth pushed so maybe we don't need a stack and Push/Pop API?
-        _savedChunks.Push( CurrentChunk );
-    }
-
-    internal void RestoreChunk( string moduleName )
-    {
-        CurrentChunk = m_CompilingChunks[moduleName];
-    }
-
-    internal void SaveCurrentChunk( string moduleName )
-    {
-        m_CompilingChunks.Add( moduleName, CurrentChunk );
+        return new BiteResult { InterpretResult = result, ReturnValue = biteVm.ReturnValue };
     }
 
     #endregion

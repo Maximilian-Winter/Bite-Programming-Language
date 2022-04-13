@@ -26,6 +26,7 @@ public class GameObject
 
     public void Move()
     {
+        // This code needs to be executed on the UI thread, where the element was created
         Canvas.SetLeft( m_Element, X );
         Canvas.SetTop( m_Element, Y );
     }

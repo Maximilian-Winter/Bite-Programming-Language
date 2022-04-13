@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -69,9 +70,8 @@ public class BiteVm
 
     public SynchronizationContext SynchronizationContext { get; set; }
 
-    public CancellationTokenSource CancellationTokenSource { get; set; }
-
     private CancellationToken m_CancellationToken;
+    private bool m_Stopping = false;
 
     #region Public
 
@@ -97,31 +97,53 @@ public class BiteVm
     private ContextMode m_ContextMode;
     private bool m_ExitRunLoop;
 
-    public BiteVmInterpretResult Interpret( BiteProgram context )
+    /// <summary>
+    /// Executes the specified <see cref="BiteProgram"/> on new Task via Task.Run
+    /// </summary>
+    /// <param name="program"></param>
+    /// <returns></returns>
+    public async Task<BiteVmInterpretResult> InterpretAsync( BiteProgram program, CancellationToken token )
     {
-        m_CurrentChunk = context.CompiledMainChunk;
+        return await Task.Run( () => { return Interpret( program, token ); } );
+    }
 
-        if ( CancellationTokenSource == null )
-        {
-            CancellationTokenSource = new CancellationTokenSource();
-        }
+    /// <summary>
+    /// Executes the specified <see cref="BiteProgram"/> on the current thread
+    /// </summary>
+    /// <param name="program"></param>
+    /// <returns></returns>
+    public BiteVmInterpretResult Interpret( BiteProgram program )
+    {
+        return Interpret( program, new CancellationToken() );
+    }
 
-        m_CancellationToken = CancellationTokenSource.Token;
+    /// <summary>
+    /// Executes the specified <see cref="BiteProgram"/> on the current thread
+    /// </summary>
+    /// <param name="program"></param>
+    /// <returns></returns>
+    public BiteVmInterpretResult Interpret( BiteProgram program, CancellationToken token )
+    {
+        m_CurrentChunk = program.CompiledMainChunk;
+
+        m_CancellationToken = token;
+        m_Stopping = false;
 
         foreach ( var compiledChunk in CompiledChunks )
         {
-            if ( !context.CompiledChunks.ContainsKey( compiledChunk.Key ) )
+            if ( !program.CompiledChunks.ContainsKey( compiledChunk.Key ) )
             {
-                context.CompiledChunks.Add( compiledChunk.Key, compiledChunk.Value );
+                program.CompiledChunks.Add( compiledChunk.Key, compiledChunk.Value );
             }
         }
 
-        CompiledChunks = context.CompiledChunks;
+        CompiledChunks = program.CompiledChunks;
         m_CurrentInstructionPointer = 0;
 
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
 
-        while ( result == BiteVmInterpretResult.Continue )
+        // This while loop exists to allow us to switch contexts from within code using the sync keyword
+        while ( result == BiteVmInterpretResult.Continue && !m_Stopping )
         {
             m_ExitRunLoop = false;
 
@@ -152,22 +174,30 @@ public class BiteVm
         return result;
     }
 
-
+    /// <summary>
+    /// Requests the current <see cref="BiteVm"/> to stop execution and exit as soon as the current instruction has completed.
+    /// If execution is running on a thread, this action will not by synchronous
+    /// </summary>
     public void Stop()
     {
-        if ( m_ExitRunLoop == false && CancellationTokenSource != null )
-        {
-            CancellationTokenSource.Cancel();
-
-            CancellationTokenSource = new CancellationTokenSource();
-        }
+        m_ExitRunLoop = true;
+        m_Stopping = true;
     }
 
+    /// <summary>
+    /// Registers an external object as a global variable
+    /// </summary>
+    /// <param name="varName"></param>
+    /// <param name="data"></param>
     public void RegisterExternalGlobalObject( string varName, object data )
     {
         m_ExternalObjects.Add( varName, data );
     }
 
+    /// <summary>
+    /// Registers a set of external objects as global variables
+    /// </summary>
+    /// <param name="externalObjects"></param>
     public void RegisterExternalGlobalObjects( Dictionary < string, object > externalObjects )
     {
         if ( externalObjects != null )
@@ -179,6 +209,11 @@ public class BiteVm
         }
     }
 
+    /// <summary>
+    /// Registers a <see cref="IBiteVmCallable"/> class as an extern callable method with the specified linkId
+    /// </summary>
+    /// <param name="linkId"></param>
+    /// <param name="callable"></param>
     public void RegisterCallable( string linkId, IBiteVmCallable callable )
     {
         m_Callables.Add( linkId, callable );

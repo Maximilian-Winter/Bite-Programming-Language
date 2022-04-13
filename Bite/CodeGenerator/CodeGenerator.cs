@@ -24,13 +24,13 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     private int m_ConstructingLine;
 
     private BytecodeListStack m_PostfixInstructions = new BytecodeListStack();
-    private BiteProgram m_BiteProgram;
+    private BiteCompilationContext m_Context;
 
     #region Public
 
-    public CodeGenerator( BiteProgram biteProgram )
+    public CodeGenerator( BiteCompilationContext context )
     {
-        m_BiteProgram = biteProgram;
+        m_Context = context;
     }
 
     public override object Visit( ProgramBaseNode node )
@@ -47,31 +47,31 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     {
         m_CurrentModuleName = node.ModuleIdent.ToString();
 
-        m_BiteProgram.PushChunk();
+        m_Context.PushChunk();
 
         int d = 0;
 
         ModuleSymbol mod =
-            m_BiteProgram.BaseScope.resolve( m_CurrentModuleName, out int moduleId, ref d ) as ModuleSymbol;
+            m_Context.BaseScope.resolve( m_CurrentModuleName, out int moduleId, ref d ) as ModuleSymbol;
 
         // TODO: What happens when we encounter a module that has a name that is already in the program?
 
-        if ( m_BiteProgram.HasChunk( m_CurrentModuleName ) )
+        if ( m_Context.HasChunk( m_CurrentModuleName ) )
         {
-            m_BiteProgram.RestoreChunk( m_CurrentModuleName );
+            m_Context.RestoreChunk( m_CurrentModuleName );
         }
         else
         {
-            m_BiteProgram.CurrentChunk.
+            m_Context.CurrentChunk.
                           WriteToChunk(
                               BiteVmOpCodes.OpDefineModule,
                               new ConstantValue( m_CurrentModuleName ),
                               mod.NumberOfSymbols,
                               0 );
 
-            m_BiteProgram.NewChunk();
+            m_Context.NewChunk();
 
-            m_BiteProgram.SaveCurrentChunk( m_CurrentModuleName );
+            m_Context.SaveCurrentChunk( m_CurrentModuleName );
         }
 
         /*foreach ( ModuleIdentifier importedModule in node.ImportedModules )
@@ -115,7 +115,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
         }
 
-        m_BiteProgram.PopChunk();
+        m_Context.PopChunk();
         ;
 
         return null;
@@ -209,11 +209,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         ClassSymbol symbol = ( ClassSymbol ) node.AstScopeNode.resolve( node.ClassId.Id, out int moduleId, ref d );
         m_CurrentClassName = symbol.QualifiedName;
 
-        m_BiteProgram.PushChunk();
+        m_Context.PushChunk();
 
-        if ( m_BiteProgram.HasChunk( m_CurrentClassName ) )
+        if ( m_Context.HasChunk( m_CurrentClassName ) )
         {
-            m_BiteProgram.RestoreChunk( m_CurrentClassName );
+            m_Context.RestoreChunk( m_CurrentClassName );
         }
         else
         {
@@ -221,8 +221,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
             //EmitByteCode( symbol.InsertionOrderNumber );
 
-            m_BiteProgram.NewChunk();
-            m_BiteProgram.SaveCurrentChunk( m_CurrentClassName );
+            m_Context.NewChunk();
+            m_Context.SaveCurrentChunk( m_CurrentClassName );
         }
 
         foreach ( FieldSymbol field in symbol.Fields )
@@ -265,14 +265,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         EmitByteCode( BiteVmOpCodes.OpDefineVar );
         EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "this" ) );
-        m_BiteProgram.PopChunk();
+        m_Context.PopChunk();
 
         return null;
     }
 
     public override object Visit( FunctionDeclarationBaseNode node )
     {
-        m_BiteProgram.PushChunk();
+        m_Context.PushChunk();
 
         int d = 0;
 
@@ -281,7 +281,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         EmitConstant( new ConstantValue(node.FunctionId.Id) );
         
-        if ( m_BiteProgram.HasChunk( symbol.QualifiedName ) )
+        if ( m_Context.HasChunk( symbol.QualifiedName ) )
         {
             if (symbol.m_IsExtern && symbol.IsCallable)
             {
@@ -293,7 +293,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
 
             //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
-            m_BiteProgram.RestoreChunk( symbol.QualifiedName );
+            m_Context.RestoreChunk( symbol.QualifiedName );
         }
         else
         {
@@ -308,8 +308,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
             //EmitByteCode( symbol.InsertionOrderNumber );
 
-            m_BiteProgram.NewChunk();
-            m_BiteProgram.SaveCurrentChunk( symbol.QualifiedName );
+            m_Context.NewChunk();
+            m_Context.SaveCurrentChunk( symbol.QualifiedName );
         }
 
         if ( node.ParametersBase != null &&  node.ParametersBase.Identifiers != null )
@@ -327,7 +327,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             Compile( node.FunctionBlock );
         }
 
-        m_BiteProgram.PopChunk();
+        m_Context.PopChunk();
 
         return null;
     }
@@ -1198,9 +1198,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         Compile( node.ThenStatementBase );
         int overElseJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
 
-        m_BiteProgram.CurrentChunk.Code[thenJump] = new ByteCode(
+        m_Context.CurrentChunk.Code[thenJump] = new ByteCode(
             BiteVmOpCodes.OpJumpIfFalse,
-            m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
+            m_Context.CurrentChunk.SerializeToBytes().Length );
 
         Stack < int > endJumpStack = new Stack < int >();
 
@@ -1215,14 +1215,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         {
             int endJump = endJumpStack.Pop();
 
-            m_BiteProgram.CurrentChunk.Code[endJump] = new ByteCode(
+            m_Context.CurrentChunk.Code[endJump] = new ByteCode(
                 BiteVmOpCodes.OpJump,
-                m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
+                m_Context.CurrentChunk.SerializeToBytes().Length );
         }
 
-        m_BiteProgram.CurrentChunk.Code[overElseJump] = new ByteCode(
+        m_Context.CurrentChunk.Code[overElseJump] = new ByteCode(
             BiteVmOpCodes.OpJump,
-            m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
+            m_Context.CurrentChunk.SerializeToBytes().Length );
 
         return null;
     }
@@ -1271,7 +1271,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
         }
 
-        int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
+        int jumpCodeWhileBegin = m_Context.CurrentChunk.SerializeToBytes().Length;
 
         if ( node.Condition != null )
         {
@@ -1305,10 +1305,10 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
         }*/
         
-        m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
+        m_Context.CurrentChunk.Code[toFix] = new ByteCode(
         BiteVmOpCodes.OpWhileLoop,
         jumpCodeWhileBegin,
-        m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
+        m_Context.CurrentChunk.SerializeToBytes().Length );
 
         EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
         EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
@@ -1322,15 +1322,15 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     {
         m_PreviousLoopBlockCount = m_CurrentEnterBlockCount;
 
-        int jumpCodeWhileBegin = m_BiteProgram.CurrentChunk.SerializeToBytes().Length;
+        int jumpCodeWhileBegin = m_Context.CurrentChunk.SerializeToBytes().Length;
         Compile( node.ExpressionBase );
         int toFix = EmitByteCode( BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0 );
         Compile( node.WhileBlock );
 
-        m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
+        m_Context.CurrentChunk.Code[toFix] = new ByteCode(
             BiteVmOpCodes.OpWhileLoop,
             jumpCodeWhileBegin,
-            m_BiteProgram.CurrentChunk.SerializeToBytes().Length );
+            m_Context.CurrentChunk.SerializeToBytes().Length );
 
         EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
         EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
@@ -1607,9 +1607,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         
         Compile( node.Primary );
         
-        if ( toFix >= 0 && m_BiteProgram.CurrentChunk.Code[toFix + 1].OpCode == BiteVmOpCodes.OpGetVar )
+        if ( toFix >= 0 && m_Context.CurrentChunk.Code[toFix + 1].OpCode == BiteVmOpCodes.OpGetVar )
         {
-            m_BiteProgram.CurrentChunk.Code[toFix] = new ByteCode(
+            m_Context.CurrentChunk.Code[toFix] = new ByteCode(
                 BiteVmOpCodes.OpGetNextVarByRef );
         }
         m_IsCompilingPostfixOperation = false;
@@ -1827,31 +1827,31 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     private int EmitByteCode( BiteVmOpCodes byteCode, int line = 0 )
     {
-        return m_BiteProgram.CurrentChunk.WriteToChunk( byteCode, line );
+        return m_Context.CurrentChunk.WriteToChunk( byteCode, line );
     }
 
     private int EmitByteCode( BiteVmOpCodes byteCode, int opCodeData, int line )
     {
         ByteCode byCode = new ByteCode( byteCode, opCodeData );
 
-        return m_BiteProgram.CurrentChunk.WriteToChunk( byCode, line );
+        return m_Context.CurrentChunk.WriteToChunk( byCode, line );
     }
 
     private int EmitByteCode( BiteVmOpCodes byteCode, int opCodeData, int opCodeData2, int line )
     {
         ByteCode byCode = new ByteCode( byteCode, opCodeData, opCodeData2 );
 
-        return m_BiteProgram.CurrentChunk.WriteToChunk( byCode, line );
+        return m_Context.CurrentChunk.WriteToChunk( byCode, line );
     }
 
     private int EmitByteCode( ByteCode byteCode, int line = 0 )
     {
-        return m_BiteProgram.CurrentChunk.WriteToChunk( byteCode, line );
+        return m_Context.CurrentChunk.WriteToChunk( byteCode, line );
     }
 
     private int EmitByteCode( BiteVmOpCodes byteCode, ConstantValue constantValue, int line = 0 )
     {
-        return m_BiteProgram.CurrentChunk.WriteToChunk( byteCode, constantValue, line );
+        return m_Context.CurrentChunk.WriteToChunk( byteCode, constantValue, line );
     }
 
     private int EmitConstant( ConstantValue value, int line = 0 )
@@ -1868,7 +1868,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     {
         ByteCode byCode = new ByteCode( m_ConstructingOpCode );
         byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
-        m_BiteProgram.CurrentChunk.WriteToChunk( byCode, m_ConstructingLine );
+        m_Context.CurrentChunk.WriteToChunk( byCode, m_ConstructingLine );
         if (m_PostfixInstructions.Count > 0 && m_IsCompilingPostfixOperation)
         {
             if (m_ConstructingOpCode == BiteVmOpCodes.OpGetVar)
