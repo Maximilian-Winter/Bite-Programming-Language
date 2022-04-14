@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Bite.Runtime.Bytecode;
@@ -26,6 +27,105 @@ public class BiteVmRuntimeException : ApplicationException
     public string BiteVmRuntimeExceptionMessage { get; }
 }
 
+public static class StackExtensions
+{
+    /// <summary>
+    /// Retrieves the current value on the stack based on the specified type
+    /// </summary>
+    /// <param name="vmStack"></param>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static object PopDataByType( this DynamicBiteVariableStack vmStack, Type type )
+    {
+        object data;
+
+        DynamicBiteVariable currentStack = vmStack.Peek();
+
+        // Cast the data based on the recieving propertyType
+        if ( type == typeof( double ) && currentStack.IsNumeric() )
+        {
+            data = vmStack.Pop().NumberData;
+        }
+        else if ( type == typeof( float ) && currentStack.IsNumeric() )
+        {
+            data = ( float ) vmStack.Pop().NumberData;
+        }
+        else if ( type == typeof( int ) && currentStack.IsNumeric() )
+        {
+            data = ( int ) vmStack.Pop().NumberData;
+        }
+        else if ( type == typeof( string ) && currentStack.DynamicType == DynamicVariableType.String )
+        {
+            data = vmStack.Pop().StringData;
+        }
+        else if ( type == typeof( bool ) && currentStack.IsBoolean() )
+        {
+            data = currentStack.DynamicType == DynamicVariableType.True;
+        }
+        else
+        {
+            data = vmStack.Pop().ObjectData;
+        }
+
+        return data;
+    }
+
+
+}
+
+public class PropertyCache
+{
+    private static Dictionary < string, PropertyInfo > m_PropertyCache = new Dictionary < string, PropertyInfo >();
+
+    public bool TryGetProperty( Type type, string propertyName, out PropertyInfo propertyInfo )
+    {
+        string key = $"{type.FullName}.{propertyName}";
+
+        if ( !m_PropertyCache.TryGetValue( key, out propertyInfo ) )
+        {
+            propertyInfo = type.GetProperty( propertyName );
+
+            if ( propertyInfo != null )
+            {
+                m_PropertyCache.Add( key, propertyInfo );
+
+                return true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+}
+
+
+public class FieldCache
+{
+    private static Dictionary < string, FieldInfo > m_FieldCache = new Dictionary < string, FieldInfo >();
+
+    public bool TryGetField( Type type, string fieldName, out FieldInfo fieldInfo )
+    {
+        string key = $"{type.FullName}.{fieldName}";
+
+        if ( !m_FieldCache.TryGetValue( key, out fieldInfo ) )
+        {
+            fieldInfo = type.GetField( fieldName );
+
+            if ( fieldInfo != null )
+            {
+                m_FieldCache.Add( key, fieldInfo );
+
+                return true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+}
+
 public class BiteVm
 {
     private BinaryChunk m_CurrentChunk;
@@ -41,8 +141,8 @@ public class BiteVm
     private UsingStatementStack m_UsingStatementStack;
 
     private readonly Dictionary < string, FastMethodInfo > m_CachedMethods = new Dictionary < string, FastMethodInfo >();
-    private readonly Dictionary < Type, PropertyInfo[] > m_CachedProperties = new Dictionary < Type, PropertyInfo[] >();
-    private readonly Dictionary < Type, FieldInfo[] > m_CachedFields = new Dictionary < Type, FieldInfo[] >();
+    private readonly PropertyCache m_CachedProperties = new PropertyCache();
+    private readonly FieldCache m_CachedFields = new FieldCache();
 
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
@@ -976,87 +1076,24 @@ public class BiteVm
                         else
                         {
                             object obj = m_VmStack.Pop().ObjectData;
-                            bool valuePushed = false;
 
                             if ( obj != null )
                             {
                                 Type type = obj.GetType();
 
-                                if ( m_CachedProperties.ContainsKey( type ) )
+                                if ( m_CachedProperties.TryGetProperty( type, member, out PropertyInfo propertyInfo ) )
                                 {
-                                    for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
-                                    {
-                                        if ( m_CachedProperties[type][i].Name == member )
-                                        {
-                                            m_VmStack.Push(
-                                                DynamicVariableExtension.ToDynamicVariable(
-                                                    m_CachedProperties[type][i].GetValue( obj ) ) );
-
-                                            valuePushed = true;
-
-                                            break;
-                                        }
-                                    }
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable( propertyInfo.GetValue( obj ) ) );
                                 }
-                                else
+                                else if ( m_CachedFields.TryGetField( type, member, out FieldInfo fieldInfo ) )
                                 {
-                                    m_CachedProperties.Add( type, type.GetProperties() );
-
-                                    for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
-                                    {
-                                        if ( m_CachedProperties[type][i].Name == member )
-                                        {
-                                            m_VmStack.Push(
-                                                DynamicVariableExtension.ToDynamicVariable(
-                                                    m_CachedProperties[type][i].GetValue( obj ) ) );
-
-                                            valuePushed = true;
-
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if ( !valuePushed )
-                                {
-                                    if ( m_CachedFields.ContainsKey( type ) )
-                                    {
-                                        for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                        {
-                                            if ( m_CachedFields[type][i].Name == member )
-                                            {
-                                                m_VmStack.Push(
-                                                    DynamicVariableExtension.ToDynamicVariable(
-                                                        m_CachedFields[type][i].GetValue( obj ) ) );
-
-                                                valuePushed = true;
-
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        m_CachedFields.Add( type, type.GetFields() );
-
-                                        for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                        {
-                                            if ( m_CachedFields[type][i].Name == member )
-                                            {
-                                                m_VmStack.Push(
-                                                    DynamicVariableExtension.ToDynamicVariable(
-                                                        m_CachedFields[type][i].GetValue( obj ) ) );
-
-                                                valuePushed = true;
-
-                                                break;
-                                            }
-                                        }
-                                    }
+                                    m_VmStack.Push(
+                                        DynamicVariableExtension.ToDynamicVariable(
+                                            fieldInfo.GetValue( obj ) ) );
                                 }
                             }
-
-                            if ( !valuePushed )
+                            else
                             {
                                 throw new BiteVmRuntimeException( $"Runtime Error: Member: {member} not found!" );
                             }
@@ -1316,280 +1353,34 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
+                                        object data = m_VmStack.PopDataByType( propertyInfo.PropertyType );
 
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
-                                        {
-                                            if ( m_CachedProperties[type][i].Name ==
-                                                 m_MemberWithStringToSet )
-                                            {
-                                                if ( m_CachedProperties[type][i].PropertyType ==
-                                                     typeof( double ) &&
-                                                     m_VmStack.Peek().DynamicType <
-                                                     DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, m_VmStack.Pop().NumberData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType ==
-                                                          typeof( float ) &&
-                                                          m_VmStack.Peek().DynamicType <
-                                                          DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj,
-                                                            ( float ) m_VmStack.Pop().NumberData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType ==
-                                                          typeof( int ) &&
-                                                          m_VmStack.Peek().DynamicType <
-                                                          DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType ==
-                                                          typeof( string ) &&
-                                                          m_VmStack.Peek().DynamicType ==
-                                                          DynamicVariableType.String )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, m_VmStack.Pop().StringData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType ==
-                                                          typeof( bool ) &&
-                                                          ( m_VmStack.Peek().DynamicType ==
-                                                            DynamicVariableType.True ||
-                                                            m_VmStack.Peek().DynamicType ==
-                                                            DynamicVariableType.False ) )
-                                                {
-                                                    if ( m_VmStack.Peek().DynamicType ==
-                                                         DynamicVariableType.True )
-                                                    {
-                                                        m_CachedProperties[type][i].SetValue( obj, true );
-                                                    }
+                                        propertyInfo.SetValue( obj, data );
+                                    }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        object data = m_VmStack.PopDataByType( fieldInfo.FieldType );
 
-                                                    if ( m_VmStack.Peek().DynamicType ==
-                                                         DynamicVariableType.False )
-                                                    {
-                                                        m_CachedProperties[type][i].SetValue( obj, false );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, m_VmStack.Pop().ObjectData );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
-                                            }
-                                        }
+                                        fieldInfo.SetValue( obj, data );
                                     }
                                     else
                                     {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
-                                        {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
-                                            {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, m_VmStack.Pop().NumberData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType ==
-                                                          typeof( string ) &&
-                                                          m_VmStack.Peek().DynamicType == DynamicVariableType.String )
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, m_VmStack.Pop().StringData );
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( bool ) &&
-                                                          ( m_VmStack.Peek().DynamicType == DynamicVariableType.True ||
-                                                            m_VmStack.Peek().DynamicType ==
-                                                            DynamicVariableType.False ) )
-                                                {
-                                                    if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
-                                                    {
-                                                        m_CachedProperties[type][i].SetValue( obj, true );
-                                                    }
-
-                                                    if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
-                                                    {
-                                                        m_CachedProperties[type][i].SetValue( obj, false );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    m_CachedProperties[type][i].
-                                                        SetValue( obj, m_VmStack.Pop().ObjectData );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
-                                            }
-                                        }
-
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                     }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
-                                        {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, m_VmStack.Pop().NumberData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType ==
-                                                              typeof( string ) &&
-                                                              m_VmStack.Peek().DynamicType ==
-                                                              DynamicVariableType.String )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, m_VmStack.Pop().StringData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( bool ) &&
-                                                              ( m_VmStack.Peek().DynamicType ==
-                                                                DynamicVariableType.True ||
-                                                                m_VmStack.Peek().DynamicType ==
-                                                                DynamicVariableType.False ) )
-                                                    {
-                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
-                                                        {
-                                                            m_CachedFields[type][i].SetValue( obj, true );
-                                                        }
-
-                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
-                                                        {
-                                                            m_CachedFields[type][i].SetValue( obj, false );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, m_VmStack.Pop().ObjectData );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, m_VmStack.Pop().NumberData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, ( float ) m_VmStack.Pop().NumberData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              m_VmStack.Peek().DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, ( int ) m_VmStack.Pop().NumberData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType ==
-                                                              typeof( string ) &&
-                                                              m_VmStack.Peek().DynamicType ==
-                                                              DynamicVariableType.String )
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, m_VmStack.Pop().StringData );
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( bool ) &&
-                                                              ( m_VmStack.Peek().DynamicType ==
-                                                                DynamicVariableType.True ||
-                                                                m_VmStack.Peek().DynamicType ==
-                                                                DynamicVariableType.False ) )
-                                                    {
-                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.True )
-                                                        {
-                                                            m_CachedFields[type][i].SetValue( obj, true );
-                                                        }
-
-                                                        if ( m_VmStack.Peek().DynamicType == DynamicVariableType.False )
-                                                        {
-                                                            m_CachedFields[type][i].SetValue( obj, false );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        m_CachedFields[type][i].
-                                                            SetValue( obj, m_VmStack.Pop().ObjectData );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if ( !valuePushed )
-                                {
-                                    throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
                                 }
                             }
-
 
                             m_SetMemberWithString = false;
                         }
@@ -1620,11 +1411,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -1634,13 +1421,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData / valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -1663,10 +1444,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -1690,7 +1471,7 @@ public class BiteVm
                                     throw new BiteVmRuntimeException(
                                         "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
-                                    }
+                            }
                             else
                             {
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
@@ -1718,7 +1499,7 @@ public class BiteVm
                                     throw new BiteVmRuntimeException(
                                         "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
-                                    }
+                            }
 
                             m_SetMember = false;
                             m_SetElement = false;
@@ -1754,354 +1535,168 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs / valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs / valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs / ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs / ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs / ( float ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs / valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs / ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs / ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs / ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs / valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs / ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs / ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs / valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs / ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs / ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs / valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs / ( float ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs / ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -2154,11 +1749,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -2168,13 +1759,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData * valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -2197,10 +1782,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -2288,354 +1873,168 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs * valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs * valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs * ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs * ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs * ( float ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs * valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs * ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs * ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs * ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs * valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs * ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs * ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs * valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs * ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs * ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs * valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs * ( float ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs * ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -2688,11 +2087,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -2702,13 +2097,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData + valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -2731,10 +2120,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -2822,354 +2211,168 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs + valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs + valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs + ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs + ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs + ( float ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs + valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs + ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs + ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs + ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs + valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs + ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs + ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs + valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs + ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs + ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs + valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs + ( float ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs + ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -3222,11 +2425,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -3236,13 +2435,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData - valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -3265,10 +2458,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -3356,354 +2549,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs - valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs - valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs - ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs - ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs - ( float ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs - valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs - ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs - ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs - ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs - valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs - ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs - ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs - valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs - ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs - ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs - valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs - ( float ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs - ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -3756,11 +2760,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -3770,13 +2770,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData % valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -3799,10 +2793,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -3890,354 +2884,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs % valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs % valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs % ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs % ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs % ( float ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs % valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs % ( float ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs % ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs % ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs % valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs % ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs % ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs % valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs % ( float ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs % ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs % valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs % ( float ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs % ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -4290,11 +3095,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -4302,15 +3103,9 @@ public class BiteVm
                                  valueRhs.DynamicType < DynamicVariableType.True )
                             {
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                    ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
+                                    (int) valueLhs.NumberData & (int) valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -4333,17 +3128,17 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
                                      valueRhs.DynamicType < DynamicVariableType.True )
                                 {
                                     DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                        ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
+                                        (int) valueLhs.NumberData & (int) valueRhs.NumberData );
 
                                     m.Put(
                                         m_LastElement,
@@ -4371,7 +3166,7 @@ public class BiteVm
                                      valueRhs.DynamicType < DynamicVariableType.True )
                                 {
                                     DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                        ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
+                                        (int) valueLhs.NumberData & (int) valueRhs.NumberData );
 
                                     fastMemorySpace.Put(
                                         m_LastElement,
@@ -4408,7 +3203,7 @@ public class BiteVm
                                      valueRhs.DynamicType < DynamicVariableType.True )
                                 {
                                     DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                        ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
+                                        (int) valueLhs.NumberData & (int) valueRhs.NumberData );
 
                                     fastMemorySpace.Put(
                                         m_LastElement,
@@ -4424,354 +3219,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    (int) valueLhs & (int) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs & ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    (int) valueLhs & ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs & ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs & ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs & ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs & ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs & ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    (int) valueLhs & (int) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    (int) valueLhs & ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs & ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -4793,7 +3399,7 @@ public class BiteVm
                                  valueRhs.DynamicType < DynamicVariableType.True )
                             {
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                    ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
+                                    ( int ) valueLhs.NumberData & (int) valueRhs.NumberData );
 
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
@@ -4824,11 +3430,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -4838,13 +3440,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     ( int ) valueLhs.NumberData | ( int ) valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -4867,10 +3463,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -4958,354 +3554,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs | ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs | ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs | ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs | ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs | ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs | ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs | ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs | ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs | ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs | ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs | ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -5358,11 +3765,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -5372,13 +3775,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     ( int ) valueLhs.NumberData ^ ( int ) valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -5401,10 +3798,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -5492,354 +3889,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs ^ ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs ^ ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs ^ ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs ^ ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -5892,11 +4100,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -5906,13 +4110,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     ( int ) valueLhs.NumberData << ( int ) valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -5935,10 +4133,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -6026,354 +4224,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs << ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs << ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs << ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs << ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs << ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs << ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs << ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs << ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs << ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs << ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs << ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -6426,11 +4435,7 @@ public class BiteVm
                         {
                             FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
-                            DynamicBiteVariable valueLhs = fastMemorySpace.Get(
-                                -1,
-                                0,
-                                -1,
-                                m_LastGetLocalVarId );
+                            DynamicBiteVariable valueLhs = fastMemorySpace.GetLocalVar( m_LastGetLocalVarId );
 
                             DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -6440,13 +4445,7 @@ public class BiteVm
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
                                     ( int ) valueLhs.NumberData >> ( int ) valueRhs.NumberData );
 
-                                fastMemorySpace.Put(
-                                    -1,
-                                    0,
-                                    -1,
-                                    m_LastGetLocalVarId,
-                                    value
-                                );
+                                fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
                                 if ( m_PushNextAssignmentOnStack )
                                 {
@@ -6469,10 +4468,10 @@ public class BiteVm
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
 
                                 FastMemorySpace m =
-                                    ( FastMemorySpace ) fastMemorySpace.Get( -1, 0, -1, m_LastGetLocalVarId ).
-                                                                        ObjectData;
+                                    ( FastMemorySpace ) fastMemorySpace.GetLocalVar( m_LastGetLocalVarId ).ObjectData;
 
                                 DynamicBiteVariable valueLhs = m.NamesToProperties[m_LastElement];
+
                                 DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                 if ( valueLhs.DynamicType < DynamicVariableType.True &&
@@ -6560,354 +4559,165 @@ public class BiteVm
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
-                                bool valuePushed = false;
 
                                 if ( obj != null )
                                 {
                                     Type type = obj.GetType();
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.ContainsKey( type ) )
+                                    if ( m_CachedProperties.TryGetProperty( type,
+                                            m_MemberWithStringToSet,
+                                            out PropertyInfo propertyInfo ) )
                                     {
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        if ( propertyInfo.PropertyType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            double valueLhs =
+                                                ( double ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs >> ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        m_CachedProperties.Add( type, type.GetProperties() );
-
-                                        for ( int i = 0; i < m_CachedProperties[type].Length; i++ )
+                                        else if ( propertyInfo.PropertyType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
+                                            float valueLhs =
+                                                ( float ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs >> ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-                                                if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
-                                                     valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    double valueLhs =
-                                                        ( double ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( float ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    float valueLhs =
-                                                        ( float ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( float ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else if ( m_CachedProperties[type][i].PropertyType == typeof( int ) &&
-                                                          valueRhs.DynamicType < DynamicVariableType.True )
-                                                {
-                                                    int valueLhs =
-                                                        ( int ) m_CachedProperties[type][i].GetValue( obj );
-
-                                                    DynamicBiteVariable value =
-                                                        DynamicVariableExtension.ToDynamicVariable(
-                                                            valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                    m_CachedProperties[type][i].
-                                                        SetValue(
-                                                            obj,
-                                                            ( int ) value.NumberData );
-
-                                                    if ( m_PushNextAssignmentOnStack )
-                                                    {
-                                                        m_PushNextAssignmentOnStack = false;
-                                                        m_VmStack.Push( value );
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    throw new BiteVmRuntimeException(
-                                                        "Runtime Error: Invalid types for arithmetic operation!" );
-                                                }
-
-                                                valuePushed = true;
-
-                                                break;
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
-                                    }
-
-                                    if ( !valuePushed )
-                                    {
-                                        if ( m_CachedFields.ContainsKey( type ) )
+                                        else if ( propertyInfo.PropertyType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
                                         {
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
+                                            int valueLhs =
+                                                ( int ) propertyInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs >> ( int ) valueRhs.NumberData );
+
+                                            propertyInfo.SetValue( obj, ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
                                             {
-
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
                                             }
                                         }
                                         else
                                         {
-                                            m_CachedFields.Add( type, type.GetFields() );
-
-                                            for ( int i = 0; i < m_CachedFields[type].Length; i++ )
-                                            {
-                                                if ( m_CachedFields[type][i].Name == m_MemberWithStringToSet )
-                                                {
-                                                    if ( m_CachedFields[type][i].FieldType == typeof( double ) &&
-                                                         valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        double valueLhs =
-                                                            ( double ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( float ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        float valueLhs =
-                                                            ( float ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                ( int ) valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( float ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else if ( m_CachedFields[type][i].FieldType == typeof( int ) &&
-                                                              valueRhs.DynamicType < DynamicVariableType.True )
-                                                    {
-                                                        int valueLhs =
-                                                            ( int ) m_CachedFields[type][i].GetValue( obj );
-
-                                                        DynamicBiteVariable value =
-                                                            DynamicVariableExtension.ToDynamicVariable(
-                                                                valueLhs >> ( int ) valueRhs.NumberData );
-
-                                                        m_CachedFields[type][i].
-                                                            SetValue(
-                                                                obj,
-                                                                ( int ) value.NumberData );
-
-                                                        if ( m_PushNextAssignmentOnStack )
-                                                        {
-                                                            m_PushNextAssignmentOnStack = false;
-                                                            m_VmStack.Push( value );
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw new BiteVmRuntimeException(
-                                                            "Runtime Error: Invalid types for arithmetic operation!" );
-                                                    }
-
-                                                    valuePushed = true;
-
-                                                    break;
-                                                }
-                                            }
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                }
+                                    else if ( m_CachedFields.TryGetField( type,
+                                                 m_MemberWithStringToSet,
+                                                 out FieldInfo fieldInfo ) )
+                                    {
+                                        if ( fieldInfo.FieldType == typeof( double ) &&
+                                             valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            double valueLhs =
+                                                ( double ) fieldInfo.GetValue( obj );
 
-                                if ( !valuePushed )
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs >> ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( float ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            float valueLhs =
+                                                ( float ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    ( int ) valueLhs >> ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( float ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else if ( fieldInfo.FieldType == typeof( int ) &&
+                                                  valueRhs.DynamicType < DynamicVariableType.True )
+                                        {
+                                            int valueLhs =
+                                                ( int ) fieldInfo.GetValue( obj );
+
+                                            DynamicBiteVariable value =
+                                                DynamicVariableExtension.ToDynamicVariable(
+                                                    valueLhs >> ( int ) valueRhs.NumberData );
+
+                                            fieldInfo.
+                                                SetValue(
+                                                    obj,
+                                                    ( int ) value.NumberData );
+
+                                            if ( m_PushNextAssignmentOnStack )
+                                            {
+                                                m_PushNextAssignmentOnStack = false;
+                                                m_VmStack.Push( value );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new BiteVmRuntimeException(
+                                                "Runtime Error: Invalid types for arithmetic operation!" );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                    }
+                                }
+                                else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Member: {m_MemberWithStringToSet} not found!" );
+                                        $"Runtime Error: Invalid object!" );
                                 }
                             }
 

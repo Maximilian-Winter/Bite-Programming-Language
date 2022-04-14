@@ -8,14 +8,23 @@ using Xunit;
 namespace UnitTests
 {
 
-public class StatementUnitTests
+public class Bar
+{
+    public int i;
+    public float f;
+    public double d;
+
+    public int I { get; set; }
+    public float F { get; set; }
+    public double D { get; set; }
+}
+    public class StatementUnitTests
 {
     private BiteResult ExecStatements( string statements, Dictionary < string, object > externalObjects = null )
     {
         var compiler = new BiteCompiler();
 
         BiteProgram program = compiler.CompileStatements( statements );
-
         return program.Run( externalObjects );
     }
 
@@ -33,7 +42,512 @@ public class StatementUnitTests
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
 
+
     [Fact]
+    public void Assignment()
+    {
+        string statements = @"
+            class foo {
+                var x = 5;
+                var y = 2;
+            }
+
+            var a = 1;
+            var b = new foo();
+
+            b.x = 2;
+            b[""y""] = 3;
+
+            bar.i = 1;
+            bar.f = 2;
+            bar.d = 3;
+
+            bar.I = 4;
+            bar.F = 5;
+            bar.D = 6;
+
+            a + b.x + b.y;
+    ";
+
+        var bar = new Bar();
+
+        BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+        Assert.Equal( 6, result.ReturnValue.NumberData );
+        Assert.Equal( 1, bar.i );
+        Assert.Equal( 2f, bar.f );
+        Assert.Equal( 3d, bar.d );
+        Assert.Equal( 4, bar.I );
+        Assert.Equal( 5f, bar.F );
+        Assert.Equal( 6d, bar.D );
+
+    }
+
+        [Fact]
+    public void ArithmeticAdditionAssignment()
+    {
+        string statements = @"
+            class foo {
+                var x = 5;
+                var y = 2;
+            }
+
+            var a = 1;
+            var b = new foo();
+
+            a += 2;
+            b.x += 2;
+            b[""y""] += 3;
+
+            bar.i += 1;
+            bar.f += 2;
+            bar.d += 3;
+
+            bar.I += 4;
+            bar.F += 5;
+            bar.D += 6;
+
+            a + b.x + b.y;
+    ";
+
+        var bar = new Bar();
+
+        BiteResult result = ExecStatements( statements, new Dictionary < string, object >() { { "bar", bar } } );
+
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+        Assert.Equal( 15, result.ReturnValue.NumberData );
+        Assert.Equal( 1, bar.i );
+        Assert.Equal( 2f, bar.f );
+        Assert.Equal( 3d, bar.d );
+        Assert.Equal( 4, bar.I );
+        Assert.Equal( 5f, bar.F );
+        Assert.Equal( 6d, bar.D );
+
+    }
+
+
+        [Fact]
+        public void ArithmeticSubtractionAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 5;
+                var y = 2;
+            }
+
+            var a = 5;
+            var b = new foo();
+
+            a -= 3;
+
+            b.x -= 2;
+            b[""y""] -= 3;
+
+            bar.i -= 1;
+            bar.f -= 2;
+            bar.d -= 3;
+
+            bar.I -= 4;
+            bar.F -= 5;
+            bar.D -= 6;
+
+            a + b.x + b.y;
+";
+
+            var bar = new Bar();
+
+            BiteResult result = ExecStatements( statements, new Dictionary < string, object >() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 4, result.ReturnValue.NumberData );
+            Assert.Equal( -1, bar.i );
+            Assert.Equal( -2f, bar.f );
+            Assert.Equal( -3d, bar.d );
+            Assert.Equal( -4, bar.I );
+            Assert.Equal( -5f, bar.F );
+            Assert.Equal( -6d, bar.D );
+
+        }
+        
+
+        [Fact]
+        public void ArithmeticMultiplicationAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 5;
+                var y = 2;
+            }
+
+            var a = 5;
+            var b = new foo();
+
+            a *= 3;
+
+            b.x *= 2;
+            b[""y""] *= 3;
+
+            bar.i *= 1;
+            bar.f *= 2;
+            bar.d *= 3;
+
+            bar.I *= 4;
+            bar.F *= 5;
+            bar.D *= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 2,
+                f = 2f,
+                d = 2d,
+                I = 2,
+                F = 2f,
+                D = 2d,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 31, result.ReturnValue.NumberData );
+            Assert.Equal( 2, bar.i );
+            Assert.Equal( 4f, bar.f );
+            Assert.Equal( 6d, bar.d );
+            Assert.Equal( 8, bar.I );
+            Assert.Equal( 10f, bar.F );
+            Assert.Equal( 12d, bar.D );
+
+        }
+
+
+        [Fact]
+        public void ArithmeticDivisionAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 10;
+                var y = 6;
+            }
+
+            var a = 15;
+            var b = new foo();
+
+            a /= 3;
+
+            b.x /= 2;
+            b[""y""] /= 3;
+
+            bar.i /= 1;
+            bar.f /= 2;
+            bar.d /= 3;
+
+            bar.I /= 4;
+            bar.F /= 5;
+            bar.D /= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 60,
+                f = 60f,
+                d = 60d,
+                I = 60,
+                F = 60f,
+                D = 60d,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 12, result.ReturnValue.NumberData );
+            Assert.Equal( 60, bar.i );
+            Assert.Equal( 30f, bar.f );
+            Assert.Equal( 20d, bar.d );
+            Assert.Equal( 15, bar.I );
+            Assert.Equal( 12f, bar.F );
+            Assert.Equal( 10d, bar.D );
+
+        }
+
+
+
+        [Fact]
+        public void ArithmeticModuloAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 7;
+                var y = 6;
+            }
+
+            var a = 17;
+            var b = new foo();
+
+            a %= 3;
+
+            b.x %= 2;
+            b[""y""] %= 3;
+
+            bar.i %= 1;
+            bar.f %= 2;
+            bar.d %= 3;
+
+            bar.I %= 4;
+            bar.F %= 5;
+            bar.D %= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 10,
+                f = 10f,
+                d = 10d,
+                I = 10,
+                F = 10f,
+                D = 10d,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 3, result.ReturnValue.NumberData );
+            Assert.Equal( 0, bar.i );
+            Assert.Equal( 0f, bar.f );
+            Assert.Equal( 1d, bar.d );
+            Assert.Equal( 2, bar.I );
+            Assert.Equal( 0f, bar.F );
+            Assert.Equal( 4d, bar.D );
+
+        }
+
+
+
+        [Fact]
+        public void ArithmeticBitwiseAndAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 4;
+                var y = 7;
+            }
+
+            var a = 8;
+            var b = new foo();
+
+            a &= 3;
+
+            b.x &= 2;
+            b[""y""] &= 3;
+
+            bar.i &= 1;
+            bar.f &= 2;
+            bar.d &= 3;
+
+            bar.I &= 4;
+            bar.F &= 5;
+            bar.D &= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 1,
+                f = 1f,
+                d = 2d,
+                I = 2,
+                F = 4f,
+                D = 5d,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary < string, object >() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 3, result.ReturnValue.NumberData );
+            Assert.Equal( 1, bar.i );
+            Assert.Equal( 0f, bar.f );
+            Assert.Equal( 2d, bar.d );
+            Assert.Equal( 0, bar.I );
+            Assert.Equal( 4f, bar.F );
+            Assert.Equal( 4d, bar.D );
+
+        }
+
+
+        [Fact]
+        public void ArithmeticBitwiseOrAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 4;
+                var y = 7;
+            }
+
+            var a = 8;
+            var b = new foo();
+
+            a |= 3;
+
+            b.x |= 2;
+            b[""y""] |= 3;
+
+            bar.i |= 1;
+            bar.f |= 2;
+            bar.d |= 3;
+
+            bar.I |= 4;
+            bar.F |= 5;
+            bar.D |= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 1,
+                f = 1f,
+                d = 2d,
+                I = 2,
+                F = 4f,
+                D = 5d,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 24, result.ReturnValue.NumberData );
+            Assert.Equal( 1, bar.i );
+            Assert.Equal( 3f, bar.f );
+            Assert.Equal( 3d, bar.d );
+            Assert.Equal( 6, bar.I );
+            Assert.Equal( 5f, bar.F );
+            Assert.Equal( 7d, bar.D );
+
+        }
+
+
+
+        [Fact]
+        public void ArithmeticBitwiseShiftLeftAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 4;
+                var y = 7;
+            }
+
+            var a = 8;
+            var b = new foo();
+
+            a <<= 3;
+
+            b.x <<= 2;
+            b[""y""] <<= 3;
+
+            bar.i <<= 1;
+            bar.f <<= 2;
+            bar.d <<= 3;
+
+            bar.I <<= 4;
+            bar.F <<= 5;
+            bar.D <<= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 1,
+                f = 1f,
+                d = 2d,
+                I = 2,
+                F = 4f,
+                D = 5d,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 136, result.ReturnValue.NumberData );
+            Assert.Equal( 2, bar.i );
+            Assert.Equal( 4f, bar.f );
+            Assert.Equal( 16d, bar.d );
+            Assert.Equal( 32, bar.I );
+            Assert.Equal( 128f, bar.F );
+            Assert.Equal( 320d, bar.D );
+
+        }
+
+
+        [Fact]
+        public void ArithmeticBitwiseShiftRightAssignment()
+        {
+            string statements = @"
+            class foo {
+                var x = 4;
+                var y = 7;
+            }
+
+            var a = 8;
+            var b = new foo();
+
+            a >>= 3;
+
+            b.x >>= 2;
+            b[""y""] >>= 3;
+
+            bar.i >>= 1;
+            bar.f >>= 2;
+            bar.d >>= 3;
+
+            bar.I >>= 4;
+            bar.F >>= 5;
+            bar.D >>= 6;
+
+            a + b.x + b.y;
+    ";
+
+            var bar = new Bar()
+            {
+                i = 256,
+                f = 256,
+                d = 256,
+                I = 256,
+                F = 256,
+                D = 256,
+            };
+
+            BiteResult result = ExecStatements( statements, new Dictionary<string, object>() { { "bar", bar } } );
+
+            Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+            Assert.Equal( 2, result.ReturnValue.NumberData );
+            Assert.Equal( 128, bar.i );
+            Assert.Equal( 64f, bar.f );
+            Assert.Equal( 32d, bar.d );
+            Assert.Equal( 16, bar.I );
+            Assert.Equal( 8f, bar.F );
+            Assert.Equal( 4d, bar.D );
+
+        }
+
+        [Fact]
     public void DictionaryInitializers()
     {
         string statements = @"
@@ -85,18 +599,6 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( 5, result.ReturnValue.NumberData );
-    }
-
-    [Fact]
-    public void ArithmeticAssignment()
-    {
-        string statements = @"var a = 1;
-            a += 2;
-            a;";
-
-        BiteResult result = ExecStatements( statements );
-        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( 3, result.ReturnValue.NumberData );
     }
 
     [Fact]
