@@ -163,6 +163,11 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.MultAssign;
             }
 
+            if (context.ModuloAssignOperator() != null)
+            {
+                assignmentBaseNode.OperatorType = AssignmentOperatorTypes.ModuloAssignOperator;
+            }
+
             if ( context.PlusAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.PlusAssign;
@@ -171,6 +176,31 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
             if ( context.MinusAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.MinusAssign;
+            }
+
+            if (context.BitwiseAndAssignOperator() != null)
+            {
+                assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseAndAssignOperator;
+            }
+
+            if (context.BitwiseOrAssignOperator() != null)
+            {
+                assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseOrAssignOperator;
+            }
+
+            if (context.BitwiseXorAssignOperator() != null)
+            {
+                assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseXorAssignOperator;
+            }
+
+            if (context.BitwiseLeftShiftAssignOperator() != null)
+            {
+                assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator;
+            }
+
+            if (context.BitwiseRightShiftAssignOperator() != null)
+            {
+                assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseRightShiftAssignOperator;
             }
 
             assignmentBaseNode.AssignmentBase = ( AssignmentBaseNode ) VisitAssignment( context.assignment() );
