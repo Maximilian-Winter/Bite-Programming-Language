@@ -44,6 +44,14 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                 {
                     Type type = ResolveType( typeString );
 
+                    DynamicBiteVariable returnClassBool = fliObject.Get( "ReturnClass" );
+                    if ( returnClassBool.DynamicType == DynamicVariableType.True  )
+                    {
+                        StaticWrapper wrapper = new StaticWrapper( type );
+                        fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable( wrapper ) );
+
+                        return wrapper;
+                    }
                     DynamicBiteVariable methodString = fliObject.Get( "Method" );
 
                     if ( methodString.DynamicType == DynamicVariableType.String &&

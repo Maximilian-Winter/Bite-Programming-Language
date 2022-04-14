@@ -3,49 +3,22 @@ module HelloWorld;
 import System; 
 using System;
 
-var b = 4;
+var testClassInterface = new CSharpInterface();
 
-PrintLine("Hello World!" + b);
+testClassInterface.Type = "TestClassCSharp";
+testClassInterface.ConstructorArguments[0] = 42;
+testClassInterface.ConstructorArgumentsTypes[0] = "int";
 
-sync
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+PrintLine(TestCSharp.testfield.i);
+
+for(var i = 0; i < 5000; i++)
 {
-    b = 5;
-    PrintLine("Hello World!" + b);
+    TestCSharp.testfield.i += 25;
 }
 
-PrintLine("Hello World!" + b);
-
-sync
-{
-    b = 5;
-    PrintLine("Hello World!" + b);
-}
-
-PrintLine("Hello World!" + b);
-
-sync
-{
-    b = 5;
-    PrintLine("Hello World!" + b);
-}
-
-PrintLine("Hello World!" + b);
-
-sync
-{
-    b = 5;
-    PrintLine("Hello World!" + b);
-}
-
-PrintLine("Hello World!" + b);
-
-sync
-{
-    b = 5;
-    PrintLine("Hello World!" + b);
-}
-
-
+PrintLine(TestCSharp.testfield.i);
 /*
 
 
