@@ -12,9 +12,9 @@ internal class Program
     private static void Main( string[] args )
     {
         //var b = new Benchmarks();
-
-        BenchmarkRunner.Run < Benchmarks >();
+        //BenchmarkRunner.Run < Benchmarks >();
         //BenchmarkRunner.Run < TypeRegistryBenchmarks >();
+        BenchmarkRunner.Run < PropertyAccessBenchmarks >();
     }
 
     #endregion
