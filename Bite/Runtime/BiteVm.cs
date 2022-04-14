@@ -33,17 +33,17 @@ public class BiteVm
     private DynamicBiteVariableStack m_VmStack;
 
     private readonly List < DynamicBiteVariable > m_FunctionArguments = new List < DynamicBiteVariable >();
+    
     private ObjectPoolFastMemory m_PoolFastMemoryFastMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
     private FastMemorySpace m_CurrentMemorySpace;
     private FastMemoryStack m_CallStack = new FastMemoryStack();
     private UsingStatementStack m_UsingStatementStack;
 
-    private readonly Dictionary < string, FastMethodInfo >
-        m_CachedMethods = new Dictionary < string, FastMethodInfo >();
-
+    private readonly Dictionary < string, FastMethodInfo > m_CachedMethods = new Dictionary < string, FastMethodInfo >();
     private readonly Dictionary < Type, PropertyInfo[] > m_CachedProperties = new Dictionary < Type, PropertyInfo[] >();
     private readonly Dictionary < Type, FieldInfo[] > m_CachedFields = new Dictionary < Type, FieldInfo[] >();
+
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
     private int m_LastGetLocalVarDepth = -1;
@@ -61,17 +61,34 @@ public class BiteVm
     private bool m_PushNextAssignmentOnStack = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
+    private Dictionary<string, BinaryChunk> m_CompiledChunks;
+    
     private Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
-    public Dictionary < string, BinaryChunk > CompiledChunks { get; private set; }
 
+    /// <summary>
+    /// Will contain the last value on the stack when the program exits
+    /// </summary>
     public DynamicBiteVariable ReturnValue { get; private set; }
 
+    /// <summary>
+    /// Gets or sets the <see cref="SynchronizationContext"/> to be used inside a sync block
+    /// </summary>
     public SynchronizationContext SynchronizationContext { get; set; }
 
-    private CancellationToken m_CancellationToken;
+
+    private enum ContextMode
+    {
+        CurrentContext,
+        SynchronizedContext,
+    }
+
+    private ContextMode m_ContextMode;
+    private bool m_ExitRunLoop;
     private bool m_Stopping = false;
+
+    private CancellationToken m_CancellationToken;
 
     #region Public
 
@@ -85,24 +102,26 @@ public class BiteVm
         m_GlobalMemorySpace =
             new FastGlobalMemorySpace( 10 );
 
-        CompiledChunks = new Dictionary < string, BinaryChunk >();
+        m_CompiledChunks = new Dictionary < string, BinaryChunk >();
     }
 
-    private enum ContextMode
-    {  
-        CurrentContext,
-        SynchronizedContext,
-    }
-
-    private ContextMode m_ContextMode;
-    private bool m_ExitRunLoop;
 
     /// <summary>
     /// Executes the specified <see cref="BiteProgram"/> on new Task via Task.Run
     /// </summary>
     /// <param name="program"></param>
     /// <returns></returns>
-    public async Task<BiteVmInterpretResult> InterpretAsync( BiteProgram program, CancellationToken token )
+    public Task<BiteVmInterpretResult> InterpretAsync( BiteProgram program )
+    {
+        return InterpretAsync( program, CancellationToken.None );
+    }
+
+    /// <summary>
+    /// Executes the specified <see cref="BiteProgram"/> on new Task via Task.Run
+    /// </summary>
+    /// <param name="program"></param>
+    /// <returns></returns>
+    public async Task < BiteVmInterpretResult > InterpretAsync( BiteProgram program, CancellationToken token )
     {
         return await Task.Run( () => { return Interpret( program, token ); } );
     }
@@ -129,7 +148,7 @@ public class BiteVm
         m_CancellationToken = token;
         m_Stopping = false;
 
-        foreach ( var compiledChunk in CompiledChunks )
+        foreach ( var compiledChunk in m_CompiledChunks )
         {
             if ( !program.CompiledChunks.ContainsKey( compiledChunk.Key ) )
             {
@@ -137,7 +156,7 @@ public class BiteVm
             }
         }
 
-        CompiledChunks = program.CompiledChunks;
+        m_CompiledChunks = program.CompiledChunks;
         m_CurrentInstructionPointer = 0;
 
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
@@ -254,7 +273,7 @@ public class BiteVm
 
         while ( !m_ExitRunLoop )
         {
-            if (m_CancellationToken != null && m_CancellationToken.IsCancellationRequested )
+            if ( m_CancellationToken != null && m_CancellationToken.IsCancellationRequested )
             {
                 return BiteVmInterpretResult.Cancelled;
             }
@@ -337,14 +356,14 @@ public class BiteVm
                                 numberOfMembers );
 
                             m_GlobalMemorySpace.AddModule( callSpace );
-                            m_CurrentChunk = CompiledChunks[moduleName];
+                            m_CurrentChunk = m_CompiledChunks[moduleName];
                             m_CurrentInstructionPointer = 0;
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
                         }
                         else
                         {
-                            m_CurrentChunk = CompiledChunks[moduleName];
+                            m_CurrentChunk = m_CompiledChunks[moduleName];
                             m_CurrentInstructionPointer = 0;
                             m_CurrentMemorySpace = fastMemorySpace;
                             m_CallStack.Push( fastMemorySpace );
@@ -358,7 +377,7 @@ public class BiteVm
                         string className = ReadConstant().StringConstantValue;
 
                         BiteChunkWrapper chunkWrapper = new BiteChunkWrapper(
-                            CompiledChunks[className] );
+                            m_CompiledChunks[className] );
 
                         m_CurrentMemorySpace.Define(
                             DynamicVariableExtension.ToDynamicVariable( chunkWrapper ) );
@@ -373,7 +392,7 @@ public class BiteVm
                         string methodName = m_VmStack.Pop().StringData;
 
                         BiteChunkWrapper chunkWrapper = new BiteChunkWrapper(
-                            CompiledChunks[fullQualifiedMethodName] );
+                            m_CompiledChunks[fullQualifiedMethodName] );
 
                         m_CurrentMemorySpace.Define(
                             DynamicVariableExtension.ToDynamicVariable( chunkWrapper ),
@@ -1671,7 +1690,7 @@ public class BiteVm
                                     throw new BiteVmRuntimeException(
                                         "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
-                            }
+                                    }
                             else
                             {
                                 FastMemorySpace fastMemorySpace = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
@@ -1699,7 +1718,7 @@ public class BiteVm
                                     throw new BiteVmRuntimeException(
                                         "Runtime Error: Can only use integers and floating point numbers for arithmetic Operations!" );
                                 }
-                            }
+                                    }
 
                             m_SetMember = false;
                             m_SetElement = false;
@@ -1749,7 +1768,7 @@ public class BiteVm
                                             if ( m_CachedProperties[type][i].Name == m_MemberWithStringToSet )
                                             {
 
-
+                                                
                                                 if ( m_CachedProperties[type][i].PropertyType == typeof( double ) &&
                                                      valueRhs.DynamicType < DynamicVariableType.True )
                                                 {

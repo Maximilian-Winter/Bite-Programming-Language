@@ -48,14 +48,19 @@ public partial class MainWindow : Window
         Canvas.Children.Add( circle );
 
         var mod = @"module Main;  
+
 while ( true ) { 
+
     if (gameObject.X < 0 || gameObject.X > 300 ) {
         gameObject.dX = -gameObject.dX;
     }
+
     gameObject.X += gameObject.dX;
+
     sync {
         gameObject.Move();
     }
+
 }";
 
         Code.Text = mod;
