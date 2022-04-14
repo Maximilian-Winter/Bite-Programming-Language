@@ -1,10 +1,28 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Bite.Runtime.Memory
 {
 
-[StructLayout( LayoutKind.Explicit )]
+public static class DynamicBiteVariableExtensions
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNumeric( this DynamicBiteVariable variable )
+    {
+        return variable.DynamicType < DynamicVariableType.True;
+    }
+
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public static bool IsBoolean( this DynamicBiteVariable variable )
+    {
+        return variable.DynamicType == DynamicVariableType.True ||
+               variable.DynamicType == DynamicVariableType.False;
+    }
+
+    }
+
+    [StructLayout( LayoutKind.Explicit )]
 public class DynamicBiteVariable
 {
     [FieldOffset( 4 )]

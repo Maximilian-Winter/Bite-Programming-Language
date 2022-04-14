@@ -8,14 +8,23 @@ using Xunit;
 namespace UnitTests
 {
 
-public class StatementUnitTests
+public class Bar
+{
+    public int i;
+    public float f;
+    public double d;
+
+    public int I { get; set; }
+    public float F { get; set; }
+    public double D { get; set; }
+}
+    public class StatementUnitTests
 {
     private BiteResult ExecStatements( string statements, Dictionary < string, object > externalObjects = null )
     {
         var compiler = new BiteCompiler();
 
         BiteProgram program = compiler.CompileStatements( statements );
-
         return program.Run( externalObjects );
     }
 
@@ -32,6 +41,48 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
+
+
+    [Fact]
+    public void ArithmeticAdditionAssignment()
+    {
+        string statements = @"
+            class foo {
+                var x = 5;
+            }
+
+            var a = 1;
+            var b = new foo();
+
+            a += 2;
+
+            b.x += 2;
+            b[""x""] += 3;
+
+            bar.i += 1;
+            bar.f += 2;
+            bar.d += 3;
+
+            bar.I += 4;
+            bar.F += 5;
+            bar.D += 6;
+    ";
+
+        var bar = new Bar();
+
+        BiteResult result = ExecStatements( statements, new Dictionary < string, object >() { { "bar", bar } } );
+
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
+
+        Assert.Equal( 1, bar.i );
+        Assert.Equal( 2f, bar.f );
+        Assert.Equal( 3d, bar.d );
+        Assert.Equal( 4, bar.I );
+        Assert.Equal( 5f, bar.F );
+        Assert.Equal( 6d, bar.D );
+
+    }
+
 
     [Fact]
     public void DictionaryInitializers()
@@ -85,18 +136,6 @@ public class StatementUnitTests
         BiteResult result = ExecStatements( statements );
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
         Assert.Equal( 5, result.ReturnValue.NumberData );
-    }
-
-    [Fact]
-    public void ArithmeticAssignment()
-    {
-        string statements = @"var a = 1;
-            a += 2;
-            a;";
-
-        BiteResult result = ExecStatements( statements );
-        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-        Assert.Equal( 3, result.ReturnValue.NumberData );
     }
 
     [Fact]

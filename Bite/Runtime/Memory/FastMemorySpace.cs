@@ -184,6 +184,16 @@ public class FastMemorySpace
         return DynamicVariableExtension.ToDynamicVariable();
     }
 
+    public virtual DynamicBiteVariable GetLocalVar( int id )
+    {
+        if ( id < Properties.Length )
+        {
+            return Properties[id];
+        }
+
+        return DynamicVariableExtension.ToDynamicVariable();
+    }
+
     public virtual DynamicBiteVariable Get( int moduleId, int depth, int classId, int id )
     {
         if ( moduleId >= 0 )
@@ -248,6 +258,14 @@ public class FastMemorySpace
         if ( m_EnclosingSpace != null )
         {
             m_EnclosingSpace.Put( idStr, value );
+        }
+    }
+
+    public virtual void PutLocalVar( int id, DynamicBiteVariable value )
+    {
+        if (id < CurrentMemoryPointer)
+        {
+            Properties[id].Change( value );
         }
     }
 
