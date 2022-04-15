@@ -1,10 +1,13 @@
 # Bite Programming Language
 
-[German Readme|Deutsches Readme](https://github.com/Maximilian-Winter/Bite-Programming-Language/blob/master/README_DE.md)
+<img src="https://user-images.githubusercontent.com/24946356/163622783-148528b0-607d-4824-b561-054708507078.png" alt="Bite Logo" width="400"/>
+
+
 
 # Introduction
 
-[Most of the following information can also be found here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
+[Most of the following information and more can also be found here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
+
 
 **Bite** is a dynamically typed, object oriented programming language
 
