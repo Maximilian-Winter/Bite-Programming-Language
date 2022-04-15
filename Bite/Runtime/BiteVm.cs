@@ -140,7 +140,7 @@ public class BiteVm
     private FastMemoryStack m_CallStack = new FastMemoryStack();
     private UsingStatementStack m_UsingStatementStack;
 
-    private readonly Dictionary < string, FastMethodInfo > m_CachedMethods = new Dictionary < string, FastMethodInfo >();
+    private readonly Dictionary < Type, FastMethodInfo > m_CachedMethods = new Dictionary < Type, FastMethodInfo >();
     private readonly PropertyCache m_CachedProperties = new PropertyCache();
     private readonly FieldCache m_CachedFields = new FieldCache();
 
@@ -716,9 +716,9 @@ public class BiteVm
                         }
                         else if ( dynamicBiteVariable.ObjectData is object obj )
                         {
-                            string callString = obj + "." + constant.StringConstantValue;
-
-                            if ( m_CachedMethods.ContainsKey( callString ) )
+                            //string callString = obj + "." + constant.StringConstantValue;
+                            Type type = obj.GetType();
+                            if ( m_CachedMethods.ContainsKey( type ) )
                             {
                                 object[] functionArguments = new object[m_FunctionArguments.Count];
 
@@ -733,7 +733,7 @@ public class BiteVm
                                     it++;
                                 }
 
-                                object returnVal = m_CachedMethods[callString].
+                                object returnVal = m_CachedMethods[type].
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
 
                                 m_FunctionArguments.Clear();
@@ -745,7 +745,7 @@ public class BiteVm
                             }
                             else
                             {
-                                Type type = obj.GetType();
+                                
                                 object[] functionArguments = new object[m_FunctionArguments.Count];
                                 Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
                                 int it = 0;
@@ -764,7 +764,7 @@ public class BiteVm
                                 if ( method != null )
                                 {
                                     FastMethodInfo fastMethodInfo = new FastMethodInfo( method );
-                                    m_CachedMethods.Add( callString, fastMethodInfo );
+                                    m_CachedMethods.Add( type, fastMethodInfo );
 
                                     object returnVal = fastMethodInfo.Invoke(
                                         dynamicBiteVariable.ToObject(),
