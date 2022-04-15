@@ -14,6 +14,7 @@ public class TestClassCSharp
 
     public Foo testfield { get; set; } = new Foo();
 
+    public static int t = 45;
     #region Public
 
     public TestClassCSharp( int n )

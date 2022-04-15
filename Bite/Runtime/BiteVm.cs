@@ -1079,19 +1079,45 @@ public class BiteVm
 
                             if ( obj != null )
                             {
-                                Type type = obj.GetType();
+                                if ( obj is StaticWrapper wrapper )
+                                {
+                                    if ( m_CachedProperties.TryGetProperty( wrapper.StaticWrapperType, member, out PropertyInfo propertyInfo ) )
+                                    {
+                                        m_VmStack.Push(
+                                            DynamicVariableExtension.ToDynamicVariable( propertyInfo.GetValue( null ) ) );
+                                    }
+                                    else if ( m_CachedFields.TryGetField( wrapper.StaticWrapperType, member, out FieldInfo fieldInfo ) )
+                                    {
+                                        m_VmStack.Push(
+                                            DynamicVariableExtension.ToDynamicVariable(
+                                                fieldInfo.GetValue( null ) ) );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( $"Runtime Error: Member: {member} not found!" );
+                                    }
+                                }
+                                else
+                                {
+                                    Type type = obj.GetType();
 
-                                if ( m_CachedProperties.TryGetProperty( type, member, out PropertyInfo propertyInfo ) )
-                                {
-                                    m_VmStack.Push(
-                                        DynamicVariableExtension.ToDynamicVariable( propertyInfo.GetValue( obj ) ) );
+                                    if ( m_CachedProperties.TryGetProperty( type, member, out PropertyInfo propertyInfo ) )
+                                    {
+                                        m_VmStack.Push(
+                                            DynamicVariableExtension.ToDynamicVariable( propertyInfo.GetValue( obj ) ) );
+                                    }
+                                    else if ( m_CachedFields.TryGetField( type, member, out FieldInfo fieldInfo ) )
+                                    {
+                                        m_VmStack.Push(
+                                            DynamicVariableExtension.ToDynamicVariable(
+                                                fieldInfo.GetValue( obj ) ) );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException( $"Runtime Error: Member: {member} not found!" );
+                                    }
                                 }
-                                else if ( m_CachedFields.TryGetField( type, member, out FieldInfo fieldInfo ) )
-                                {
-                                    m_VmStack.Push(
-                                        DynamicVariableExtension.ToDynamicVariable(
-                                            fieldInfo.GetValue( obj ) ) );
-                                }
+                               
                             }
                             else
                             {
@@ -1356,7 +1382,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
 
                                     if ( m_CachedProperties.TryGetProperty( type,
                                             m_MemberWithStringToSet,
@@ -1538,7 +1573,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -1876,7 +1920,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -2214,7 +2267,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -2552,7 +2614,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -2887,7 +2958,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -3222,7 +3302,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -3557,7 +3646,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -3892,7 +3990,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -4227,7 +4334,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,
@@ -4562,7 +4678,16 @@ public class BiteVm
 
                                 if ( obj != null )
                                 {
-                                    Type type = obj.GetType();
+                                    Type type = null;
+
+                                    if (obj is StaticWrapper wrapper)
+                                    {
+                                        type = wrapper.StaticWrapperType;
+                                    }
+                                    else
+                                    {
+                                        type = obj.GetType();
+                                    }
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
                                     if ( m_CachedProperties.TryGetProperty( type,

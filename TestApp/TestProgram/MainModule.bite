@@ -6,19 +6,19 @@ using System;
 var testClassInterface = new CSharpInterface();
 
 testClassInterface.Type = "TestClassCSharp";
-testClassInterface.ConstructorArguments[0] = 42;
-testClassInterface.ConstructorArgumentsTypes[0] = "int";
+testClassInterface.ReturnClass = true;
 
 var TestCSharp = CSharpInterfaceCall(testClassInterface);
 
-PrintLine(TestCSharp.testfield.i);
+PrintLine(TestCSharp.t);
 
-for(var i = 0; i < 5000; i++)
+
+for(var i = 0; i < 1000000; i++)
 {
-    TestCSharp.testfield.i += 25;
+    TestCSharp.t += 5;
 }
 
-PrintLine(TestCSharp.testfield.i);
+PrintLine(TestCSharp.t);
 /*
 
 

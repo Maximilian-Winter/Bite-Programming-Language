@@ -8,7 +8,7 @@ namespace Bite.Runtime.Functions.ForeignInterface
 public class StaticWrapper
 {
     private readonly Type _type;
-    private readonly Dictionary < string, FastMethodInfo > CachedMethods = new Dictionary < string, FastMethodInfo >();
+    private readonly Dictionary < string, FastMethodInfo > CachedStaticMethods = new Dictionary < string, FastMethodInfo >();
 
     #region Public
 
@@ -17,11 +17,13 @@ public class StaticWrapper
         _type = type;
     }
 
+    public Type StaticWrapperType => _type;
+
     public object InvokeMember( string name, object[] args, Type[] argsTypes )
     {
-        if ( !CachedMethods.ContainsKey( name ) )
+        if ( !CachedStaticMethods.ContainsKey( name ) )
         {
-            MethodInfo method = _type.GetMethod(
+            MethodInfo method = StaticWrapperType.GetMethod(
                 name,
                 BindingFlags.Static | BindingFlags.Public,
                 null,
@@ -30,12 +32,12 @@ public class StaticWrapper
 
             FastMethodInfo fastMethodInfo = new FastMethodInfo( method );
 
-            CachedMethods.Add( name, fastMethodInfo );
+            CachedStaticMethods.Add( name, fastMethodInfo );
 
             return fastMethodInfo.Invoke( null, args );
         }
 
-        return CachedMethods[name].Invoke( null, args );
+        return CachedStaticMethods[name].Invoke( null, args );
     }
 
     #endregion
