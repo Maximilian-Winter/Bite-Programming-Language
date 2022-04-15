@@ -99,6 +99,37 @@ public class PropertyCache
     }
 }
 
+public class MethodCache
+{
+    private static Dictionary < string, FastMethodInfo > m_MethodCache = new Dictionary < string, FastMethodInfo >();
+
+    public bool TryGetMethod( Type type, Type[] functionArgumentTypes, string methodName, out FastMethodInfo fastMethodInfo )
+    {
+        string key = $"{type.FullName}.{methodName}";
+
+        for ( int i = 0; i < functionArgumentTypes.Length; i++ )
+        {
+            key += "." + functionArgumentTypes[i].Name;
+        }
+
+        if ( !m_MethodCache.TryGetValue( key, out fastMethodInfo ) )
+        {
+            MethodInfo methodInfo = type.GetMethod( methodName, functionArgumentTypes );
+            
+            if ( methodInfo != null )
+            {
+                fastMethodInfo = new FastMethodInfo( methodInfo );
+                m_MethodCache.Add( key, fastMethodInfo );
+
+                return true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+}
 
 public class FieldCache
 {
@@ -140,7 +171,7 @@ public class BiteVm
     private FastMemoryStack m_CallStack = new FastMemoryStack();
     private UsingStatementStack m_UsingStatementStack;
 
-    private readonly Dictionary < Type, FastMethodInfo > m_CachedMethods = new Dictionary < Type, FastMethodInfo >();
+    private readonly MethodCache m_CachedMethods = new MethodCache();
     private readonly PropertyCache m_CachedProperties = new PropertyCache();
     private readonly FieldCache m_CachedFields = new FieldCache();
 
@@ -718,22 +749,22 @@ public class BiteVm
                         {
                             //string callString = obj + "." + constant.StringConstantValue;
                             Type type = obj.GetType();
-                            if ( m_CachedMethods.ContainsKey( type ) )
+                            
+                            object[] functionArguments = new object[m_FunctionArguments.Count];
+                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
+                            int it = 0;
+                            m_FunctionArguments.Reverse();
+
+                            for ( int i = 0; i < m_FunctionArguments.Count; i++ )
                             {
-                                object[] functionArguments = new object[m_FunctionArguments.Count];
-
-                                //Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
-                                int it = 0;
-
-                                foreach ( DynamicBiteVariable functionArgument in m_FunctionArguments )
-                                {
-                                    functionArguments[it] = functionArgument.ToObject();
-
-                                    //  functionArgumentTypes[it] = functionArgument.GetType();
-                                    it++;
-                                }
-
-                                object returnVal = m_CachedMethods[type].
+                                functionArguments[it] = m_FunctionArguments[i].ToObject();
+                                functionArgumentTypes[it] = m_FunctionArguments[i].GetType();
+                                it++;
+                            }
+                            
+                            if ( m_CachedMethods.TryGetMethod( type, functionArgumentTypes, constant.StringConstantValue, out FastMethodInfo fastMethodInfo ) )
+                            {
+                                object returnVal = fastMethodInfo.
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
 
                                 m_FunctionArguments.Clear();
@@ -745,43 +776,8 @@ public class BiteVm
                             }
                             else
                             {
-                                
-                                object[] functionArguments = new object[m_FunctionArguments.Count];
-                                Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
-                                int it = 0;
-
-                                foreach ( DynamicBiteVariable functionArgument in m_FunctionArguments )
-                                {
-                                    functionArguments[it] = functionArgument.ToObject();
-                                    functionArgumentTypes[it] = functionArgument.GetType();
-                                    it++;
-                                }
-
-                                MethodInfo method = type.GetMethod(
-                                    constant.StringConstantValue,
-                                    functionArgumentTypes );
-
-                                if ( method != null )
-                                {
-                                    FastMethodInfo fastMethodInfo = new FastMethodInfo( method );
-                                    m_CachedMethods.Add( type, fastMethodInfo );
-
-                                    object returnVal = fastMethodInfo.Invoke(
-                                        dynamicBiteVariable.ToObject(),
-                                        functionArguments );
-
-                                    if ( returnVal != null )
-                                    {
-                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                                    }
-                                }
-                                else
-                                {
-                                    throw new BiteVmRuntimeException(
-                                        "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
-                                }
-
-                                m_FunctionArguments.Clear();
+                                throw new BiteVmRuntimeException(
+                                    "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
                             }
                         }
                         else
