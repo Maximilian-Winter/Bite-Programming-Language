@@ -6241,38 +6241,6 @@ public class BiteVm
                                 DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData * valueRhs.NumberData ) );
                         }
-                        else if(valueLhs.DynamicType == DynamicVariableType.Object && valueRhs.DynamicType < DynamicVariableType.True)
-                        {
-                            object obj = valueLhs.ToObject();
-                            Type objType = obj.GetType();
-                            Type[] argsTypes = { objType, typeof(float) };
-
-                            if ( m_CachedMethods.TryGetMethod(
-                                    obj.GetType(),
-                                    argsTypes,
-                                    "op_Multiply",
-                                    out FastMethodInfo fastMethodInfo ) )
-                            {
-                                object[] args = { obj, (float)valueRhs.NumberData };
-                                fastMethodInfo.Invoke( obj, args );
-                            }
-                        }
-                        else if(valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType == DynamicVariableType.Object)
-                        {
-                            object obj = valueRhs.ToObject();
-                            Type objType = obj.GetType();
-                            Type[] argsTypes = { typeof(float), objType };
-
-                            if ( m_CachedMethods.TryGetMethod(
-                                    obj.GetType(),
-                                    argsTypes,
-                                    "op_Multiply",
-                                    out FastMethodInfo fastMethodInfo ) )
-                            {
-                                object[] args = { (float)valueLhs.NumberData, obj };
-                                fastMethodInfo.Invoke( obj, args );
-                            }
-                        }
                         else
                         {
                             throw new BiteVmRuntimeException(
