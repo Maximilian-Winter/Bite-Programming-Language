@@ -212,7 +212,7 @@ public class EventWrapper < V, T, K >
                    .GetType()
                    .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
                    .GetValue(source))
-            .DynamicInvoke(eventArgs[0], eventArgs[1]);
+            .DynamicInvoke(eventArgs);
     }
     private void RaiseEventViaReflection(object source, string eventName)
     {
