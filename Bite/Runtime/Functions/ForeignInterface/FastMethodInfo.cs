@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -72,13 +73,13 @@ public class FastMethodInfo
 
 public class FastPropertyInfo < T >
 {
-    private delegate object ReturnValueDelegate( T instance, object[] arguments );
+    public delegate object ReturnValueDelegate( T instance, object[] arguments );
 
-    private delegate void UpdateValueDelegate( T instance, object value, object[] arguments );
+    public delegate void UpdateValueDelegate( T instance, object value, object[] arguments );
 
-    private ReturnValueDelegate GetterDelegate { get; }
+    public ReturnValueDelegate GetterDelegate { get; }
 
-    private UpdateValueDelegate SetterDelegate { get; }
+    public UpdateValueDelegate SetterDelegate { get; }
 
     #region Public
 
@@ -171,8 +172,11 @@ public class FastFieldInfo
                                      instanceExpression,
                                      valueExpression ).
                                  Compile();
+
+        FieldType = propertyInfo.FieldType;
     }
 
+    public Type FieldType { get; set; }
     public object GetField( object instance )
     {
         return Delegate( instance );
@@ -188,9 +192,35 @@ public class FastFieldInfo
 
 public interface IFastPropertyInfo
 {
+    Type PropertyType { get; set; }
     object InvokeGet( object instance, params object[] arguments );
 
     void InvokeSet( object instance, object value, params object[] arguments );
 }
 
+public class CachedProperty<T>: IFastPropertyInfo
+{
+    private FastPropertyInfo <T>.ReturnValueDelegate GetterDelegate { get; }
+
+    private FastPropertyInfo <T>.UpdateValueDelegate SetterDelegate { get; }
+
+    public CachedProperty(FastPropertyInfo <T>.ReturnValueDelegate returnValueDelegate,  FastPropertyInfo <T>.UpdateValueDelegate updateValueDelegate)
+    {
+        GetterDelegate = returnValueDelegate;
+        SetterDelegate = updateValueDelegate;
+        PropertyType = typeof( T );
+    }
+
+    public Type PropertyType { get; set; }
+
+    public object InvokeGet( object instance, params object[] arguments )
+    {
+        return GetterDelegate((T)instance, arguments);
+    }
+
+    public void InvokeSet( object instance, object value, params object[] arguments )
+    {
+        SetterDelegate( ( T ) instance, value, arguments );
+    }
+}
 }

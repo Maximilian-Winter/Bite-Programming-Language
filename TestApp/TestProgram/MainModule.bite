@@ -3,6 +3,22 @@ module HelloWorld;
 import System; 
 using System;
 
+
+var testClassInterface = new CSharpInterface();
+
+testClassInterface.Type = "TestClassCSharp";
+testClassInterface.ConstructorArguments[0] = 42;
+testClassInterface.ConstructorArgumentsTypes[0] = "int";
+
+var TestCSharp = CSharpInterfaceCall(testClassInterface);
+
+for(var i = 0; i < 500000; i++)
+{
+    TestCSharp.i += 25;
+}
+
+
+/*
 class TestSender
 {
     
@@ -28,7 +44,21 @@ while(true)
     }
     counter++;
 }
-/*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var valueSetByCallback = "Hallo";
 
 function CallBack(n, s)

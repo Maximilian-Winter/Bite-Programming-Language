@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,6 +67,7 @@ public class Program
             BiteProgram program = compiler.Compile( biteProg );
 
             program.TypeRegistry.RegisterType < SampleEventArgs >();
+            program.TypeRegistry.RegisterType < TestClassCSharp >();
             biteVm.RegisterSystemModuleCallables( program.TypeRegistry );
             biteVm.SynchronizationContext = new SynchronizationContext();
             delegateTest.OnSampleEvent += Test;
@@ -77,11 +79,21 @@ public class Program
 
             if ( program != null )
             {
+                Stopwatch stopwatch = new Stopwatch();
+                
                 Task.Run(
-                         () => { biteVm.Interpret( program ); } ).
+                         () =>
+                         { 
+                             stopwatch.Start();
+                             biteVm.Interpret( program ); 
+                             stopwatch.Stop();
+                             Console.WriteLine(stopwatch.ElapsedMilliseconds);
+                         } ).
                      ContinueWith(
                          t =>
                          {
+                             
+                             
                              if ( t.IsFaulted )
                              {
                                  Console.WriteLine( t.Exception.InnerException.Message );
