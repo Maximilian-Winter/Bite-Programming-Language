@@ -10,6 +10,7 @@ using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
+using Bite.Runtime.Memory;
 
 namespace TestApp
 {
@@ -52,8 +53,20 @@ public class Program
                     {
                         Console.WriteLine(t.Exception.InnerException.Message);
                     }
-                }); 
+                });
 
+                string line = Console.ReadLine();
+
+                if ( Int32.TryParse( line, out int i ) )
+                {
+                    BiteFunctionCall functionCall = new BiteFunctionCall(
+                        "CallBack",
+                        new[] { DynamicVariableExtension.ToDynamicVariable( i ) });
+                    
+                    biteVm.CallBiteFunction( functionCall );
+                }
+                
+                
                 /*int k = 1;
                 long elapsedMillisecondsAccu = 0;
             

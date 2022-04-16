@@ -3,22 +3,23 @@ module HelloWorld;
 import System; 
 using System;
 
-var testClassInterface = new CSharpInterface();
+var valueSetByCallback = 0;
 
-testClassInterface.Type = "TestClassCSharp";
-testClassInterface.ReturnClass = true;
-
-var TestCSharp = CSharpInterfaceCall(testClassInterface);
-
-PrintLine(TestCSharp.t);
-
-
-for(var i = 0; i < 1000000; i++)
+function CallBack(n)
 {
-    TestCSharp.t += 5;
+   valueSetByCallback = n;
 }
 
-PrintLine(TestCSharp.t);
+PrintLine(valueSetByCallback);
+var oldValue = valueSetByCallback;
+while(true)
+{
+    if(oldValue != valueSetByCallback)
+    {
+        PrintLine("New Value From Callback: ${valueSetByCallback}");
+        oldValue = valueSetByCallback;
+    }
+}
 /*
 
 

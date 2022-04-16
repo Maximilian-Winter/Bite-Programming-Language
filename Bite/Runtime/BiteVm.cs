@@ -69,8 +69,6 @@ public static class StackExtensions
 
         return data;
     }
-
-
 }
 
 public class PropertyCache
@@ -103,7 +101,11 @@ public class MethodCache
 {
     private static Dictionary < string, FastMethodInfo > m_MethodCache = new Dictionary < string, FastMethodInfo >();
 
-    public bool TryGetMethod( Type type, Type[] functionArgumentTypes, string methodName, out FastMethodInfo fastMethodInfo )
+    public bool TryGetMethod(
+        Type type,
+        Type[] functionArgumentTypes,
+        string methodName,
+        out FastMethodInfo fastMethodInfo )
     {
         string key = $"{type.FullName}.{methodName}";
 
@@ -115,7 +117,7 @@ public class MethodCache
         if ( !m_MethodCache.TryGetValue( key, out fastMethodInfo ) )
         {
             MethodInfo methodInfo = type.GetMethod( methodName, functionArgumentTypes );
-            
+
             if ( methodInfo != null )
             {
                 fastMethodInfo = new FastMethodInfo( methodInfo );
@@ -157,6 +159,20 @@ public class FieldCache
     }
 }
 
+public class BiteFunctionCall
+{
+    public string FunctionName;
+    public DynamicBiteVariable[] FunctionArguments;
+
+    public BiteFunctionCall(
+        string functionName,
+        DynamicBiteVariable[] functionArguments)
+    {
+        FunctionName = functionName;
+        FunctionArguments = functionArguments;
+    }
+}
+
 public class BiteVm
 {
     private BinaryChunk m_CurrentChunk;
@@ -164,7 +180,7 @@ public class BiteVm
     private DynamicBiteVariableStack m_VmStack;
 
     private readonly List < DynamicBiteVariable > m_FunctionArguments = new List < DynamicBiteVariable >();
-    
+
     private ObjectPoolFastMemory m_PoolFastMemoryFastMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
     private FastMemorySpace m_CurrentMemorySpace;
@@ -192,11 +208,12 @@ public class BiteVm
     private bool m_PushNextAssignmentOnStack = false;
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
-    private Dictionary<string, BinaryChunk> m_CompiledChunks;
-    
+    private Dictionary < string, BinaryChunk > m_CompiledChunks;
+
     private Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
+    private Queue < BiteFunctionCall > m_FunctionCalls = new Queue < BiteFunctionCall >();
 
     /// <summary>
     /// Will contain the last value on the stack when the program exits
@@ -207,7 +224,6 @@ public class BiteVm
     /// Gets or sets the <see cref="SynchronizationContext"/> to be used inside a sync block
     /// </summary>
     public SynchronizationContext SynchronizationContext { get; set; }
-
 
     private enum ContextMode
     {
@@ -236,13 +252,12 @@ public class BiteVm
         m_CompiledChunks = new Dictionary < string, BinaryChunk >();
     }
 
-
     /// <summary>
     /// Executes the specified <see cref="BiteProgram"/> on new Task via Task.Run
     /// </summary>
     /// <param name="program"></param>
     /// <returns></returns>
-    public Task<BiteVmInterpretResult> InterpretAsync( BiteProgram program )
+    public Task < BiteVmInterpretResult > InterpretAsync( BiteProgram program )
     {
         return InterpretAsync( program, CancellationToken.None );
     }
@@ -291,6 +306,8 @@ public class BiteVm
         m_CurrentInstructionPointer = 0;
 
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
+
+        m_FunctionCalls = new Queue < BiteFunctionCall >();
 
         // This while loop exists to allow us to switch contexts from within code using the sync keyword
         while ( result == BiteVmInterpretResult.Continue && !m_Stopping )
@@ -367,6 +384,11 @@ public class BiteVm
     public void RegisterCallable( string linkId, IBiteVmCallable callable )
     {
         m_Callables.Add( linkId, callable );
+    }
+
+    public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
+    {
+        m_FunctionCalls.Enqueue( biteFunctionCall );
     }
 
     #endregion
@@ -548,7 +570,6 @@ public class BiteVm
                         {
                             throw new BiteVmRuntimeException( $"No such Callable {methodName}" );
                         }
-
 
                         break;
                     }
@@ -749,7 +770,7 @@ public class BiteVm
                         {
                             //string callString = obj + "." + constant.StringConstantValue;
                             Type type = obj.GetType();
-                            
+
                             object[] functionArguments = new object[m_FunctionArguments.Count];
                             Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
                             int it = 0;
@@ -761,8 +782,12 @@ public class BiteVm
                                 functionArgumentTypes[it] = m_FunctionArguments[i].GetType();
                                 it++;
                             }
-                            
-                            if ( m_CachedMethods.TryGetMethod( type, functionArgumentTypes, constant.StringConstantValue, out FastMethodInfo fastMethodInfo ) )
+
+                            if ( m_CachedMethods.TryGetMethod(
+                                    type,
+                                    functionArgumentTypes,
+                                    constant.StringConstantValue,
+                                    out FastMethodInfo fastMethodInfo ) )
                             {
                                 object returnVal = fastMethodInfo.
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
@@ -1077,12 +1102,19 @@ public class BiteVm
                             {
                                 if ( obj is StaticWrapper wrapper )
                                 {
-                                    if ( m_CachedProperties.TryGetProperty( wrapper.StaticWrapperType, member, out PropertyInfo propertyInfo ) )
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            wrapper.StaticWrapperType,
+                                            member,
+                                            out PropertyInfo propertyInfo ) )
                                     {
                                         m_VmStack.Push(
-                                            DynamicVariableExtension.ToDynamicVariable( propertyInfo.GetValue( null ) ) );
+                                            DynamicVariableExtension.ToDynamicVariable(
+                                                propertyInfo.GetValue( null ) ) );
                                     }
-                                    else if ( m_CachedFields.TryGetField( wrapper.StaticWrapperType, member, out FieldInfo fieldInfo ) )
+                                    else if ( m_CachedFields.TryGetField(
+                                                 wrapper.StaticWrapperType,
+                                                 member,
+                                                 out FieldInfo fieldInfo ) )
                                     {
                                         m_VmStack.Push(
                                             DynamicVariableExtension.ToDynamicVariable(
@@ -1090,17 +1122,22 @@ public class BiteVm
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException( $"Runtime Error: Member: {member} not found!" );
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {member} not found!" );
                                     }
                                 }
                                 else
                                 {
                                     Type type = obj.GetType();
 
-                                    if ( m_CachedProperties.TryGetProperty( type, member, out PropertyInfo propertyInfo ) )
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
+                                            member,
+                                            out PropertyInfo propertyInfo ) )
                                     {
                                         m_VmStack.Push(
-                                            DynamicVariableExtension.ToDynamicVariable( propertyInfo.GetValue( obj ) ) );
+                                            DynamicVariableExtension.ToDynamicVariable(
+                                                propertyInfo.GetValue( obj ) ) );
                                     }
                                     else if ( m_CachedFields.TryGetField( type, member, out FieldInfo fieldInfo ) )
                                     {
@@ -1110,10 +1147,10 @@ public class BiteVm
                                     }
                                     else
                                     {
-                                        throw new BiteVmRuntimeException( $"Runtime Error: Member: {member} not found!" );
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {member} not found!" );
                                     }
                                 }
-                               
                             }
                             else
                             {
@@ -1380,7 +1417,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -1389,7 +1426,8 @@ public class BiteVm
                                         type = obj.GetType();
                                     }
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -1397,7 +1435,8 @@ public class BiteVm
 
                                         propertyInfo.SetValue( obj, data );
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -1571,7 +1610,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -1579,9 +1618,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -1654,7 +1695,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -1918,7 +1960,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -1926,9 +1968,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -2001,7 +2045,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -2265,7 +2310,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -2273,9 +2318,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -2348,7 +2395,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -2612,7 +2660,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -2620,9 +2668,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -2692,7 +2742,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -2956,7 +3007,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -2964,9 +3015,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -3036,7 +3089,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -3179,7 +3233,7 @@ public class BiteVm
                                  valueRhs.DynamicType < DynamicVariableType.True )
                             {
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                    (int) valueLhs.NumberData & (int) valueRhs.NumberData );
+                                    ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
 
                                 fastMemorySpace.PutLocalVar( m_LastGetLocalVarId, value );
 
@@ -3214,7 +3268,7 @@ public class BiteVm
                                      valueRhs.DynamicType < DynamicVariableType.True )
                                 {
                                     DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                        (int) valueLhs.NumberData & (int) valueRhs.NumberData );
+                                        ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
 
                                     m.Put(
                                         m_LastElement,
@@ -3242,7 +3296,7 @@ public class BiteVm
                                      valueRhs.DynamicType < DynamicVariableType.True )
                                 {
                                     DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                        (int) valueLhs.NumberData & (int) valueRhs.NumberData );
+                                        ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
 
                                     fastMemorySpace.Put(
                                         m_LastElement,
@@ -3279,7 +3333,7 @@ public class BiteVm
                                      valueRhs.DynamicType < DynamicVariableType.True )
                                 {
                                     DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                        (int) valueLhs.NumberData & (int) valueRhs.NumberData );
+                                        ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
 
                                     fastMemorySpace.Put(
                                         m_LastElement,
@@ -3300,7 +3354,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -3308,9 +3362,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -3322,7 +3378,7 @@ public class BiteVm
 
                                             DynamicBiteVariable value =
                                                 DynamicVariableExtension.ToDynamicVariable(
-                                                    (int) valueLhs & (int) valueRhs.NumberData );
+                                                    ( int ) valueLhs & ( int ) valueRhs.NumberData );
 
                                             propertyInfo.
                                                 SetValue(
@@ -3343,7 +3399,7 @@ public class BiteVm
 
                                             DynamicBiteVariable value =
                                                 DynamicVariableExtension.ToDynamicVariable(
-                                                    (int) valueLhs & ( int ) valueRhs.NumberData );
+                                                    ( int ) valueLhs & ( int ) valueRhs.NumberData );
 
                                             propertyInfo.
                                                 SetValue(
@@ -3380,7 +3436,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -3392,7 +3449,7 @@ public class BiteVm
 
                                             DynamicBiteVariable value =
                                                 DynamicVariableExtension.ToDynamicVariable(
-                                                    (int) valueLhs & (int) valueRhs.NumberData );
+                                                    ( int ) valueLhs & ( int ) valueRhs.NumberData );
 
                                             fieldInfo.
                                                 SetValue(
@@ -3413,7 +3470,7 @@ public class BiteVm
 
                                             DynamicBiteVariable value =
                                                 DynamicVariableExtension.ToDynamicVariable(
-                                                    (int) valueLhs & ( int ) valueRhs.NumberData );
+                                                    ( int ) valueLhs & ( int ) valueRhs.NumberData );
 
                                             fieldInfo.
                                                 SetValue(
@@ -3484,7 +3541,7 @@ public class BiteVm
                                  valueRhs.DynamicType < DynamicVariableType.True )
                             {
                                 DynamicBiteVariable value = DynamicVariableExtension.ToDynamicVariable(
-                                    ( int ) valueLhs.NumberData & (int) valueRhs.NumberData );
+                                    ( int ) valueLhs.NumberData & ( int ) valueRhs.NumberData );
 
                                 m_CurrentMemorySpace.Put(
                                     m_LastGetLocalVarModuleId,
@@ -3644,7 +3701,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -3652,9 +3709,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -3724,7 +3783,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -3988,7 +4048,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -3996,9 +4056,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -4068,7 +4130,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -4332,7 +4395,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -4340,9 +4403,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -4412,7 +4477,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -4676,7 +4742,7 @@ public class BiteVm
                                 {
                                     Type type = null;
 
-                                    if (obj is StaticWrapper wrapper)
+                                    if ( obj is StaticWrapper wrapper )
                                     {
                                         type = wrapper.StaticWrapperType;
                                     }
@@ -4684,9 +4750,11 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
-                                    if ( m_CachedProperties.TryGetProperty( type,
+                                    if ( m_CachedProperties.TryGetProperty(
+                                            type,
                                             m_MemberWithStringToSet,
                                             out PropertyInfo propertyInfo ) )
                                     {
@@ -4756,7 +4824,8 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
-                                    else if ( m_CachedFields.TryGetField( type,
+                                    else if ( m_CachedFields.TryGetField(
+                                                 type,
                                                  m_MemberWithStringToSet,
                                                  out FieldInfo fieldInfo ) )
                                     {
@@ -5632,6 +5701,51 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpExitBlock:
                     {
+                        if ( m_FunctionCalls.Count > 0 )
+                        {
+                            m_CurrentInstructionPointer -= 1;
+                            BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
+                            string method = biteFunctionCall.FunctionName;
+                            DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                            if ( call.ObjectData is BiteChunkWrapper function )
+                            {
+                                FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+                                callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                                callSpace.CallerChunk = m_CurrentChunk;
+                                callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                                callSpace.StackCountAtBegin = m_VmStack.Count;
+                                m_CurrentMemorySpace = callSpace;
+                                m_CallStack.Push( callSpace );
+
+                                for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
+                                {
+                                    m_CurrentMemorySpace.Define(
+                                        biteFunctionCall.FunctionArguments[i]);
+                                }
+
+                                m_CurrentChunk = function.ChunkToWrap;
+                                m_CurrentInstructionPointer = 0;
+                            }
+                            else if ( call.ObjectData is IBiteVmCallable callable )
+                            {
+                                object returnVal = callable.Call( m_FunctionArguments );
+                                m_FunctionArguments.Clear();
+
+                                if ( returnVal != null )
+                                {
+                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                }
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
+                            }
+
+                            break;
+                        }
+
                         if ( m_KeepLastItemOnStackToReturn )
                         {
                             ReturnValue = m_VmStack.Pop();
@@ -5708,6 +5822,49 @@ public class BiteVm
             }
             else
             {
+                if ( m_FunctionCalls.Count > 0 )
+                {
+                    m_CurrentInstructionPointer -= 1;
+                    BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
+                    string method = biteFunctionCall.FunctionName;
+                    DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                    if ( call.ObjectData is BiteChunkWrapper function )
+                    {
+                        FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+                        callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                        callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                        callSpace.CallerChunk = m_CurrentChunk;
+                        callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                        callSpace.StackCountAtBegin = m_VmStack.Count;
+                        m_CurrentMemorySpace = callSpace;
+                        m_CallStack.Push( callSpace );
+
+                        for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
+                        {
+                            m_CurrentMemorySpace.Define(
+                                biteFunctionCall.FunctionArguments[i]);
+                        }
+
+                        m_CurrentChunk = function.ChunkToWrap;
+                        m_CurrentInstructionPointer = 0;
+                    }
+                    else if ( call.ObjectData is IBiteVmCallable callable )
+                    {
+                        object returnVal = callable.Call( m_FunctionArguments );
+                        m_FunctionArguments.Clear();
+
+                        if ( returnVal != null )
+                        {
+                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                        }
+                    }
+                    else
+                    {
+                        throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
+                    }
+                }
+
                 if ( m_CallStack.Count > 0 )
                 {
                     if ( m_VmStack.Count > 0 )
@@ -5758,7 +5915,6 @@ public class BiteVm
     }
 
     #endregion
-
 }
 
 }
