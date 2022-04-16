@@ -1,4 +1,4 @@
-//#define BITE_VM_DEBUG_TRACE_EXECUTION
+#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -162,6 +162,7 @@ public class FieldCache
 public class BiteFunctionCall
 {
     public string FunctionName;
+    public BiteChunkWrapper BiteChunkWrapper = null;
     public DynamicBiteVariable[] FunctionArguments;
 
     public BiteFunctionCall(
@@ -169,6 +170,14 @@ public class BiteFunctionCall
         DynamicBiteVariable[] functionArguments)
     {
         FunctionName = functionName;
+        FunctionArguments = functionArguments;
+    }
+    
+    public BiteFunctionCall(
+        BiteChunkWrapper fWrapper,
+        DynamicBiteVariable[] functionArguments)
+    {
+        BiteChunkWrapper = fWrapper;
         FunctionArguments = functionArguments;
     }
 }
@@ -191,6 +200,8 @@ public class BiteVm
     private readonly PropertyCache m_CachedProperties = new PropertyCache();
     private readonly FieldCache m_CachedFields = new FieldCache();
 
+    private string m_LastGetExternVarName = "";
+    
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
     private int m_LastGetLocalVarDepth = -1;
@@ -209,6 +220,7 @@ public class BiteVm
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
     private Dictionary < string, BinaryChunk > m_CompiledChunks;
+    
 
     private Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
@@ -1053,7 +1065,6 @@ public class BiteVm
                         {
                             throw new BiteVmRuntimeException( $"Runtime Error: External object: {varName} not found!" );
                         }
-
                         break;
                     }
 
@@ -2302,6 +2313,11 @@ public class BiteVm
                                     }
                                 }
                             }
+                            else if ( m_VmStack.Peek().ObjectData is EventWrapper eventWrapper )
+                            {
+                                m_VmStack.Pop();
+                                eventWrapper.TryAddEventHandler( m_MemberWithStringToSet, (BiteChunkWrapper)m_VmStack.Pop().ObjectData, this );
+                            }
                             else
                             {
                                 object obj = m_VmStack.Pop().ObjectData;
@@ -2318,6 +2334,8 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
+
+                                  
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 

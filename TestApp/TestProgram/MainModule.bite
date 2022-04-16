@@ -5,12 +5,14 @@ using System;
 
 var valueSetByCallback = 0;
 
-function CallBack(n)
+function CallBack(s, n)
 {
    valueSetByCallback = n;
 }
 
 PrintLine(valueSetByCallback);
+EventObject.OnSampleEvent += CallBack;
+
 var oldValue = valueSetByCallback;
 while(true)
 {

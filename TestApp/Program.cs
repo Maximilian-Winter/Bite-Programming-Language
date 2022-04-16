@@ -10,15 +10,38 @@ using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
+using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Runtime.Memory;
 
 namespace TestApp
 {
+public class SampleEventArgs
+{
+    public SampleEventArgs(string text) { Text = text; }
+    public string Text { get; } // readonly
+}
+public class DelegateTest
+{
+    public void InvokeEvent(object sender, SampleEventArgs sampleEventArgs)
+    {
+        OnSampleEvent?.Invoke( sender, sampleEventArgs );
+    }
+    public delegate object TestDelegate( object sender, SampleEventArgs sampleEventArgs );
 
+    public event TestDelegate OnSampleEvent;
+}
 public class Program
 {
     #region Public
 
+   
+
+    public static object Test( object sender, SampleEventArgs sampleEventArgs )
+    {
+        Console.WriteLine(sampleEventArgs.Text);
+        return sender;
+    }
+    
     public static void Main( string[] args )
     {
         
@@ -30,7 +53,7 @@ public class Program
         BiteCompiler compiler = new BiteCompiler();
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
-        
+        DelegateTest delegateTest = new DelegateTest();
         foreach ( string file in files )
         {
             Console.WriteLine($"File: {file}");
@@ -41,6 +64,9 @@ public class Program
             program.TypeRegistry.RegisterType<TestClassCSharp>();
             biteVm.RegisterSystemModuleCallables(program.TypeRegistry);
             biteVm.SynchronizationContext = new SynchronizationContext();
+            
+            biteVm.RegisterExternalGlobalObject( "EventObject", new EventWrapper(delegateTest) );
+            delegateTest.OnSampleEvent += Test;
             if ( program != null )
             {
                 Task.Run(
@@ -64,15 +90,7 @@ public class Program
                         break;
                     }
                     
-                    if ( Int32.TryParse( line, out int i ) )
-                    {
-                        BiteFunctionCall functionCall = new BiteFunctionCall(
-                            "CallBack",
-                            new[] { DynamicVariableExtension.ToDynamicVariable( i ) });
-                    
-                        biteVm.CallBiteFunction( functionCall );
-                    }
-
+                    delegateTest.InvokeEvent( new object(), new SampleEventArgs( line ));
                 }
              
                 
