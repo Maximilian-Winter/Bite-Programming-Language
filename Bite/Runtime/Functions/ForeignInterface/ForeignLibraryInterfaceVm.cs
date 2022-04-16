@@ -307,6 +307,18 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                 return wrapper;
             }
+            else if (  arguments.Count > 1 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.String )
+            {
+                Type type = ResolveType( arguments[0].StringData );
+
+                MemberInfo[] memberInfo = type.GetMember( arguments[1].StringData, BindingFlags.Public | BindingFlags.Static );
+
+                if ( memberInfo.Length > 0 )
+                {
+                    object obj = GetValue( memberInfo[0], null );
+                    return obj;
+                }
+            }
 
             return null;
         }
@@ -324,6 +336,18 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
         return type;
     }
 
+    public static object GetValue(MemberInfo memberInfo, object forObject)
+    {
+        switch (memberInfo.MemberType)
+        {
+            case MemberTypes.Field:
+                return ((FieldInfo)memberInfo).GetValue(forObject);
+            case MemberTypes.Property:
+                return ((PropertyInfo)memberInfo).GetValue(forObject);
+            default:
+                throw new NotImplementedException();
+        }
+    } 
     #endregion
 }
 
