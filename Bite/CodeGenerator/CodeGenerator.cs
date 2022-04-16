@@ -1613,7 +1613,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 return null;
 
             case PrimaryBaseNode.PrimaryTypes.NullReference:
-                EmitConstant( new ConstantValue( null ) );
+                object obj = null;
+                EmitConstant( new ConstantValue(obj) );
 
                 return null;
 

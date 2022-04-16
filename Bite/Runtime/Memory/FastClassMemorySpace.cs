@@ -1,4 +1,5 @@
-﻿using Bite.Runtime.Bytecode;
+﻿using System;
+using Bite.Runtime.Bytecode;
 
 namespace Bite.Runtime.Memory
 {

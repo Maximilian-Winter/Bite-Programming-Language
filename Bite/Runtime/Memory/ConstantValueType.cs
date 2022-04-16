@@ -6,6 +6,7 @@ public enum ConstantValueType : byte
     Integer,
     Double,
     String,
+    Null,
     Bool
 }
 

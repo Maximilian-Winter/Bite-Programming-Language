@@ -14,7 +14,7 @@ namespace TestApp
 
 public class SampleEventArgs
 {
-    public string Text { get; } // readonly
+    public string Text { get; set; } // readonly
 
     #region Public
 
@@ -65,15 +65,15 @@ public class Program
             biteProg.Add( File.ReadAllText( file ) );
             BiteProgram program = compiler.Compile( biteProg );
 
-            program.TypeRegistry.RegisterType < TestClassCSharp >();
+            program.TypeRegistry.RegisterType < SampleEventArgs >();
             biteVm.RegisterSystemModuleCallables( program.TypeRegistry );
             biteVm.SynchronizationContext = new SynchronizationContext();
-
+            delegateTest.OnSampleEvent += Test;
             ICSharpEvent cSharpEvent =
                 new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
 
             biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
-            delegateTest.OnSampleEvent += Test;
+           
 
             if ( program != null )
             {

@@ -169,11 +169,67 @@ public class EventWrapper < V, T, K >
         return m_EventInfos.TryGetValue( name, out eventInfo );
     }
 
+    public void Invoke( string name, List < DynamicBiteVariable > functionArguments )
+    {
+         if ( m_EventInfos.TryGetValue( name, out EventInfo eventInfo ) )
+        {
+            MethodInfo methodInfo = eventInfo.EventHandlerType.GetMethod( "Invoke" );
+            ParameterInfo[] parameterInfos = methodInfo.GetParameters();
+            
+            if ( functionArguments.Count != parameterInfos.Length )
+            {
+                return;
+            }
+            else
+            {
+                functionArguments.Reverse();
+                object[] eventArgs = new object[functionArguments.Count];
+                
+                for ( int i = 0; i < functionArguments.Count; i++ )
+                {
+                    object arg = functionArguments[i].ToObject();
+
+                    if ( arg is FastClassMemorySpace )
+                    {
+                        eventArgs[i] = arg;
+                    }
+                    else
+                    {
+                        eventArgs[i] = Convert.ChangeType( arg, parameterInfos[i].ParameterType );
+                    }
+                   
+                }
+
+                RaiseEventViaReflection( EventHolder, name, eventArgs );
+                return;
+            }
+        }
+    }
+        
+    private void RaiseEventViaReflection(object source, string eventName, object[] eventArgs)
+    {
+        ((Delegate)source
+                   .GetType()
+                   .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
+                   .GetValue(source))
+            .DynamicInvoke(eventArgs[0], eventArgs[1]);
+    }
+    private void RaiseEventViaReflection(object source, string eventName)
+    {
+        ((Delegate)source
+                   .GetType()
+                   .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
+                   .GetValue(source))
+            .DynamicInvoke(source, EventArgs.Empty);
+    }
     #endregion
 }
 
 public interface ICSharpEvent
 {
+    bool TryGetEventInfo( string name, out EventInfo eventInfo );
+    object GetEventHolder();
+    void Invoke( string name, List < DynamicBiteVariable > m_FunctionArguments );
     bool TryAddEventHandler( string name, BiteChunkWrapper eventHandlerFunction, BiteVm biteVm );
 }
 
@@ -188,10 +244,27 @@ public class CSharpEvent < V, T, K > : ICSharpEvent
         m_EventWrapper = new EventWrapper < V, T, K >( obj );
     }
 
+    public bool TryGetEventInfo( string name, out EventInfo eventInfo )
+    {
+        return m_EventWrapper.TryGetEventInfo( name, out eventInfo );
+    }
+
+    public object GetEventHolder()
+    {
+        return m_EventWrapper.EventHolder;
+    }
+
+    public void Invoke( string name, List < DynamicBiteVariable > m_FunctionArguments )
+    {
+        m_EventWrapper.Invoke( name, m_FunctionArguments );
+    }
+
     public bool TryAddEventHandler( string name, BiteChunkWrapper eventHandlerFunction, BiteVm biteVm )
     {
         return m_EventWrapper.TryAddEventHandler( name, eventHandlerFunction, biteVm );
     }
+    
+   
 
     #endregion
 }
@@ -237,5 +310,7 @@ public static class DelegateUtility
 
     #endregion
 }
+
+
 
 }

@@ -22,6 +22,9 @@ public struct ConstantValue
 
     [FieldOffset( 16 )]
     public string StringConstantValue;
+    
+    [FieldOffset( 16 )]
+    public object NullConstantValue;
 
     public ConstantValue( int value ) : this()
     {
@@ -46,6 +49,15 @@ public struct ConstantValue
         BoolConstantValue = value;
         ConstantType = ConstantValueType.Bool;
     }
+    
+    public ConstantValue( object value ) : this()
+    {
+        if ( value == null )
+        {
+            NullConstantValue = value;
+            ConstantType = ConstantValueType.Null;
+        }
+    }
 
     public override string ToString()
     {
@@ -62,6 +74,9 @@ public struct ConstantValue
 
             case ConstantValueType.Bool:
                 return $"{ConstantType.ToString()}: {BoolConstantValue.ToString()}";
+            
+            case ConstantValueType.Null:
+                return $"{ConstantType.ToString()}";
 
             default:
                 throw new ArgumentOutOfRangeException();

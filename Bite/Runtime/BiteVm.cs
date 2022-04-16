@@ -229,7 +229,7 @@ public class BiteVm
     private readonly PropertyCache m_CachedProperties = new PropertyCache();
     private readonly FieldCache m_CachedFields = new FieldCache();
 
-    private string m_LastGetExternVarName = "";
+    private string m_LastGetVarName = "";
 
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
@@ -752,6 +752,12 @@ public class BiteVm
                                 m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
                             }
                         }
+                        else if ( dynamicBiteVariable.ObjectData is ICSharpEvent cSharpEvent )
+                        {
+                            EventInfo eventInfo = (EventInfo)m_VmStack.Pop().ObjectData;
+                            cSharpEvent.Invoke( eventInfo.Name, m_FunctionArguments );
+                            m_FunctionArguments.Clear();
+                        }
                         else if ( dynamicBiteVariable.ObjectData is FastMemorySpace fastMemorySpace )
                         {
                             string methodName = constant.StringConstantValue;
@@ -1122,7 +1128,7 @@ public class BiteVm
                     case BiteVmOpCodes.OpGetMemberWithString:
                     {
                         string member = ReadConstant().StringConstantValue;
-
+                        m_LastGetVarName = member;
                         if ( m_VmStack.Peek().ObjectData is FastMemorySpace )
                         {
                             FastMemorySpace obj = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
@@ -1153,6 +1159,19 @@ public class BiteVm
                                         m_VmStack.Push(
                                             DynamicVariableExtension.ToDynamicVariable(
                                                 fieldInfo.GetValue( null ) ) );
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            $"Runtime Error: Member: {member} not found!" );
+                                    }
+                                }
+                                else if ( obj is ICSharpEvent eventWrapper )
+                                {
+                                    if ( eventWrapper.TryGetEventInfo( member, out EventInfo eventInfo ) )
+                                    {
+                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(eventInfo) );
+                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(eventWrapper) );
                                     }
                                     else
                                     {
@@ -1291,6 +1310,12 @@ public class BiteVm
                             case ConstantValueType.Bool:
                                 m_VmStack.Push(
                                     DynamicVariableExtension.ToDynamicVariable( constantValue.BoolConstantValue ) );
+                                break;
+                            case ConstantValueType.Null:
+                                DynamicBiteVariable dynamicBiteVariable = new DynamicBiteVariable();
+                                dynamicBiteVariable.DynamicType = DynamicVariableType.Null;
+                                m_VmStack.Push(
+                                    dynamicBiteVariable );
 
                                 break;
 
@@ -5528,6 +5553,20 @@ public class BiteVm
                             m_VmStack.Push(
                                 DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.ObjectData != valueRhs.ObjectData ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.Object &&
+                                  valueRhs.DynamicType == DynamicVariableType.Null )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    valueLhs.ObjectData != null ) );
+                        }
+                        else if ( valueLhs.DynamicType == DynamicVariableType.Null &&
+                                  valueRhs.DynamicType == DynamicVariableType.Object )
+                        {
+                            m_VmStack.Push(
+                                DynamicVariableExtension.ToDynamicVariable(
+                                    null != valueRhs.ObjectData ) );
                         }
                         else if ( valueLhs.DynamicType == DynamicVariableType.False &&
                                   valueRhs.DynamicType == DynamicVariableType.True )
