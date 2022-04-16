@@ -9,10 +9,13 @@ namespace Bite.Cli.CommandLine
 
 public class CommandLineException : Exception
 {
+    #region Public
+
     public CommandLineException( string message ) : base( message )
     {
-
     }
+
+    #endregion
 }
 
 /// <summary>
@@ -36,7 +39,7 @@ public class CommandLineArgs
         m_Args = args;
     }
 
-    public void Parse<T>( Action < T > success ) where T : new()
+    public void Parse < T >( Action < T > success ) where T : new()
     {
         T options = new T();
 
@@ -126,7 +129,7 @@ public class CommandLineArgs
                             }
                             else if ( propertyType.IsArray )
                             {
-                                arrayValues = new List < string >() { arg };
+                                arrayValues = new List < string > { arg };
                                 state = ArgState.ReadArray;
                             }
 
@@ -139,7 +142,6 @@ public class CommandLineArgs
                     }
                 }
 
-
                 if ( state == ArgState.ReadArray )
                 {
                     PropertyInfo property = currentPropertyOption.Property;
@@ -148,11 +150,10 @@ public class CommandLineArgs
 
                 success( options );
             }
-            catch (CommandLineException)
+            catch ( CommandLineException )
             {
                 OnFail( propertyOptions );
             }
-
         }
         else
         {
@@ -160,13 +161,11 @@ public class CommandLineArgs
         }
     }
 
-
-
     #endregion
 
     #region Private
 
-    private IEnumerable < PropertyOption > GetPropertyOptions<T>()
+    private IEnumerable < PropertyOption > GetPropertyOptions < T >()
     {
         Type type = typeof( T );
         PropertyInfo[] properties = type.GetProperties();
@@ -215,8 +214,6 @@ public class CommandLineArgs
             Console.WriteLine(
                 $"  -{propertyOption.ShortName}  (--{longName}){spaces} : {propertyOption.Description}" );
         }
-
-
     }
 
     #endregion

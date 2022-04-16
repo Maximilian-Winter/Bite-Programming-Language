@@ -7,11 +7,7 @@ namespace Bite.Runtime.Memory
 
 public static class DynamicBiteVariableExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNumeric( this DynamicBiteVariable variable )
-    {
-        return variable.DynamicType < DynamicVariableType.True;
-    }
+    #region Public
 
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public static bool IsBoolean( this DynamicBiteVariable variable )
@@ -20,9 +16,16 @@ public static class DynamicBiteVariableExtensions
                variable.DynamicType == DynamicVariableType.False;
     }
 
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public static bool IsNumeric( this DynamicBiteVariable variable )
+    {
+        return variable.DynamicType < DynamicVariableType.True;
     }
 
-    [StructLayout( LayoutKind.Explicit )]
+    #endregion
+}
+
+[StructLayout( LayoutKind.Explicit )]
 public class DynamicBiteVariable
 {
     [FieldOffset( 4 )]

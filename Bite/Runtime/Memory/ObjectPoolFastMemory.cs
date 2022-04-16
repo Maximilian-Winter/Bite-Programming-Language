@@ -29,9 +29,10 @@ public class ObjectPoolFastMemory
             {
                 newProperties[i] = new FastMemorySpace( $"$objectpool_{i}", null, 0, null, 0, 0 );
             }
+
             m_FastCallMemorySpaces = newProperties;
         }
-        
+
         FastMemorySpace fastMemorySpace = m_FastCallMemorySpaces[m_FastMemorySpacePointer];
         fastMemorySpace.Properties = Array.Empty < DynamicBiteVariable >();
         fastMemorySpace.CurrentMemoryPointer = 0;

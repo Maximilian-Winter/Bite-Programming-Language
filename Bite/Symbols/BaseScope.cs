@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Bite.Symbols
 {
 
-[DebuggerDisplay("{Name}")]
+[DebuggerDisplay( "{Name}" )]
 public abstract class BaseScope : Scope
 {
     public abstract string Name { get; }
@@ -89,15 +89,6 @@ public abstract class BaseScope : Scope
 
     #region Public
 
-    protected BaseScope()
-    {
-    }
-
-    protected BaseScope( Scope enclosingScope )
-    {
-        EnclosingScope = enclosingScope;
-    }
-
     public virtual void define( Symbol sym )
     {
         if ( symbols.ContainsKey( sym.Name ) )
@@ -146,6 +137,19 @@ public abstract class BaseScope : Scope
     public override string ToString()
     {
         return symbols.Keys.ToString();
+    }
+
+    #endregion
+
+    #region Protected
+
+    protected BaseScope()
+    {
+    }
+
+    protected BaseScope( Scope enclosingScope )
+    {
+        EnclosingScope = enclosingScope;
     }
 
     #endregion

@@ -6,25 +6,28 @@ namespace Bite.Symbols
 {
 
 /// <summary>
-/// Contains helper methods for building module members
+///     Contains helper methods for building module members
 /// </summary>
 public abstract class ModuleBuilder
 {
-    protected FunctionSymbol CreateFunction( string name,
+    #region Protected
+
+    protected FunctionSymbol CreateFunction(
+        string name,
         AccesModifierType accesModifier,
-        ClassAndMemberModifiers memberModifiers, 
-        bool isExtern, 
-        bool isCallable, 
+        ClassAndMemberModifiers memberModifiers,
+        bool isExtern,
+        bool isCallable,
         string type,
         IReadOnlyCollection < string > parameters )
     {
-        var functionSymbol = new FunctionSymbol(
+        FunctionSymbol functionSymbol = new FunctionSymbol(
             name,
             accesModifier,
-            memberModifiers, 
+            memberModifiers,
             isExtern,
             isCallable
-            )
+        )
         {
             Type = new BiteClassType( type ),
             m_DefBaseNode = new FunctionDeclarationBaseNode
@@ -37,7 +40,7 @@ public abstract class ModuleBuilder
             }
         };
 
-        foreach ( var parameter in parameters )
+        foreach ( string parameter in parameters )
         {
             functionSymbol.define( new ParameterSymbol( parameter ) );
         }
@@ -50,11 +53,7 @@ public abstract class ModuleBuilder
         return new FieldSymbol(
             name,
             AccesModifierType.Public,
-            ClassAndMemberModifiers.None )
-        {
-            Type = new BiteClassType( type ),
-            DefinitionBaseNode = null
-        };
+            ClassAndMemberModifiers.None ) { Type = new BiteClassType( type ), DefinitionBaseNode = null };
     }
 
     protected FieldSymbol CreatePublicField( string name, string type, AstBaseNode declaringType )
@@ -62,12 +61,10 @@ public abstract class ModuleBuilder
         return new FieldSymbol(
             name,
             AccesModifierType.Public,
-            ClassAndMemberModifiers.None )
-        {
-            Type = new BiteClassType( type ),
-            DefinitionBaseNode = declaringType
-        };
+            ClassAndMemberModifiers.None ) { Type = new BiteClassType( type ), DefinitionBaseNode = declaringType };
     }
+
+    #endregion
 }
 
 }

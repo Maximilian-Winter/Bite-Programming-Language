@@ -48,7 +48,7 @@ public class Program
             BiteResult result = program.Run();
             stopwatch2.Stop();
 
-            Console.WriteLine(result.ReturnValue.ToString() );
+            Console.WriteLine( result.ReturnValue.ToString() );
 
             Console.WriteLine( "--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds );
             elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;
@@ -81,7 +81,7 @@ public class Program
 
     public static void TestCodeModules()
     {
-        List < Module > modules = new List < Module >
+        List < Module > modules = new()
         {
             new()
             {
@@ -124,6 +124,6 @@ Console.WriteLine(greeting);"
         BiteProgram program = compiler.Compile( files.Select( File.ReadAllText ) );
         BiteResult vm = program.Run();
     }
-    
+
     #endregion
 }

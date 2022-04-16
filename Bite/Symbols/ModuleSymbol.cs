@@ -28,8 +28,6 @@ public class ModuleSymbol : SymbolWithScope
         m_ModuleName = moduleIdentifier;
         ImportedModules = importedModules;
         UsedModules = usedModules;
-        
-        
     }
 
     public ModuleSymbol( string moduleIdentifier ) : base( moduleIdentifier )
@@ -44,7 +42,7 @@ public class ModuleSymbol : SymbolWithScope
         if ( UsedModules != null )
         {
             Scope parent = EnclosingScope;
-            
+
             foreach ( ModuleIdentifier importedModule in UsedModules )
             {
                 int i;
@@ -63,7 +61,7 @@ public class ModuleSymbol : SymbolWithScope
                                 parent.resolve( importedModule.ToString(), out i, ref d ) as SymbolWithScope;
 
                             Symbol symbol = module2.resolve( moduleSymbols.Name, out d, ref d, false );
-                            
+
                             if ( symbol != null )
                             {
                                 if ( symbol.SymbolScope != moduleSymbols.SymbolScope )
@@ -71,7 +69,6 @@ public class ModuleSymbol : SymbolWithScope
                                     throw new BiteSymbolTableException(
                                         $"Symbol Table Error: Ambiguous references: {moduleSymbols.Name}" );
                                 }
-                               
                             }
                         }
                     }
@@ -79,6 +76,24 @@ public class ModuleSymbol : SymbolWithScope
             }
         }
     }
+
+    public void DefineClass( ClassSymbol classSymbol )
+    {
+        classSymbol.EnclosingScope = this;
+        define( classSymbol );
+    }
+
+    public void DefineFunction( FunctionSymbol functionSymbol )
+    {
+        functionSymbol.EnclosingScope = this;
+        define( functionSymbol );
+    }
+
+    public void DefineVariable( VariableSymbol variableSymbol )
+    {
+        define( variableSymbol );
+    }
+
     public override Symbol resolve( string name, out int moduleid, ref int depth, bool throwErrorWhenNotFound = true )
     {
         if ( symbols.ContainsKey( name ) )
@@ -93,9 +108,7 @@ public class ModuleSymbol : SymbolWithScope
 
         if ( parent != null )
         {
-
             Symbol symbol = parent.resolve( name, out moduleid, ref depth, throwErrorWhenNotFound );
-
 
             if ( symbol == null )
             {
@@ -136,7 +149,6 @@ public class ModuleSymbol : SymbolWithScope
             depth++;
             m_SearchedModules.Clear();
 
-
             if ( symbol == null && throwErrorWhenNotFound )
             {
                 throw new BiteSymbolTableException( $"Compiler Error: Name '{name}' not found in current program!" );
@@ -154,23 +166,6 @@ public class ModuleSymbol : SymbolWithScope
         moduleid = -2;
 
         return null;
-    }
-
-    public void DefineClass( ClassSymbol classSymbol )
-    {
-        classSymbol.EnclosingScope = this;
-        define( classSymbol );
-    }
-
-    public void DefineFunction ( FunctionSymbol functionSymbol )
-    {
-        functionSymbol.EnclosingScope = this;
-        define( functionSymbol );
-    }
-
-    public void DefineVariable ( VariableSymbol variableSymbol )
-    {
-        define( variableSymbol );
     }
 
     #endregion

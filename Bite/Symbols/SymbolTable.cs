@@ -1,18 +1,22 @@
-﻿using System.Collections.Generic;
-
-namespace Bite.Symbols
+﻿namespace Bite.Symbols
 {
 
 public class SymbolTable
 {
-    public SymbolTable( )
+    public GlobalScope RootScope { get; }
+
+    internal Scope CurrentScope { get; private set; }
+
+    #region Public
+
+    public SymbolTable()
     {
         RootScope = new GlobalScope();
         CurrentScope = RootScope;
     }
 
     /// <summary>
-    /// Defines the specified module on the Global scope
+    ///     Defines the specified module on the Global scope
     /// </summary>
     /// <returns></returns>
     public SymbolTable WithModule( ModuleSymbol module )
@@ -32,9 +36,7 @@ public class SymbolTable
         CurrentScope = s;
     }
 
-    internal Scope CurrentScope { get; private set; }
-    
-    public GlobalScope RootScope { get; private set; }
+    #endregion
 }
 
 }

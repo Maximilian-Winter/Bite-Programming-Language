@@ -215,6 +215,12 @@ public class ClassSymbol : DataAggregateSymbol
     {
     }
 
+    public void DefineField( FieldSymbol fieldSymbol )
+    {
+        fieldSymbol.EnclosingScope = this;
+        define( fieldSymbol );
+    }
+
     public override Symbol resolve( string name, out int moduleId, ref int depth, bool throwErrorWhenNotFound = true )
     {
         Symbol s = resolveMember( name );
@@ -326,13 +332,6 @@ public class ClassSymbol : DataAggregateSymbol
             base.SetSlotNumber( symbol );
         }
     }
-
-    public void DefineField( FieldSymbol fieldSymbol )
-    {
-        fieldSymbol.EnclosingScope = this;
-        define( fieldSymbol );
-    }
-
 
     public override string ToString()
     {

@@ -14,7 +14,7 @@ public class PrintFunctionVm : IBiteVmCallable
         if ( arguments[0].DynamicType != DynamicVariableType.Null )
         {
             int arraySize = arguments.Count;
-            
+
             for ( int i = 0; i < arraySize; i++ )
             {
                 Console.Write( arguments[i].ToString() );

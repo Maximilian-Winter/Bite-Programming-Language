@@ -2,16 +2,23 @@
 
 namespace Bite.Modules
 {
-    internal class ModuleLoader
+
+internal class ModuleLoader
+{
+    #region Public
+
+    public static string LoadModule( string moduleName )
     {
-        public static string LoadModule(string moduleName)
+        using ( Stream stream =
+               typeof( ModuleLoader ).Assembly.GetManifestResourceStream( $"Bite.Modules.{moduleName}.bite" ) )
         {
-            using (Stream stream =
-                   typeof( ModuleLoader ).Assembly.GetManifestResourceStream( $"Bite.Modules.{moduleName}.bite" ))
-            {
-                StreamReader reader = new StreamReader( stream );
-                return reader.ReadToEnd();
-            }
+            StreamReader reader = new StreamReader( stream );
+
+            return reader.ReadToEnd();
         }
     }
+
+    #endregion
+}
+
 }

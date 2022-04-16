@@ -7,15 +7,19 @@ namespace Bite.Runtime.CodeGen
 
 public class BiteCompilationContext
 {
-    private readonly Dictionary<string, Chunk> m_CompilingChunks;
-    private readonly Stack<Chunk> _savedChunks = new Stack<Chunk>();
-    private Chunk m_MainChunk;
+    private readonly Dictionary < string, Chunk > m_CompilingChunks;
+    private readonly Stack < Chunk > _savedChunks = new Stack < Chunk >();
+    private readonly Chunk m_MainChunk;
 
     internal BaseScope BaseScope { get; }
+
     internal Chunk CurrentChunk { get; private set; }
 
     internal Dictionary < string, BinaryChunk > CompiledChunks { get; private set; }
+
     internal BinaryChunk CompiledMainChunk { get; private set; }
+
+    #region Public
 
     public BiteCompilationContext( SymbolTable symbolTable )
     {
@@ -52,11 +56,6 @@ public class BiteCompilationContext
         CurrentChunk = new Chunk();
     }
 
-    internal void SetCurrentChunk( Chunk chunk )
-    {
-        CurrentChunk = chunk;
-    }
-
     internal void PopChunk()
     {
         CurrentChunk = _savedChunks.Pop();
@@ -78,6 +77,12 @@ public class BiteCompilationContext
         m_CompilingChunks.Add( moduleName, CurrentChunk );
     }
 
+    internal void SetCurrentChunk( Chunk chunk )
+    {
+        CurrentChunk = chunk;
+    }
+
+    #endregion
 }
 
 }

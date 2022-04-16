@@ -16,6 +16,7 @@ public class GameObject
 
     public float dY { get; set; }
 
+    #region Public
 
     public GameObject( UIElement element )
     {
@@ -30,6 +31,8 @@ public class GameObject
         Canvas.SetLeft( m_Element, X );
         Canvas.SetTop( m_Element, Y );
     }
+
+    #endregion
 }
 
 }

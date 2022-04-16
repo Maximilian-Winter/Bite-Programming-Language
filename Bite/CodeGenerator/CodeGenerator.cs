@@ -15,7 +15,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     private bool m_IsCompilingAssignmentLhs = false;
     private bool m_IsCompilingAssignmentRhs = false;
-    
+
     private bool m_IsCompilingPostfixOperation = false;
 
     private int m_PreviousLoopBlockCount = 0;
@@ -23,14 +23,24 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     private List < int > m_ConstructingOpCodeData;
     private int m_ConstructingLine;
 
-    private BytecodeListStack m_PostfixInstructions = new BytecodeListStack();
-    private BiteCompilationContext m_Context;
+    private readonly BytecodeListStack m_PostfixInstructions = new BytecodeListStack();
+    private readonly BiteCompilationContext m_Context;
 
     #region Public
 
     public CodeGenerator( BiteCompilationContext context )
     {
         m_Context = context;
+    }
+
+    public void Compile( ProgramBaseNode programBaseNode )
+    {
+        programBaseNode.Accept( this );
+    }
+
+    public void Compile( ModuleBaseNode moduleBaseNode )
+    {
+        moduleBaseNode.Accept( this );
     }
 
     public override object Visit( ProgramBaseNode node )
@@ -63,11 +73,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         else
         {
             m_Context.CurrentChunk.
-                          WriteToChunk(
-                              BiteVmOpCodes.OpDefineModule,
-                              new ConstantValue( m_CurrentModuleName ),
-                              mod.NumberOfSymbols,
-                              0 );
+                      WriteToChunk(
+                          BiteVmOpCodes.OpDefineModule,
+                          new ConstantValue( m_CurrentModuleName ),
+                          mod.NumberOfSymbols,
+                          0 );
 
             m_Context.NewChunk();
 
@@ -279,11 +289,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         FunctionSymbol symbol =
             node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref d ) as FunctionSymbol;
 
-        EmitConstant( new ConstantValue(node.FunctionId.Id) );
-        
+        EmitConstant( new ConstantValue( node.FunctionId.Id ) );
+
         if ( m_Context.HasChunk( symbol.QualifiedName ) )
         {
-            if (symbol.m_IsExtern && symbol.IsCallable)
+            if ( symbol.m_IsExtern && symbol.IsCallable )
             {
                 EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ) );
             }
@@ -312,11 +322,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             m_Context.SaveCurrentChunk( symbol.QualifiedName );
         }
 
-        if ( node.ParametersBase != null &&  node.ParametersBase.Identifiers != null )
+        if ( node.ParametersBase != null && node.ParametersBase.Identifiers != null )
         {
             foreach ( Identifier parametersIdentifier in node.ParametersBase.Identifiers )
             {
-                EmitConstant(  new ConstantValue(parametersIdentifier.Id) );
+                EmitConstant( new ConstantValue( parametersIdentifier.Id ) );
             }
 
             EmitByteCode( BiteVmOpCodes.OpSetFunctionParameterName, node.ParametersBase.Identifiers.Count, 0 );
@@ -347,7 +357,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             m_IsCompilingAssignmentRhs = false;
             EmitByteCode( BiteVmOpCodes.OpDefineVar );
             EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
-            
+
             BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
             foreach ( ByteCode code in byteCodes.ByteCodes )
@@ -363,7 +373,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         return null;
     }
-
 
     public override object Visit( ClassInstanceDeclarationBaseNode node )
     {
@@ -409,7 +418,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         {
             foreach ( MethodSymbol methodSymbol in classSymbol.Methods )
             {
-                if ( methodSymbol.IsConstructor && node.ArgumentsBase.Expressions.Count == methodSymbol.NumberOfParameters )
+                if ( methodSymbol.IsConstructor &&
+                     node.ArgumentsBase.Expressions.Count == methodSymbol.NumberOfParameters )
                 {
                     ByteCode byteCode = new ByteCode(
                         BiteVmOpCodes.OpGetVar,
@@ -427,7 +437,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     {
                         Compile( argument );
                     }
-
 
                     EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.ArgumentsBase.Expressions.Count, 0 );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
@@ -483,30 +492,31 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         if ( node.Initializers != null )
         {
-            foreach ( var initializer in node.Initializers )
+            foreach ( MemberInitializationNode initializer in node.Initializers )
             {
                 initializer.Expression.AstScopeNode = node.AstScopeNode;
 
-                ExpressionBaseNode assignment = new ExpressionBaseNode()
+                ExpressionBaseNode assignment = new ExpressionBaseNode
                 {
-                    AssignmentBase = new AssignmentBaseNode()
+                    AssignmentBase = new AssignmentBaseNode
                     {
                         AstScopeNode = node.AstScopeNode,
                         AssignmentBase = initializer.Expression.AssignmentBase,
-                        CallBase = new CallBaseNode()
+                        CallBase = new CallBaseNode
                         {
                             AstScopeNode = node.AstScopeNode,
-                            PrimaryBase = new PrimaryBaseNode()
-                            {
-                                AstScopeNode = node.AstScopeNode,
-                                PrimaryType = PrimaryBaseNode.PrimaryTypes.Identifier,
-                                PrimaryId = node.InstanceId
-                            },
-                            CallEntries = new List < CallEntry >()
-                            {
-                                new CallEntry()
+                            PrimaryBase =
+                                new PrimaryBaseNode
                                 {
-                                    PrimaryBase = new PrimaryBaseNode()
+                                    AstScopeNode = node.AstScopeNode,
+                                    PrimaryType = PrimaryBaseNode.PrimaryTypes.Identifier,
+                                    PrimaryId = node.InstanceId
+                                },
+                            CallEntries = new List < CallEntry >
+                            {
+                                new CallEntry
+                                {
+                                    PrimaryBase = new PrimaryBaseNode
                                     {
                                         AstScopeNode = node.AstScopeNode,
                                         PrimaryType = PrimaryBaseNode.PrimaryTypes.Identifier,
@@ -518,7 +528,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         },
                         OperatorType = AssignmentOperatorTypes.Assign,
                         Type = AssignmentTypes.Assignment
-
                     }
                 };
 
@@ -534,20 +543,20 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         if ( node.ArgumentsBase != null && node.ArgumentsBase.Expressions != null )
         {
             m_PostfixInstructions.Push( new BytecodeList() );
-            
+
             foreach ( ExpressionBaseNode argument in node.ArgumentsBase.Expressions )
             {
                 m_IsCompilingAssignmentRhs = true;
                 Compile( argument );
                 m_IsCompilingAssignmentRhs = false;
             }
-           
+
             ByteCode byteCode = new ByteCode(
                 BiteVmOpCodes.OpBindToFunction,
                 node.ArgumentsBase.Expressions.Count );
 
             EmitByteCode( byteCode );
-            
+
             BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
             foreach ( ByteCode code in byteCodes.ByteCodes )
@@ -567,22 +576,33 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                     {
                         int d2 = 0;
-                        if ( node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId2, ref d2, false ) != null )
+
+                        if ( node.AstScopeNode.resolve(
+                                 node.PrimaryBase.PrimaryId.Id,
+                                 out int moduleId2,
+                                 ref d2,
+                                 false ) !=
+                             null )
                         {
                             BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
                             Compile( node.PrimaryBase );
                         }
                         else
                         {
-                            EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                            EmitByteCode(
+                                BiteVmOpCodes.OpSetVarExternal,
+                                new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                         }
-                    
-                    
                     }
                     else
                     {
                         int d2 = 0;
-                        Symbol var = node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId2, ref d2, false );
+
+                        Symbol var = node.AstScopeNode.resolve(
+                            node.PrimaryBase.PrimaryId.Id,
+                            out int moduleId2,
+                            ref d2,
+                            false );
 
                         if ( var is ModuleSymbol m )
                         {
@@ -596,13 +616,13 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                             {
                                 BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
                                 Compile( node.PrimaryBase );
-                               
                             }
                             else
                             {
-                                EmitByteCode( BiteVmOpCodes.OpGetVarExternal, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                                EmitByteCode(
+                                    BiteVmOpCodes.OpGetVarExternal,
+                                    new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                             }
-                     
                         }
                     }
                 }
@@ -610,6 +630,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 {
                     Compile( node.PrimaryBase );
                 }
+
                 foreach ( CallElementEntry callElementEntry in node.ElementAccess )
                 {
                     if ( callElementEntry.CallElementType == CallElementTypes.Call )
@@ -644,8 +665,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 Symbol objectToCall = node.AstScopeNode.resolve(
                     node.PrimaryBase.PrimaryId.Id,
                     out int moduleIdObject,
-                    ref dObject, false );
-                
+                    ref dObject,
+                    false );
+
                 ByteCode byteCodeObj = new ByteCode(
                     BiteVmOpCodes.OpGetVar,
                     moduleIdObject,
@@ -655,9 +677,10 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                 ByteCode byteCode2 = new ByteCode(
                     BiteVmOpCodes.OpGetNextVarByRef );
+
                 EmitByteCode( byteCode2 );
                 EmitByteCode( byteCodeObj );
-                
+
                 EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
             }
             else
@@ -672,22 +695,29 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 if ( m_IsCompilingAssignmentLhs && ( node.CallEntries == null || node.CallEntries.Count == 0 ) )
                 {
                     int d = 0;
-                    if ( node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d , false) != null )
+
+                    if ( node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d, false ) !=
+                         null )
                     {
                         BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
                         Compile( node.PrimaryBase );
                     }
                     else
                     {
-                        EmitByteCode( BiteVmOpCodes.OpSetVarExternal, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                        EmitByteCode(
+                            BiteVmOpCodes.OpSetVarExternal,
+                            new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                     }
-                    
-                    
                 }
                 else
                 {
                     int d = 0;
-                    Symbol var = node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d, false );
+
+                    Symbol var = node.AstScopeNode.resolve(
+                        node.PrimaryBase.PrimaryId.Id,
+                        out int moduleId,
+                        ref d,
+                        false );
 
                     if ( var is ModuleSymbol m )
                     {
@@ -699,7 +729,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     {
                         if ( var == null )
                         {
-                            EmitByteCode( BiteVmOpCodes.OpGetVarExternal,
+                            EmitByteCode(
+                                BiteVmOpCodes.OpGetVarExternal,
                                 new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
                         }
                         else
@@ -707,7 +738,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                             BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
                             Compile( node.PrimaryBase );
                         }
-
                     }
                 }
             }
@@ -715,6 +745,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             {
                 Compile( node.PrimaryBase );
             }
+
             if ( node.ElementAccess != null )
             {
                 foreach ( CallElementEntry callElementEntry in node.ElementAccess )
@@ -748,8 +779,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
         }
 
-        
-
         if ( node.CallEntries != null )
         {
             int i = 0;
@@ -774,7 +803,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         node.AstScopeNode.resolve(
                             dynamicVariable.Type.Name,
                             out int moduleId2,
-                            ref d2, false ) as ClassSymbol;
+                            ref d2,
+                            false ) as ClassSymbol;
 
                     isClassSymbol = classSymbol != null;
                 }
@@ -786,19 +816,19 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             {
                 if ( terminalNode.ArgumentsBase != null && terminalNode.ArgumentsBase.Expressions != null )
                 {
-                    
                     m_PostfixInstructions.Push( new BytecodeList() );
+
                     foreach ( ExpressionBaseNode argumentsExpression in terminalNode.ArgumentsBase.Expressions )
                     {
                         m_IsCompilingAssignmentRhs = true;
                         Compile( argumentsExpression );
                         m_IsCompilingAssignmentRhs = false;
                     }
-                    
-                    
+
                     ByteCode byteCode = new ByteCode(
                         BiteVmOpCodes.OpBindToFunction,
                         terminalNode.ArgumentsBase.Expressions.Count );
+
                     EmitByteCode( byteCode );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
@@ -812,7 +842,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 {
                     if ( isModuleSymbol )
                     {
-
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
                             new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
@@ -843,7 +872,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = moduleSymbol.resolve(
                                     terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4,false );
+                                    ref d4,
+                                    false );
 
                                 ByteCode byteCode = new ByteCode(
                                     BiteVmOpCodes.OpSetMember,
@@ -858,7 +888,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = classSymbol.resolve(
                                     terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4, false );
+                                    ref d4,
+                                    false );
 
                                 if ( memberSymbol == null )
                                 {
@@ -891,7 +922,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                 Symbol memberSymbol = moduleSymbol.resolve(
                                     terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4, false );
+                                    ref d4,
+                                    false );
 
                                 ByteCode byteCode = new ByteCode(
                                     BiteVmOpCodes.OpGetMember,
@@ -899,14 +931,15 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                                 EmitByteCode( byteCode );
                             }
-                            else if ( isClassSymbol  )
+                            else if ( isClassSymbol )
                             {
                                 int d4 = 0;
 
                                 Symbol memberSymbol = classSymbol.resolve(
                                     terminalNode.PrimaryBase.PrimaryId.Id,
                                     out int moduleId4,
-                                    ref d4, false );
+                                    ref d4,
+                                    false );
 
                                 if ( memberSymbol == null )
                                 {
@@ -989,8 +1022,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             case AssignmentTypes.Assignment:
                 if ( m_IsCompilingAssignmentRhs )
                 {
-                    EmitByteCode( BiteVmOpCodes.OpPushNextAssignmentOnStack, 0 );
+                    EmitByteCode( BiteVmOpCodes.OpPushNextAssignmentOnStack );
                 }
+
                 m_PostfixInstructions.Push( new BytecodeList() );
                 m_IsCompilingAssignmentRhs = true;
                 Compile( node.AssignmentBase );
@@ -1066,6 +1100,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 {
                     EmitByteCode( code );
                 }
+
                 break;
 
             case AssignmentTypes.Binary:
@@ -1174,7 +1209,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             return null;
         }
 
-        if (node is SyncBlockNode syncStatementNode)
+        if ( node is SyncBlockNode syncStatementNode )
         {
             Compile( syncStatementNode );
 
@@ -1204,9 +1239,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         Stack < int > endJumpStack = new Stack < int >();
 
-        if (node.ElseStatementBase != null)
+        if ( node.ElseStatementBase != null )
         {
-            Compile(node.ElseStatementBase);
+            Compile( node.ElseStatementBase );
         }
 
         int endJumpStackCount = endJumpStack.Count;
@@ -1231,7 +1266,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     {
         int d = 0;
 
-        DynamicVariable variableSymbol = node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d ) as DynamicVariable;
+        DynamicVariable variableSymbol =
+            node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d ) as DynamicVariable;
 
         Compile( node.ExpressionBase );
         EmitByteCode( BiteVmOpCodes.OpDefineVar );
@@ -1242,7 +1278,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     public override object Visit( LocalVariableInitializerBaseNode node )
     {
-        foreach ( var variableDeclaration in node.VariableDeclarations )
+        foreach ( LocalVariableDeclarationBaseNode variableDeclaration in node.VariableDeclarations )
         {
             Compile( variableDeclaration );
         }
@@ -1256,18 +1292,18 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         m_CurrentEnterBlockCount++;
         m_PreviousLoopBlockCount = m_CurrentEnterBlockCount;
 
-        if (node.InitializerBase != null)
+        if ( node.InitializerBase != null )
         {
-            if (node.InitializerBase.Expressions != null)
+            if ( node.InitializerBase.Expressions != null )
             {
-                foreach (var expression in node.InitializerBase.Expressions)
+                foreach ( ExpressionBaseNode expression in node.InitializerBase.Expressions )
                 {
-                    Compile(expression);
+                    Compile( expression );
                 }
             }
-            else if (node.InitializerBase.LocalVariableInitializerBase != null)
+            else if ( node.InitializerBase.LocalVariableInitializerBase != null )
             {
-                Compile(node.InitializerBase.LocalVariableInitializerBase);
+                Compile( node.InitializerBase.LocalVariableInitializerBase );
             }
         }
 
@@ -1275,7 +1311,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         if ( node.Condition != null )
         {
-            Compile( node.Condition);
+            Compile( node.Condition );
         }
         else
         {
@@ -1288,10 +1324,10 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         {
             Compile( node.StatementBase );
         }
-        
+
         if ( node.Iterators != null )
         {
-            foreach ( var iterator in node.Iterators )
+            foreach ( ExpressionBaseNode iterator in node.Iterators )
             {
                 Compile( iterator );
             }
@@ -1304,11 +1340,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 EmitByteCode( BiteVmOpCodes.OpPopStack );
             }
         }*/
-        
+
         m_Context.CurrentChunk.Code[toFix] = new ByteCode(
-        BiteVmOpCodes.OpWhileLoop,
-        jumpCodeWhileBegin,
-        m_Context.CurrentChunk.SerializeToBytes().Length );
+            BiteVmOpCodes.OpWhileLoop,
+            jumpCodeWhileBegin,
+            m_Context.CurrentChunk.SerializeToBytes().Length );
 
         EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
         EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
@@ -1500,7 +1536,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 if ( symbol == null )
                 {
                     throw new CompilerException(
-                        $"Failed to resolve symbol '{node.PrimaryId.Id}' in scope '{node.AstScopeNode.Name}'", node );
+                        $"Failed to resolve symbol '{node.PrimaryId.Id}' in scope '{node.AstScopeNode.Name}'",
+                        node );
                 }
 
                 if ( symbol.SymbolScope is ClassSymbol s )
@@ -1514,7 +1551,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                 AddToConstuctingByteCodeInstruction( symbol.InsertionOrderNumber );
                 EndConstuctingByteCodeInstruction();
-               
+
                 return null;
             }
 
@@ -1547,22 +1584,27 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 EmitConstant( new ConstantValue( node.StringLiteral ) );
 
                 return null;
-            
+
             case PrimaryBaseNode.PrimaryTypes.InterpolatedString:
                 int i = 0;
+
                 foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
                 {
                     EmitConstant( new ConstantValue( interpolatedStringStringPart.TextBeforeExpression ) );
+
                     if ( i > 0 )
                     {
                         EmitByteCode( BiteVmOpCodes.OpAdd );
                     }
+
                     Compile( interpolatedStringStringPart.ExpressionBaseNode );
                     EmitByteCode( BiteVmOpCodes.OpAdd );
                     i++;
                 }
+
                 EmitConstant( new ConstantValue( node.InterpolatedString.TextAfterLastExpression ) );
                 EmitByteCode( BiteVmOpCodes.OpAdd );
+
                 return null;
 
             case PrimaryBaseNode.PrimaryTypes.Expression:
@@ -1577,7 +1619,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
             case PrimaryBaseNode.PrimaryTypes.ArrayExpression:
                 throw new NotImplementedException( "TODO" );
-
 
             case PrimaryBaseNode.PrimaryTypes.DictionaryExpression:
                 throw new NotImplementedException( "TODO" );
@@ -1600,21 +1641,22 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     {
         m_IsCompilingPostfixOperation = true;
         int toFix = -1;
+
         if ( m_PostfixInstructions.Count == 0 )
         {
             toFix = EmitByteCode( BiteVmOpCodes.OpNone );
         }
-        
+
         Compile( node.Primary );
-        
+
         if ( toFix >= 0 && m_Context.CurrentChunk.Code[toFix + 1].OpCode == BiteVmOpCodes.OpGetVar )
         {
             m_Context.CurrentChunk.Code[toFix] = new ByteCode(
                 BiteVmOpCodes.OpGetNextVarByRef );
         }
+
         m_IsCompilingPostfixOperation = false;
-        
-        
+
         switch ( node.Operator )
         {
             case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
@@ -1629,7 +1671,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         m_PostfixInstructions.Peek().ByteCodes.Add( new ByteCode( BiteVmOpCodes.OpPostfixIncrement ) );
                     }
                 }
-                
+
                 break;
 
             case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
@@ -1656,7 +1698,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     public override object Visit( UnaryPrefixOperation node )
     {
-
         Compile( node.Primary );
 
         switch ( node.Operator )
@@ -1810,16 +1851,6 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         m_ConstructingLine = line;
     }
 
-    public void Compile( ProgramBaseNode programBaseNode )
-    {
-        programBaseNode.Accept( this );
-    }
-
-    public void Compile( ModuleBaseNode moduleBaseNode )
-    {
-        moduleBaseNode.Accept( this );
-    }
-
     private object Compile( AstBaseNode astBaseNode )
     {
         return astBaseNode.Accept( this );
@@ -1869,19 +1900,23 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         ByteCode byCode = new ByteCode( m_ConstructingOpCode );
         byCode.OpCodeData = m_ConstructingOpCodeData.ToArray();
         m_Context.CurrentChunk.WriteToChunk( byCode, m_ConstructingLine );
-        if (m_PostfixInstructions.Count > 0 && m_IsCompilingPostfixOperation)
+
+        if ( m_PostfixInstructions.Count > 0 && m_IsCompilingPostfixOperation )
         {
-            if (m_ConstructingOpCode == BiteVmOpCodes.OpGetVar)
+            if ( m_ConstructingOpCode == BiteVmOpCodes.OpGetVar )
             {
                 ByteCode byCodeAlt = new ByteCode( BiteVmOpCodes.OpGetNextVarByRef );
                 m_PostfixInstructions.Peek().ByteCodes.Add( byCodeAlt );
             }
+
             m_PostfixInstructions.Peek().ByteCodes.Add( byCode );
         }
+
         m_ConstructingOpCodeData = null;
         m_ConstructingOpCode = BiteVmOpCodes.OpNone;
     }
-        #endregion
-    }
+
+    #endregion
+}
 
 }

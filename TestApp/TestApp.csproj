@@ -1,84 +1,84 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9577FEF2-3D0B-4CC3-9FF6-0FD56F564534}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>TestApp</RootNamespace>
-    <AssemblyName>TestApp</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32bit>false</Prefer32bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>TestApp.Program</StartupObject>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Antlr4.Runtime.Standard, Version=4.9.2.0, Culture=neutral, PublicKeyToken=e78b2c5abd1fcb3f">
-      <HintPath>..\packages\Antlr4.Runtime.Standard.4.9.2\lib\netstandard2.0\Antlr4.Runtime.Standard.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestClassCSharp.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-    <None Include="TestProgram\CSharpSystemModule.bite.bak">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="TestProgram\MainModule.bite">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Bite\Bite.csproj">
-      <Project>{2b941484-fb5e-4b3f-af7d-bf61238d6f16}</Project>
-      <Name>Bite</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TestProgram\BinaryOpChaining.bite" />
-    <Content Include="TestProgram\BranchingTest.bite" />
-    <Content Include="TestProgram\ConstructorTest.bite" />
-    <Content Include="TestProgram\DynamicArray.bite" />
-    <Content Include="TestProgram\FibonacciExample.bite" />
-    <Content Include="TestProgram\InheritanceExample.bite" />
-    <Content Include="TestProgram\PrimeNumber.bite" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{9577FEF2-3D0B-4CC3-9FF6-0FD56F564534}</ProjectGuid>
+        <OutputType>Exe</OutputType>
+        <RootNamespace>TestApp</RootNamespace>
+        <AssemblyName>TestApp</AssemblyName>
+        <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <Deterministic>true</Deterministic>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <Prefer32bit>false</Prefer32bit>
+    </PropertyGroup>
+    <PropertyGroup>
+        <StartupObject>TestApp.Program</StartupObject>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="Antlr4.Runtime.Standard, Version=4.9.2.0, Culture=neutral, PublicKeyToken=e78b2c5abd1fcb3f">
+            <HintPath>..\packages\Antlr4.Runtime.Standard.4.9.2\lib\netstandard2.0\Antlr4.Runtime.Standard.dll</HintPath>
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Xml.Linq"/>
+        <Reference Include="System.Data.DataSetExtensions"/>
+        <Reference Include="Microsoft.CSharp"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Net.Http"/>
+        <Reference Include="System.Xml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Program.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="TestClassCSharp.cs"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="App.config"/>
+        <None Include="packages.config"/>
+        <None Include="TestProgram\CSharpSystemModule.bite.bak">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="TestProgram\MainModule.bite">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Bite\Bite.csproj">
+            <Project>{2b941484-fb5e-4b3f-af7d-bf61238d6f16}</Project>
+            <Name>Bite</Name>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="TestProgram\BinaryOpChaining.bite"/>
+        <Content Include="TestProgram\BranchingTest.bite"/>
+        <Content Include="TestProgram\ConstructorTest.bite"/>
+        <Content Include="TestProgram\DynamicArray.bite"/>
+        <Content Include="TestProgram\FibonacciExample.bite"/>
+        <Content Include="TestProgram\InheritanceExample.bite"/>
+        <Content Include="TestProgram\PrimeNumber.bite"/>
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
 </Project>

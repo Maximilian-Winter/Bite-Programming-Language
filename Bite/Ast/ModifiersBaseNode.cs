@@ -32,7 +32,7 @@ public class ModifiersBaseNode : AstBaseNode
             Modifiers.Add( ModifierTypes.DeclarePrivate );
         }
 
-        if ( staticAbstractMod != null && staticAbstractMod == "static")
+        if ( staticAbstractMod != null && staticAbstractMod == "static" )
         {
             Modifiers.Add( ModifierTypes.DeclareStatic );
         }
@@ -40,14 +40,13 @@ public class ModifiersBaseNode : AstBaseNode
         {
             Modifiers.Add( ModifierTypes.DeclareAbstract );
         }
-        
     }
 
     public ModifiersBaseNode( string accessMod, string staticAbstractMod, bool isExtern, bool isCallable )
     {
-        Modifiers = new List<ModifierTypes>();
+        Modifiers = new List < ModifierTypes >();
 
-        if (accessMod != null && accessMod == "public")
+        if ( accessMod != null && accessMod == "public" )
         {
             Modifiers.Add( ModifierTypes.DeclarePublic );
         }
@@ -56,25 +55,24 @@ public class ModifiersBaseNode : AstBaseNode
             Modifiers.Add( ModifierTypes.DeclarePrivate );
         }
 
-        if (staticAbstractMod != null && staticAbstractMod == "static")
+        if ( staticAbstractMod != null && staticAbstractMod == "static" )
         {
             Modifiers.Add( ModifierTypes.DeclareStatic );
         }
-        else if (staticAbstractMod != null && staticAbstractMod == "abstract")
+        else if ( staticAbstractMod != null && staticAbstractMod == "abstract" )
         {
             Modifiers.Add( ModifierTypes.DeclareAbstract );
         }
 
-        if (isExtern)
+        if ( isExtern )
         {
             Modifiers.Add( ModifierTypes.DeclareExtern );
         }
 
-        if (isCallable)
+        if ( isCallable )
         {
             Modifiers.Add( ModifierTypes.DeclareCallable );
         }
-
     }
 
     public override object Accept( IAstVisitor visitor )

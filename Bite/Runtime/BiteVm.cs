@@ -1,10 +1,8 @@
-#define BITE_VM_DEBUG_TRACE_EXECUTION
+//#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Bite.Runtime.Bytecode;
@@ -12,25 +10,30 @@ using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
 using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Runtime.Memory;
-using Type = System.Type;
 
 namespace Bite.Runtime
 {
 
 public class BiteVmRuntimeException : ApplicationException
 {
+    public string BiteVmRuntimeExceptionMessage { get; }
+
+    #region Public
+
     public BiteVmRuntimeException( string message ) : base( message )
     {
         BiteVmRuntimeExceptionMessage = message;
     }
 
-    public string BiteVmRuntimeExceptionMessage { get; }
+    #endregion
 }
 
 public static class StackExtensions
 {
+    #region Public
+
     /// <summary>
-    /// Retrieves the current value on the stack based on the specified type
+    ///     Retrieves the current value on the stack based on the specified type
     /// </summary>
     /// <param name="vmStack"></param>
     /// <param name="type"></param>
@@ -69,11 +72,16 @@ public static class StackExtensions
 
         return data;
     }
+
+    #endregion
 }
 
 public class PropertyCache
 {
-    private static Dictionary < string, PropertyInfo > m_PropertyCache = new Dictionary < string, PropertyInfo >();
+    private static readonly Dictionary < string, PropertyInfo > m_PropertyCache =
+        new Dictionary < string, PropertyInfo >();
+
+    #region Public
 
     public bool TryGetProperty( Type type, string propertyName, out PropertyInfo propertyInfo )
     {
@@ -95,11 +103,16 @@ public class PropertyCache
 
         return true;
     }
+
+    #endregion
 }
 
 public class MethodCache
 {
-    private static Dictionary < string, FastMethodInfo > m_MethodCache = new Dictionary < string, FastMethodInfo >();
+    private static readonly Dictionary < string, FastMethodInfo > m_MethodCache =
+        new Dictionary < string, FastMethodInfo >();
+
+    #region Public
 
     public bool TryGetMethod(
         Type type,
@@ -131,11 +144,15 @@ public class MethodCache
 
         return true;
     }
+
+    #endregion
 }
 
 public class FieldCache
 {
-    private static Dictionary < string, FieldInfo > m_FieldCache = new Dictionary < string, FieldInfo >();
+    private static readonly Dictionary < string, FieldInfo > m_FieldCache = new Dictionary < string, FieldInfo >();
+
+    #region Public
 
     public bool TryGetField( Type type, string fieldName, out FieldInfo fieldInfo )
     {
@@ -157,6 +174,8 @@ public class FieldCache
 
         return true;
     }
+
+    #endregion
 }
 
 public class BiteFunctionCall
@@ -165,25 +184,35 @@ public class BiteFunctionCall
     public BiteChunkWrapper BiteChunkWrapper = null;
     public DynamicBiteVariable[] FunctionArguments;
 
+    #region Public
+
     public BiteFunctionCall(
         string functionName,
-        DynamicBiteVariable[] functionArguments)
+        DynamicBiteVariable[] functionArguments )
     {
         FunctionName = functionName;
         FunctionArguments = functionArguments;
     }
-    
+
     public BiteFunctionCall(
         BiteChunkWrapper fWrapper,
-        DynamicBiteVariable[] functionArguments)
+        DynamicBiteVariable[] functionArguments )
     {
         BiteChunkWrapper = fWrapper;
         FunctionArguments = functionArguments;
     }
+
+    #endregion
 }
 
 public class BiteVm
 {
+    private enum ContextMode
+    {
+        CurrentContext,
+        SynchronizedContext
+    }
+
     private BinaryChunk m_CurrentChunk;
     private int m_CurrentInstructionPointer;
     private DynamicBiteVariableStack m_VmStack;
@@ -201,7 +230,7 @@ public class BiteVm
     private readonly FieldCache m_CachedFields = new FieldCache();
 
     private string m_LastGetExternVarName = "";
-    
+
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
     private int m_LastGetLocalVarDepth = -1;
@@ -220,28 +249,11 @@ public class BiteVm
     private BiteVmOpCodes m_CurrentByteCodeInstruction = BiteVmOpCodes.OpNone;
 
     private Dictionary < string, BinaryChunk > m_CompiledChunks;
-    
 
-    private Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
+    private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
     private Queue < BiteFunctionCall > m_FunctionCalls = new Queue < BiteFunctionCall >();
-
-    /// <summary>
-    /// Will contain the last value on the stack when the program exits
-    /// </summary>
-    public DynamicBiteVariable ReturnValue { get; private set; }
-
-    /// <summary>
-    /// Gets or sets the <see cref="SynchronizationContext"/> to be used inside a sync block
-    /// </summary>
-    public SynchronizationContext SynchronizationContext { get; set; }
-
-    private enum ContextMode
-    {
-        CurrentContext,
-        SynchronizedContext,
-    }
 
     private ContextMode m_ContextMode;
     private bool m_ExitRunLoop;
@@ -249,7 +261,22 @@ public class BiteVm
 
     private CancellationToken m_CancellationToken;
 
+    /// <summary>
+    ///     Will contain the last value on the stack when the program exits
+    /// </summary>
+    public DynamicBiteVariable ReturnValue { get; private set; }
+
+    /// <summary>
+    ///     Gets or sets the <see cref="SynchronizationContext" /> to be used inside a sync block
+    /// </summary>
+    public SynchronizationContext SynchronizationContext { get; set; }
+
     #region Public
+
+    public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
+    {
+        m_FunctionCalls.Enqueue( biteFunctionCall );
+    }
 
     public void InitVm()
     {
@@ -265,27 +292,7 @@ public class BiteVm
     }
 
     /// <summary>
-    /// Executes the specified <see cref="BiteProgram"/> on new Task via Task.Run
-    /// </summary>
-    /// <param name="program"></param>
-    /// <returns></returns>
-    public Task < BiteVmInterpretResult > InterpretAsync( BiteProgram program )
-    {
-        return InterpretAsync( program, CancellationToken.None );
-    }
-
-    /// <summary>
-    /// Executes the specified <see cref="BiteProgram"/> on new Task via Task.Run
-    /// </summary>
-    /// <param name="program"></param>
-    /// <returns></returns>
-    public async Task < BiteVmInterpretResult > InterpretAsync( BiteProgram program, CancellationToken token )
-    {
-        return await Task.Run( () => { return Interpret( program, token ); } );
-    }
-
-    /// <summary>
-    /// Executes the specified <see cref="BiteProgram"/> on the current thread
+    ///     Executes the specified <see cref="BiteProgram" /> on the current thread
     /// </summary>
     /// <param name="program"></param>
     /// <returns></returns>
@@ -295,7 +302,7 @@ public class BiteVm
     }
 
     /// <summary>
-    /// Executes the specified <see cref="BiteProgram"/> on the current thread
+    ///     Executes the specified <see cref="BiteProgram" /> on the current thread
     /// </summary>
     /// <param name="program"></param>
     /// <returns></returns>
@@ -306,7 +313,7 @@ public class BiteVm
         m_CancellationToken = token;
         m_Stopping = false;
 
-        foreach ( var compiledChunk in m_CompiledChunks )
+        foreach ( KeyValuePair < string, BinaryChunk > compiledChunk in m_CompiledChunks )
         {
             if ( !program.CompiledChunks.ContainsKey( compiledChunk.Key ) )
             {
@@ -343,7 +350,7 @@ public class BiteVm
                     }
                     else
                     {
-                        SynchronizationContext.Send( new SendOrPostCallback( ( o ) => { result = Run(); } ), null );
+                        SynchronizationContext.Send( o => { result = Run(); }, null );
                     }
 
                     break;
@@ -354,17 +361,37 @@ public class BiteVm
     }
 
     /// <summary>
-    /// Requests the current <see cref="BiteVm"/> to stop execution and exit as soon as the current instruction has completed.
-    /// If execution is running on a thread, this action will not by synchronous
+    ///     Executes the specified <see cref="BiteProgram" /> on new Task via Task.Run
     /// </summary>
-    public void Stop()
+    /// <param name="program"></param>
+    /// <returns></returns>
+    public Task < BiteVmInterpretResult > InterpretAsync( BiteProgram program )
     {
-        m_ExitRunLoop = true;
-        m_Stopping = true;
+        return InterpretAsync( program, CancellationToken.None );
     }
 
     /// <summary>
-    /// Registers an external object as a global variable
+    ///     Executes the specified <see cref="BiteProgram" /> on new Task via Task.Run
+    /// </summary>
+    /// <param name="program"></param>
+    /// <returns></returns>
+    public async Task < BiteVmInterpretResult > InterpretAsync( BiteProgram program, CancellationToken token )
+    {
+        return await Task.Run( () => { return Interpret( program, token ); } );
+    }
+
+    /// <summary>
+    ///     Registers a <see cref="IBiteVmCallable" /> class as an extern callable method with the specified linkId
+    /// </summary>
+    /// <param name="linkId"></param>
+    /// <param name="callable"></param>
+    public void RegisterCallable( string linkId, IBiteVmCallable callable )
+    {
+        m_Callables.Add( linkId, callable );
+    }
+
+    /// <summary>
+    ///     Registers an external object as a global variable
     /// </summary>
     /// <param name="varName"></param>
     /// <param name="data"></param>
@@ -374,14 +401,14 @@ public class BiteVm
     }
 
     /// <summary>
-    /// Registers a set of external objects as global variables
+    ///     Registers a set of external objects as global variables
     /// </summary>
     /// <param name="externalObjects"></param>
     public void RegisterExternalGlobalObjects( Dictionary < string, object > externalObjects )
     {
         if ( externalObjects != null )
         {
-            foreach ( var externalObject in externalObjects )
+            foreach ( KeyValuePair < string, object > externalObject in externalObjects )
             {
                 m_ExternalObjects.Add( externalObject.Key, externalObject.Value );
             }
@@ -389,23 +416,15 @@ public class BiteVm
     }
 
     /// <summary>
-    /// Registers a <see cref="IBiteVmCallable"/> class as an extern callable method with the specified linkId
+    ///     Requests the current <see cref="BiteVm" /> to stop execution and exit as soon as the current instruction has
+    ///     completed.
+    ///     If execution is running on a thread, this action will not by synchronous
     /// </summary>
-    /// <param name="linkId"></param>
-    /// <param name="callable"></param>
-    public void RegisterCallable( string linkId, IBiteVmCallable callable )
+    public void Stop()
     {
-        m_Callables.Add( linkId, callable );
+        m_ExitRunLoop = true;
+        m_Stopping = true;
     }
-
-    public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
-    {
-        m_FunctionCalls.Enqueue( biteFunctionCall );
-    }
-
-    #endregion
-
-    #region Protected
 
     #endregion
 
@@ -628,6 +647,7 @@ public class BiteVm
                         if ( call.ObjectData is BiteChunkWrapper function )
                         {
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
                             //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
@@ -674,6 +694,7 @@ public class BiteVm
                         {
                             m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
                             //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
@@ -743,6 +764,7 @@ public class BiteVm
                                 if ( call.ObjectData is BiteChunkWrapper function )
                                 {
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
                                     //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                                     callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                     callSpace.CallerChunk = m_CurrentChunk;
@@ -1065,6 +1087,7 @@ public class BiteVm
                         {
                             throw new BiteVmRuntimeException( $"Runtime Error: External object: {varName} not found!" );
                         }
+
                         break;
                     }
 
@@ -1789,7 +1812,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -2139,7 +2162,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -2313,10 +2336,14 @@ public class BiteVm
                                     }
                                 }
                             }
-                            else if ( m_VmStack.Peek().ObjectData is EventWrapper eventWrapper )
+                            else if ( m_VmStack.Peek().ObjectData is ICSharpEvent eventWrapper )
                             {
                                 m_VmStack.Pop();
-                                eventWrapper.TryAddEventHandler( m_MemberWithStringToSet, (BiteChunkWrapper)m_VmStack.Pop().ObjectData, this );
+
+                                eventWrapper.TryAddEventHandler(
+                                    m_MemberWithStringToSet,
+                                    ( BiteChunkWrapper ) m_VmStack.Pop().ObjectData,
+                                    this );
                             }
                             else
                             {
@@ -2334,8 +2361,6 @@ public class BiteVm
                                     {
                                         type = obj.GetType();
                                     }
-
-                                  
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
 
@@ -2496,7 +2521,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -2843,7 +2868,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -3190,7 +3215,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -3537,7 +3562,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -3884,7 +3909,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -4231,7 +4256,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -4578,7 +4603,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -4925,7 +4950,7 @@ public class BiteVm
                                 else
                                 {
                                     throw new BiteVmRuntimeException(
-                                        $"Runtime Error: Invalid object!" );
+                                        "Runtime Error: Invalid object!" );
                                 }
                             }
 
@@ -5701,16 +5726,16 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpEnterBlock:
                     {
-                        if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback)
+                        if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback )
                         {
                             m_CurrentInstructionPointer -= 1;
                             BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
                             string method = biteFunctionCall.FunctionName;
-                            DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
 
-                            if ( call.ObjectData is BiteChunkWrapper function )
+                            if ( biteFunctionCall.BiteChunkWrapper != null )
                             {
                                 FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
                                 //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                                 callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                 callSpace.CallerChunk = m_CurrentChunk;
@@ -5723,30 +5748,58 @@ public class BiteVm
                                 for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
                                 {
                                     m_CurrentMemorySpace.Define(
-                                        biteFunctionCall.FunctionArguments[i]);
+                                        biteFunctionCall.FunctionArguments[i] );
                                 }
 
-                                m_CurrentChunk = function.ChunkToWrap;
+                                m_CurrentChunk = biteFunctionCall.BiteChunkWrapper.ChunkToWrap;
                                 m_CurrentInstructionPointer = 0;
-                            }
-                            else if ( call.ObjectData is IBiteVmCallable callable )
-                            {
-                                object returnVal = callable.Call( m_FunctionArguments );
-                                m_FunctionArguments.Clear();
-
-                                if ( returnVal != null )
-                                {
-                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                                }
                             }
                             else
                             {
-                                throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
+                                DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                                if ( call.ObjectData is BiteChunkWrapper function )
+                                {
+                                    FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
+                                    //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                    callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                                    callSpace.CallerChunk = m_CurrentChunk;
+                                    callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                                    callSpace.StackCountAtBegin = m_VmStack.Count;
+                                    callSpace.IsRunningCallback = true;
+                                    m_CurrentMemorySpace = callSpace;
+                                    m_CallStack.Push( callSpace );
+
+                                    for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
+                                    {
+                                        m_CurrentMemorySpace.Define(
+                                            biteFunctionCall.FunctionArguments[i] );
+                                    }
+
+                                    m_CurrentChunk = function.ChunkToWrap;
+                                    m_CurrentInstructionPointer = 0;
+                                }
+                                else if ( call.ObjectData is IBiteVmCallable callable )
+                                {
+                                    object returnVal = callable.Call( m_FunctionArguments );
+                                    m_FunctionArguments.Clear();
+
+                                    if ( returnVal != null )
+                                    {
+                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                    }
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        "Runtime Error: Function " + method + " not found!" );
+                                }
                             }
 
                             break;
                         }
-                        
+
                         int memberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
                                           ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
                                           ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
@@ -5754,6 +5807,7 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
                         FastMemorySpace block = m_PoolFastMemoryFastMemory.Get();
+
                         //block.ResetPropertiesArray( memberCount );
                         block.m_EnclosingSpace = m_CurrentMemorySpace;
                         block.StackCountAtBegin = m_VmStack.Count;
@@ -5841,15 +5895,15 @@ public class BiteVm
             }
             else
             {
-                if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback)
+                if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback )
                 {
                     BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
                     string method = biteFunctionCall.FunctionName;
-                    DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
 
-                    if ( call.ObjectData is BiteChunkWrapper function )
+                    if ( biteFunctionCall.BiteChunkWrapper != null )
                     {
                         FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
                         //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                         callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                         callSpace.CallerChunk = m_CurrentChunk;
@@ -5862,25 +5916,52 @@ public class BiteVm
                         for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
                         {
                             m_CurrentMemorySpace.Define(
-                                biteFunctionCall.FunctionArguments[i]);
+                                biteFunctionCall.FunctionArguments[i] );
                         }
 
-                        m_CurrentChunk = function.ChunkToWrap;
+                        m_CurrentChunk = biteFunctionCall.BiteChunkWrapper.ChunkToWrap;
                         m_CurrentInstructionPointer = 0;
-                    }
-                    else if ( call.ObjectData is IBiteVmCallable callable )
-                    {
-                        object returnVal = callable.Call( m_FunctionArguments );
-                        m_FunctionArguments.Clear();
-
-                        if ( returnVal != null )
-                        {
-                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                        }
                     }
                     else
                     {
-                        throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
+                        DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                        if ( call.ObjectData is BiteChunkWrapper function )
+                        {
+                            FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
+                            //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                            callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                            callSpace.CallerChunk = m_CurrentChunk;
+                            callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                            callSpace.StackCountAtBegin = m_VmStack.Count;
+                            callSpace.IsRunningCallback = true;
+                            m_CurrentMemorySpace = callSpace;
+                            m_CallStack.Push( callSpace );
+
+                            for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
+                            {
+                                m_CurrentMemorySpace.Define(
+                                    biteFunctionCall.FunctionArguments[i] );
+                            }
+
+                            m_CurrentChunk = function.ChunkToWrap;
+                            m_CurrentInstructionPointer = 0;
+                        }
+                        else if ( call.ObjectData is IBiteVmCallable callable )
+                        {
+                            object returnVal = callable.Call( m_FunctionArguments );
+                            m_FunctionArguments.Clear();
+
+                            if ( returnVal != null )
+                            {
+                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                            }
+                        }
+                        else
+                        {
+                            throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
+                        }
                     }
                 }
                 else if ( m_CallStack.Count > 0 )

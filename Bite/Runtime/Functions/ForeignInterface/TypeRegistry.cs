@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Bite.Runtime.Functions.ForeignInterface
 {
@@ -10,6 +9,146 @@ namespace Bite.Runtime.Functions.ForeignInterface
 public class TypeRegistry
 {
     private readonly Dictionary < string, Type > m_RegisteredTypes = new Dictionary < string, Type >();
+
+    private readonly Dictionary < string, MethodInfo > m_MethodCache = new Dictionary < string, MethodInfo >();
+
+    private readonly Dictionary < string, ConstructorInfo > m_ConstructorCache =
+        new Dictionary < string, ConstructorInfo >();
+
+    #region Public
+
+    public TypeRegistry()
+    {
+        RegisterDefaultTypes();
+    }
+
+    public ConstructorInfo GetConstructor( Type type )
+    {
+        string key = $"{type.FullName}.ctor()";
+
+        if ( !m_ConstructorCache.TryGetValue( key, out ConstructorInfo constructorInfo ) )
+        {
+            constructorInfo = type.GetConstructor( Type.EmptyTypes );
+            m_ConstructorCache.Add( key, constructorInfo );
+        }
+
+        return constructorInfo;
+    }
+
+    public ConstructorInfo GetConstructor( Type type, Type[] argTypes )
+    {
+        string key = $"{type.FullName}.ctor({GetArgTypeNames( argTypes )})";
+
+        if ( !m_ConstructorCache.TryGetValue( key, out ConstructorInfo constructorInfo ) )
+        {
+            constructorInfo = type.GetConstructor( argTypes );
+            m_ConstructorCache.Add( key, constructorInfo );
+        }
+
+        return constructorInfo;
+    }
+
+    public MethodInfo GetMethod( Type type, string methodName, Type[] argTypes )
+    {
+        string key = $"{type.FullName}.{methodName}({GetArgTypeNames( argTypes )})";
+
+        if ( !m_MethodCache.TryGetValue( key, out MethodInfo methodInfo ) )
+        {
+            methodInfo = type.GetMethod( methodName, argTypes );
+            m_MethodCache.Add( key, methodInfo );
+        }
+
+        return methodInfo;
+    }
+
+    public void RegisterAssemblyTypes( Assembly assembly, Func < Type, bool > filter = null )
+    {
+        IEnumerable < Type > types = assembly.GetTypes().AsEnumerable();
+
+        if ( filter != null )
+        {
+            types = types.Where( filter );
+        }
+
+        foreach ( Type type in types )
+        {
+            m_RegisteredTypes.Add( type.Name, type );
+        }
+    }
+
+    /// <summary>
+    ///     Registers the type using the specified type's Name
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="alias"></param>
+    public void RegisterType < T >( string alias )
+    {
+        m_RegisteredTypes.Add( alias, typeof( T ) );
+    }
+
+    /// <summary>
+    ///     Registers the type using the specified type's Name
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public void RegisterType < T >()
+    {
+        Type type = typeof( T );
+        m_RegisteredTypes.Add( type.Name, type );
+    }
+
+    /// <summary>
+    ///     Registers the type using the specified alias
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="alias"></param>
+    public void RegisterType( Type type, string alias )
+    {
+        m_RegisteredTypes.Add( alias, type );
+    }
+
+    /// <summary>
+    ///     Registers the type using the specified type's Name
+    /// </summary>
+    /// <param name="type"></param>
+    public void RegisterType( Type type )
+    {
+        m_RegisteredTypes.Add( type.Name, type );
+    }
+
+    /// <summary>
+    ///     Registers the types using the specified type's Name
+    /// </summary>
+    /// <param name="types"></param>
+    public void RegisterTypes( IEnumerable < Type > types )
+    {
+        foreach ( Type type in types )
+        {
+            m_RegisteredTypes.Add( type.Name, type );
+        }
+    }
+
+    public bool TryResolveType( string name, out Type type )
+    {
+        return m_RegisteredTypes.TryGetValue( name, out type );
+    }
+
+    #endregion
+
+    #region Private
+
+    private string GetArgTypeNames( Type[] argTypes )
+    {
+        // if (argTypes == null || argTypes.Length == 0) return "";
+
+        string[] argTypeNames = new string[argTypes.Length];
+
+        for ( int i = 0; i < argTypes.Length; i++ )
+        {
+            argTypeNames[i] = argTypes[i].FullName;
+        }
+
+        return string.Join( ",", argTypeNames );
+    }
 
     private void RegisterDefaultTypes()
     {
@@ -26,140 +165,7 @@ public class TypeRegistry
         m_RegisteredTypes.Add( "string", typeof( string ) );
     }
 
-    public void RegisterAssemblyTypes( Assembly assembly, Func < Type, bool > filter = null )
-    {
-        var types = assembly.GetTypes().AsEnumerable();
-
-        if ( filter != null )
-        {
-            types = types.Where( filter );
-        }
-
-        foreach ( var type in types )
-        {
-            m_RegisteredTypes.Add( type.Name, type );
-        }
-    }
-
-    public TypeRegistry()
-    {
-        RegisterDefaultTypes();
-    }
-
-    /// <summary>
-    /// Registers the type using the specified type's Name
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="alias"></param>
-    public void RegisterType<T>( string alias )
-    {
-        m_RegisteredTypes.Add( alias, typeof( T ) );
-    }
-
-    /// <summary>
-    /// Registers the type using the specified type's Name
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public void RegisterType<T>()
-    {
-        Type type = typeof( T );
-        m_RegisteredTypes.Add( type.Name, type );
-    }
-
-    /// <summary>
-    /// Registers the type using the specified alias
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="alias"></param>
-    public void RegisterType( Type type, string alias )
-    {
-        m_RegisteredTypes.Add( alias, type );
-    }
-
-    /// <summary>
-    /// Registers the type using the specified type's Name
-    /// </summary>
-    /// <param name="type"></param>
-    public void RegisterType( Type type )
-    {
-        m_RegisteredTypes.Add( type.Name, type );
-    }
-
-    /// <summary>
-    /// Registers the types using the specified type's Name
-    /// </summary>
-    /// <param name="types"></param>
-    public void RegisterTypes( IEnumerable < Type > types )
-    {
-        foreach ( var type in types )
-        {
-            m_RegisteredTypes.Add( type.Name, type );
-        }
-    }
-
-    public bool TryResolveType( string name, out Type type )
-    {
-        return m_RegisteredTypes.TryGetValue( name, out type );
-    }
-
-    private readonly Dictionary < string, MethodInfo > m_MethodCache = new Dictionary < string, MethodInfo >();
-
-    private readonly Dictionary < string, ConstructorInfo > m_ConstructorCache = new Dictionary < string, ConstructorInfo >();
-
-    public MethodInfo GetMethod( Type type, string methodName, Type[] argTypes )
-    {
-        string key = $"{type.FullName}.{methodName}({GetArgTypeNames( argTypes )})";
-
-        if ( !m_MethodCache.TryGetValue( key, out MethodInfo methodInfo ) )
-        {
-            methodInfo = type.GetMethod( methodName, argTypes );
-            m_MethodCache.Add( key, methodInfo );
-        }
-
-        return methodInfo;
-    }
-
-    public ConstructorInfo GetConstructor( Type type )
-    {
-        string key = $"{type.FullName}.ctor()";
-
-        if (!m_ConstructorCache.TryGetValue( key, out ConstructorInfo constructorInfo ))
-        {
-            constructorInfo = type.GetConstructor( Type.EmptyTypes );
-            m_ConstructorCache.Add( key, constructorInfo );
-        }
-
-        return constructorInfo;
-    }
-
-
-    public ConstructorInfo GetConstructor( Type type, Type[] argTypes )
-    {
-        string key = $"{type.FullName}.ctor({GetArgTypeNames( argTypes )})";
-
-        if ( !m_ConstructorCache.TryGetValue( key, out ConstructorInfo constructorInfo ) )
-        {
-            constructorInfo = type.GetConstructor( argTypes );
-            m_ConstructorCache.Add( key, constructorInfo );
-        }
-
-        return constructorInfo;
-    }
-
-    private string GetArgTypeNames( Type[] argTypes )
-    {
-        // if (argTypes == null || argTypes.Length == 0) return "";
-
-        var argTypeNames = new string[argTypes.Length];
-
-        for (var i = 0; i < argTypes.Length; i++)
-        {
-            argTypeNames[i] = argTypes[i].FullName;
-        }
-
-        return string.Join( ",", argTypeNames );
-    }
-
-    }
+    #endregion
+}
 
 }

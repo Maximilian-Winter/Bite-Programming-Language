@@ -141,9 +141,9 @@ public class FastFieldInfo
     private delegate object ReturnValueDelegate( object instance );
 
     private delegate void UpdateValueDelegate( object instance, object value );
-    
+
     private UpdateValueDelegate SetDelegate { get; }
-    
+
     private ReturnValueDelegate Delegate { get; }
 
     #region Public
@@ -152,6 +152,7 @@ public class FastFieldInfo
     {
         ParameterExpression instanceExpression = Expression.Parameter( typeof( object ), "instance" );
         ParameterExpression valueExpression = Expression.Parameter( typeof( object ), "value" );
+
         MemberExpression callExpression = Expression.Field(
             !propertyInfo.IsStatic ? Expression.Convert( instanceExpression, propertyInfo.ReflectedType ) : null,
             propertyInfo );
@@ -160,16 +161,16 @@ public class FastFieldInfo
                                   Expression.Convert( callExpression, typeof( object ) ),
                                   instanceExpression ).
                               Compile();
-        
+
         BinaryExpression assignExpression = Expression.Assign(
             callExpression,
             Expression.Convert( valueExpression, propertyInfo.FieldType ) );
-        
-        SetDelegate =  Expression.Lambda < UpdateValueDelegate >(
-                                      assignExpression,
-                                      instanceExpression,
-                                      valueExpression).
-                                  Compile();
+
+        SetDelegate = Expression.Lambda < UpdateValueDelegate >(
+                                     assignExpression,
+                                     instanceExpression,
+                                     valueExpression ).
+                                 Compile();
     }
 
     public object GetField( object instance )
@@ -181,14 +182,15 @@ public class FastFieldInfo
     {
         SetDelegate( instance, value );
     }
-    
+
     #endregion
 }
 
-    public interface IFastPropertyInfo
-    {
-        object InvokeGet(object instance, params object[] arguments);
-        void InvokeSet(object instance, object value, params object[] arguments);
-    }
+public interface IFastPropertyInfo
+{
+    object InvokeGet( object instance, params object[] arguments );
+
+    void InvokeSet( object instance, object value, params object[] arguments );
+}
 
 }

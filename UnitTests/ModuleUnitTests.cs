@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Bite.Compiler;
 using Bite.Runtime;
@@ -13,7 +12,7 @@ public class ModuleUnitTests
 {
     private BiteResult ExecModules( IEnumerable < string > modules )
     {
-        var compiler = new BiteCompiler();
+        BiteCompiler compiler = new BiteCompiler();
 
         BiteProgram program = compiler.Compile( modules );
 
@@ -38,7 +37,6 @@ public class ModuleUnitTests
             Assert.Equal( "Symbol Table Error: Ambiguous references: Hello", e.BiteSymbolTableExceptionMessage );
         }
     }
-
 
     [Fact]
     public void LoadModuleDependencyBehavior()
@@ -115,14 +113,6 @@ public class ModuleUnitTests
     }
 
     [Fact]
-    public void VariableDeclaration()
-    {
-        string mainModule = "module MainModule; import System; using System; var a = 1;";
-        BiteResult result = ExecModules( new[] { mainModule } );
-        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
-    }
-
-    [Fact]
     public void SystemModuleDeclaration()
     {
         string mainModule = "module MainModule; import System; using System; PrintLine( \"Hello World!\" );";
@@ -130,7 +120,13 @@ public class ModuleUnitTests
         Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
 
-
+    [Fact]
+    public void VariableDeclaration()
+    {
+        string mainModule = "module MainModule; import System; using System; var a = 1;";
+        BiteResult result = ExecModules( new[] { mainModule } );
+        Assert.Equal( BiteVmInterpretResult.InterpretOk, result.InterpretResult );
     }
+}
 
 }

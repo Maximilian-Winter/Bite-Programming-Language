@@ -12,8 +12,13 @@ public readonly struct BiteCompilerSyntaxError
     public readonly string Message;
     public readonly RecognitionException Exception;
 
-    public BiteCompilerSyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, 
-        int charPositionInLine, string message, RecognitionException exception)
+    public BiteCompilerSyntaxError(
+        IRecognizer recognizer,
+        IToken offendingSymbol,
+        int line,
+        int charPositionInLine,
+        string message,
+        RecognitionException exception )
     {
         Recognizer = recognizer;
         OffendingSymbol = offendingSymbol;

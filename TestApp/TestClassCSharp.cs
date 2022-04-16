@@ -10,11 +10,11 @@ public class Foo
 
 public class TestClassCSharp
 {
+    public static int t = 45;
     private readonly int i = 5;
 
     public Foo testfield { get; set; } = new Foo();
 
-    public static int t = 45;
     #region Public
 
     public TestClassCSharp( int n )

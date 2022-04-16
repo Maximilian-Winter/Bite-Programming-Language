@@ -19,9 +19,9 @@ public class FastMemorySpace
     public BinaryChunk CallerChunk;
     public int CallerIntructionPointer;
 
-    public int CurrentMemoryPointer { get; set; } = 0;
-
     public bool IsRunningCallback = false;
+
+    public int CurrentMemoryPointer { get; set; } = 0;
 
     #region Public
 
@@ -58,15 +58,10 @@ public class FastMemorySpace
                 Properties = newProperties;
             }
         }
-        
+
         Properties[CurrentMemoryPointer] = value;
 
         CurrentMemoryPointer++;
-    }
-
-    public void SetNameOfVariable(int varIndex,  string name)
-    {
-        NamesToProperties.Add( name, Properties[varIndex] );
     }
 
     public virtual void Define( DynamicBiteVariable value, string idStr, bool addToProperties = true )
@@ -88,7 +83,7 @@ public class FastMemorySpace
                     Properties = newProperties;
                 }
             }
-            
+
             Properties[CurrentMemoryPointer] = value;
 
             if ( !string.IsNullOrEmpty( idStr ) )
@@ -186,16 +181,6 @@ public class FastMemorySpace
         return DynamicVariableExtension.ToDynamicVariable();
     }
 
-    public virtual DynamicBiteVariable GetLocalVar( int id )
-    {
-        if ( id < Properties.Length )
-        {
-            return Properties[id];
-        }
-
-        return DynamicVariableExtension.ToDynamicVariable();
-    }
-
     public virtual DynamicBiteVariable Get( int moduleId, int depth, int classId, int id )
     {
         if ( moduleId >= 0 )
@@ -248,6 +233,16 @@ public class FastMemorySpace
         return null;
     }
 
+    public virtual DynamicBiteVariable GetLocalVar( int id )
+    {
+        if ( id < Properties.Length )
+        {
+            return Properties[id];
+        }
+
+        return DynamicVariableExtension.ToDynamicVariable();
+    }
+
     public virtual void Put( string idStr, DynamicBiteVariable value )
     {
         if ( NamesToProperties.ContainsKey( idStr ) )
@@ -260,14 +255,6 @@ public class FastMemorySpace
         if ( m_EnclosingSpace != null )
         {
             m_EnclosingSpace.Put( idStr, value );
-        }
-    }
-
-    public virtual void PutLocalVar( int id, DynamicBiteVariable value )
-    {
-        if (id < CurrentMemoryPointer)
-        {
-            Properties[id].Change( value );
         }
     }
 
@@ -311,6 +298,19 @@ public class FastMemorySpace
         {
             memorySpace.Properties[id].Change( value );
         }
+    }
+
+    public virtual void PutLocalVar( int id, DynamicBiteVariable value )
+    {
+        if ( id < CurrentMemoryPointer )
+        {
+            Properties[id].Change( value );
+        }
+    }
+
+    public void SetNameOfVariable( int varIndex, string name )
+    {
+        NamesToProperties.Add( name, Properties[varIndex] );
     }
 
     /*public void ResetPropertiesArray( int memberCount )

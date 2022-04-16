@@ -7,7 +7,9 @@ namespace Bite.Compiler
 
 public class BiteCompilerSyntaxErrorListener : BaseErrorListener
 {
-    public readonly List<BiteCompilerSyntaxError> Errors = new List<BiteCompilerSyntaxError>();
+    public readonly List < BiteCompilerSyntaxError > Errors = new List < BiteCompilerSyntaxError >();
+
+    #region Public
 
     public override void SyntaxError(
         TextWriter output,
@@ -18,8 +20,10 @@ public class BiteCompilerSyntaxErrorListener : BaseErrorListener
         string msg,
         RecognitionException e )
     {
-        Errors.Add(new BiteCompilerSyntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e));
+        Errors.Add( new BiteCompilerSyntaxError( recognizer, offendingSymbol, line, charPositionInLine, msg, e ) );
     }
+
+    #endregion
 }
 
 }

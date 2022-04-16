@@ -1,47 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
-		<AssemblyName>Bite</AssemblyName>
-		<RootNamespace>Bite</RootNamespace>
-		<PackageId>BiteVm</PackageId>
-		<Authors>Maximilian Winter</Authors>
-		<Company>None</Company>
-		<Product>Bite</Product>
-		<PackageVersion>0.1.2</PackageVersion>
-		<Title>BiteVm</Title>
-		<Copyright>Copyright (c) Maximilian Winter 2022</Copyright>
-		<PackageProjectUrl>https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki</PackageProjectUrl>
-		<PackageLicenseUrl></PackageLicenseUrl>
-		<RepositoryUrl>https://github.com/Maximilian-Winter/Bite-Programming-Language</RepositoryUrl>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
+        <AssemblyName>Bite</AssemblyName>
+        <RootNamespace>Bite</RootNamespace>
+        <PackageId>BiteVm</PackageId>
+        <Authors>Maximilian Winter</Authors>
+        <Company>None</Company>
+        <Product>Bite</Product>
+        <PackageVersion>0.1.2</PackageVersion>
+        <Title>BiteVm</Title>
+        <Copyright>Copyright (c) Maximilian Winter 2022</Copyright>
+        <PackageProjectUrl>https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki</PackageProjectUrl>
+        <PackageLicenseUrl></PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/Maximilian-Winter/Bite-Programming-Language</RepositoryUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    </PropertyGroup>
 
-	<ItemGroup>
-	  <None Remove="Modules\System.bite" />
-	</ItemGroup>
+    <ItemGroup>
+        <None Remove="Modules\System.bite"/>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <EmbeddedResource Include="Modules\System.bite" />
-	</ItemGroup>
-
-
-	<ItemGroup>
-	  <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />
-	  <PackageReference Include="System.Runtime" Version="4.3.1" />
-	</ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Modules\System.bite"/>
+    </ItemGroup>
 
 
-	<ItemGroup>
-	  <Folder Include="AntlrGenerated" /><None Include="LICENSE" Pack="true" Visible="false" PackagePath="" />
-	</ItemGroup>
-	
-	<ItemGroup>
-		<None Include="LICENSE" Pack="true" Visible="false" PackagePath="" />
-  	</ItemGroup>
-	
-	<ItemGroup>
-	  <Reference Include="WindowsBase" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2"/>
+        <PackageReference Include="System.Runtime" Version="4.3.1"/>
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <Folder Include="AntlrGenerated"/>
+        <None Include="LICENSE" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="LICENSE" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="WindowsBase"/>
+    </ItemGroup>
 
 </Project>

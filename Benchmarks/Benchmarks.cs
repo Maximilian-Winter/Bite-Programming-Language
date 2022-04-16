@@ -39,6 +39,7 @@ public class Benchmarks
     {
         programs["Prime"].Run();
     }
+
     #endregion
 }
 
@@ -49,7 +50,9 @@ public class Bar
     public double d;
 
     public int I { get; set; }
+
     public float F { get; set; }
+
     public double D { get; set; }
 }
 

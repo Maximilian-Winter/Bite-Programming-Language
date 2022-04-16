@@ -10,11 +10,16 @@ namespace MemoizeSharp
 
 public class BiteAstGeneratorException : ApplicationException
 {
+    public string AstGeneratorExceptionMessage { get; }
+
+    #region Public
+
     public BiteAstGeneratorException( string message ) : base( message )
     {
         AstGeneratorExceptionMessage = message;
     }
-    public string AstGeneratorExceptionMessage { get; }
+
+    #endregion
 }
 
 public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
@@ -76,7 +81,8 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 {
                     if ( context.GetChild( counter ) is BITEParser.MultiplicativeContext rhsContext )
                     {
-                        currentBinaryOperationBaseNode.RightOperand = ( ExpressionBaseNode ) VisitMultiplicative( rhsContext );
+                        currentBinaryOperationBaseNode.RightOperand =
+                            ( ExpressionBaseNode ) VisitMultiplicative( rhsContext );
                     }
                 }
 
@@ -133,6 +139,23 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         return argumentsBase;
     }
 
+    public override AstBaseNode VisitArrayExpression( BITEParser.ArrayExpressionContext context )
+    {
+        ArrayExpressionNode initializerNode = new ArrayExpressionNode();
+
+        if ( context.expression() != null )
+        {
+            initializerNode.Expressions = new List < ExpressionBaseNode >();
+
+            foreach ( BITEParser.ExpressionContext expression in context.expression() )
+            {
+                initializerNode.Expressions.Add( ( ExpressionBaseNode ) VisitExpression( expression ) );
+            }
+        }
+
+        return initializerNode;
+    }
+
     public override AstBaseNode VisitAssignment( BITEParser.AssignmentContext context )
     {
         if ( context.call() != null && context.assignment() != null )
@@ -163,7 +186,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.MultAssign;
             }
 
-            if (context.ModuloAssignOperator() != null)
+            if ( context.ModuloAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.ModuloAssignOperator;
             }
@@ -178,27 +201,27 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.MinusAssign;
             }
 
-            if (context.BitwiseAndAssignOperator() != null)
+            if ( context.BitwiseAndAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseAndAssignOperator;
             }
 
-            if (context.BitwiseOrAssignOperator() != null)
+            if ( context.BitwiseOrAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseOrAssignOperator;
             }
 
-            if (context.BitwiseXorAssignOperator() != null)
+            if ( context.BitwiseXorAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseXorAssignOperator;
             }
 
-            if (context.BitwiseLeftShiftAssignOperator() != null)
+            if ( context.BitwiseLeftShiftAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator;
             }
 
-            if (context.BitwiseRightShiftAssignOperator() != null)
+            if ( context.BitwiseRightShiftAssignOperator() != null )
             {
                 assignmentBaseNode.OperatorType = AssignmentOperatorTypes.BitwiseRightShiftAssignOperator;
             }
@@ -256,7 +279,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 assignmentBaseNode.PrimaryBaseNode = primaryNode;
             }
 
-            if (baseNode is TernaryOperationBaseNode ternaryOperationNode)
+            if ( baseNode is TernaryOperationBaseNode ternaryOperationNode )
             {
                 assignmentBaseNode.Type = AssignmentTypes.Ternary;
                 assignmentBaseNode.Ternary = ternaryOperationNode;
@@ -302,7 +325,8 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 {
                     if ( context.GetChild( counter ) is BITEParser.EqualityContext rhsContext )
                     {
-                        currentBinaryOperationBaseNode.RightOperand = ( ExpressionBaseNode ) VisitEquality( rhsContext );
+                        currentBinaryOperationBaseNode.RightOperand =
+                            ( ExpressionBaseNode ) VisitEquality( rhsContext );
                     }
                 }
 
@@ -495,23 +519,6 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         return blockStatementBaseNode;
     }
 
-    public override AstBaseNode VisitSyncBlock( BITEParser.SyncBlockContext context )
-    {
-        SyncBlockNode syncBlockNode = new SyncBlockNode();
-        syncBlockNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
-        syncBlockNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
-
-        if ( context.block() != null )
-        {
-            syncBlockNode.Block = ( BlockStatementBaseNode ) VisitBlock( context.block() );
-        }
-
-        syncBlockNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
-        syncBlockNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
-
-        return syncBlockNode;
-    }
-
     public override AstBaseNode VisitBreakStatement( BITEParser.BreakStatementContext context )
     {
         if ( context.Break() != null )
@@ -657,15 +664,20 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
                                 if ( elementIdentifierContext.call() != null )
                                 {
-                                    callElementEntry.CallBase = ( CallBaseNode ) VisitCall( elementIdentifierContext.call() );
+                                    callElementEntry.CallBase =
+                                        ( CallBaseNode ) VisitCall( elementIdentifierContext.call() );
 
                                     callElementEntry.CallElementType =
                                         CallElementTypes.Call;
                                 }
 
-                                if ( elementIdentifierContext.@string() != null && elementIdentifierContext.@string().stringPart(0).TEXT() != null )
+                                if ( elementIdentifierContext.@string() != null &&
+                                     elementIdentifierContext.@string().stringPart( 0 ).TEXT() != null )
                                 {
-                                    string literal = elementIdentifierContext.@string().stringPart(0).TEXT().Symbol.Text;
+                                    string literal = elementIdentifierContext.@string().
+                                                                              stringPart( 0 ).
+                                                                              TEXT().
+                                                                              Symbol.Text;
 
                                     callElementEntry.Identifier = literal;
 
@@ -695,7 +707,8 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
                                 if ( elementIdentifierContext.call() != null )
                                 {
-                                    callElementEntry.CallBase = ( CallBaseNode ) VisitCall( elementIdentifierContext.call() );
+                                    callElementEntry.CallBase =
+                                        ( CallBaseNode ) VisitCall( elementIdentifierContext.call() );
 
                                     callElementEntry.CallElementType =
                                         CallElementTypes.Call;
@@ -703,7 +716,10 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
                                 if ( elementIdentifierContext.@string() != null )
                                 {
-                                    string literal = elementIdentifierContext.@string().stringPart(0).TEXT().Symbol.Text;
+                                    string literal = elementIdentifierContext.@string().
+                                                                              stringPart( 0 ).
+                                                                              TEXT().
+                                                                              Symbol.Text;
 
                                     callElementEntry.Identifier = literal;
 
@@ -825,17 +841,6 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         return classDeclarationBaseNode;
     }
 
-
-    public override AstBaseNode VisitMemberInitialization( BITEParser.MemberInitializationContext context )
-    {
-        return new MemberInitializationNode()
-        {
-            Identifier = new Identifier( context.Identifier().Symbol.Text ),
-            Expression = (ExpressionBaseNode) VisitExpression( context.expression() )
-        };
-    }
-
-
     public override AstBaseNode VisitClassInstanceDeclaration( BITEParser.ClassInstanceDeclarationContext context )
     {
         ClassInstanceDeclarationBaseNode classInstanceDeclarationBaseNode = new ClassInstanceDeclarationBaseNode();
@@ -860,7 +865,8 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
         if ( context.arguments() != null )
         {
-            classInstanceDeclarationBaseNode.ArgumentsBase = ( ArgumentsBaseNode ) VisitArguments( context.arguments() );
+            classInstanceDeclarationBaseNode.ArgumentsBase =
+                ( ArgumentsBaseNode ) VisitArguments( context.arguments() );
         }
 
         string accessToken = null;
@@ -875,7 +881,6 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
             accessToken = "private";
         }
 
-
         ModifiersBaseNode modifiersBase = new ModifiersBaseNode( accessToken, abstractStaticMod );
         classInstanceDeclarationBaseNode.ModifiersBase = modifiersBase;
 
@@ -884,13 +889,14 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         if ( initializerExpression != null )
         {
             classInstanceDeclarationBaseNode.Initializers = new List < MemberInitializationNode >();
-            foreach ( var initialization in initializerExpression.memberInitialization() )
+
+            foreach ( BITEParser.MemberInitializationContext initialization in initializerExpression.
+                         memberInitialization() )
             {
                 classInstanceDeclarationBaseNode.Initializers.Add(
                     ( MemberInitializationNode ) VisitMemberInitialization( initialization ) );
             }
         }
-
 
         return classInstanceDeclarationBaseNode;
     }
@@ -907,7 +913,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
             return VisitStructDeclaration( context.structDeclaration() );
         }
 
-        if (context.externalFunctionDeclaration() != null)
+        if ( context.externalFunctionDeclaration() != null )
         {
             return VisitExternalFunctionDeclaration( context.externalFunctionDeclaration() );
         }
@@ -940,6 +946,26 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         }
 
         return null;
+    }
+
+    public override AstBaseNode VisitDictionaryExpression( BITEParser.DictionaryExpressionContext context )
+    {
+        DictionaryInitializerNode initializerNode = new DictionaryInitializerNode();
+
+        if ( context.elementInitialization() != null )
+        {
+            initializerNode.ElementInitializers = new Dictionary < Identifier, ExpressionBaseNode >();
+
+            foreach ( BITEParser.ElementInitializationContext initialization in context.elementInitialization() )
+            {
+                initializerNode.ElementInitializers.Add(
+                    new Identifier( initialization.Identifier().Symbol.Text ),
+                    ( ExpressionBaseNode ) VisitExpression( initialization.expression() )
+                );
+            }
+        }
+
+        return initializerNode;
     }
 
     public override AstBaseNode VisitElementAccess( BITEParser.ElementAccessContext context )
@@ -996,7 +1022,9 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
                         currentBinaryOperationBaseNode.DebugInfoAstNode.ColumnNumberStart = rhsContext.Start.Column;
                         currentBinaryOperationBaseNode.DebugInfoAstNode.ColumnNumberEnd = rhsContext.Stop.Column;
-                        currentBinaryOperationBaseNode.RightOperand = ( ExpressionBaseNode ) VisitRelational( rhsContext );
+
+                        currentBinaryOperationBaseNode.RightOperand =
+                            ( ExpressionBaseNode ) VisitRelational( rhsContext );
                     }
                 }
 
@@ -1046,121 +1074,8 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         return expressionStatementBaseNode;
     }
 
-    public override AstBaseNode VisitLocalVarDeclaration( BITEParser.LocalVarDeclarationContext context )
-    {
-        LocalVariableDeclarationBaseNode variableDeclarationBaseNode = new LocalVariableDeclarationBaseNode();
-        variableDeclarationBaseNode.VarId = new Identifier( context.Identifier().Symbol.Text );
-        variableDeclarationBaseNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
-        variableDeclarationBaseNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
-
-        variableDeclarationBaseNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
-        variableDeclarationBaseNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
-
-        if ( context.expression() != null )
-        {
-            variableDeclarationBaseNode.ExpressionBase = ( ExpressionBaseNode ) VisitExpression( context.expression() );
-        }
-
-        string accessToken = "private";
-
-        ModifiersBaseNode modifiersBase = new ModifiersBaseNode( accessToken, null );
-        variableDeclarationBaseNode.ModifiersBase = modifiersBase;
-
-        return variableDeclarationBaseNode;
-    }
-
-    public override AstBaseNode VisitLocalVarInitializer( BITEParser.LocalVarInitializerContext context )
-    {
-        LocalVariableInitializerBaseNode localVariableInitializerBaseNode = new LocalVariableInitializerBaseNode();
-
-        var variableDeclarationNodes = new List < LocalVariableDeclarationBaseNode >();
-
-        var localVarDeclarations = context.localVarDeclaration();
-
-        if ( localVarDeclarations != null )
-        {
-            foreach ( var localVarDeclarationContext in context.localVarDeclaration() )
-            {
-                variableDeclarationNodes.Add(
-                    ( LocalVariableDeclarationBaseNode ) VisitLocalVarDeclaration( localVarDeclarationContext ) );
-            }
-        }
-
-        localVariableInitializerBaseNode.VariableDeclarations = variableDeclarationNodes;
-
-        return localVariableInitializerBaseNode;
-    }
-
-    public override AstBaseNode VisitForInitializer( BITEParser.ForInitializerContext context )
-    {
-        ForInitializerBaseNode forInitializerBaseNode = new ForInitializerBaseNode();
-
-        var expressions = context.expression();
-
-        if ( expressions != null && expressions.Length > 0 )
-        {
-            forInitializerBaseNode.Expressions = new ExpressionBaseNode[expressions.Length];
-            int i = 0;
-
-            foreach ( var expression in expressions )
-            {
-                forInitializerBaseNode.Expressions[i++] = ( ExpressionBaseNode ) VisitExpression( expression );
-            }
-        }
-
-        var localVarInitializer = context.localVarInitializer();
-
-        if ( localVarInitializer != null )
-        {
-            forInitializerBaseNode.LocalVariableInitializerBase =
-                ( LocalVariableInitializerBaseNode ) VisitLocalVarInitializer( localVarInitializer );
-        }
-
-        return forInitializerBaseNode;
-    }
-
-    public override AstBaseNode VisitForStatement( BITEParser.ForStatementContext context )
-    {
-        ForStatementBaseNode forStatementBaseNode = new ForStatementBaseNode();
-        forStatementBaseNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
-        forStatementBaseNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
-
-        forStatementBaseNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
-        forStatementBaseNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
-
-        var initializer = context.forInitializer();
-
-        if ( initializer != null )
-        {
-            forStatementBaseNode.InitializerBase = ( ForInitializerBaseNode ) VisitForInitializer( initializer );
-        }
-
-        if ( context.condition != null )
-        {
-            forStatementBaseNode.Condition = ( ExpressionBaseNode ) VisitExpression( context.condition );
-        }
-
-        var iterators = context.forIterator();
-
-        if ( iterators != null )
-        {
-            var expressions = iterators.expression();
-
-            forStatementBaseNode.Iterators = new ExpressionBaseNode[expressions.Length];
-            var i = 0;
-
-            foreach ( var iterator in expressions )
-            {
-                forStatementBaseNode.Iterators[i++] = ( ExpressionBaseNode ) VisitExpression( iterator );
-            }
-        }
-
-        forStatementBaseNode.StatementBase = ( StatementBaseNode ) VisitStatement( context.statement() );
-
-        return forStatementBaseNode;
-    }
-
-    public override AstBaseNode VisitExternalFunctionDeclaration( BITEParser.ExternalFunctionDeclarationContext context )
+    public override AstBaseNode VisitExternalFunctionDeclaration(
+        BITEParser.ExternalFunctionDeclarationContext context )
     {
         FunctionDeclarationBaseNode functionDeclarationBaseNode = new FunctionDeclarationBaseNode();
         functionDeclarationBaseNode.FunctionId = new Identifier();
@@ -1202,12 +1117,15 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         if ( context.CallableModifier() != null )
         {
             isCallable = true;
+
             // TODO: define callable link name semantics
             string linkName = context.Identifier()[0].GetText();
+
             if ( context.Identifier().Length > 1 )
             {
                 linkName = context.Identifier()[0].GetText();
             }
+
             functionDeclarationBaseNode.LinkFunctionId = new Identifier( linkName );
         }
 
@@ -1221,6 +1139,75 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         }
 
         return functionDeclarationBaseNode;
+    }
+
+    public override AstBaseNode VisitForInitializer( BITEParser.ForInitializerContext context )
+    {
+        ForInitializerBaseNode forInitializerBaseNode = new ForInitializerBaseNode();
+
+        BITEParser.ExpressionContext[] expressions = context.expression();
+
+        if ( expressions != null && expressions.Length > 0 )
+        {
+            forInitializerBaseNode.Expressions = new ExpressionBaseNode[expressions.Length];
+            int i = 0;
+
+            foreach ( BITEParser.ExpressionContext expression in expressions )
+            {
+                forInitializerBaseNode.Expressions[i++] = ( ExpressionBaseNode ) VisitExpression( expression );
+            }
+        }
+
+        BITEParser.LocalVarInitializerContext localVarInitializer = context.localVarInitializer();
+
+        if ( localVarInitializer != null )
+        {
+            forInitializerBaseNode.LocalVariableInitializerBase =
+                ( LocalVariableInitializerBaseNode ) VisitLocalVarInitializer( localVarInitializer );
+        }
+
+        return forInitializerBaseNode;
+    }
+
+    public override AstBaseNode VisitForStatement( BITEParser.ForStatementContext context )
+    {
+        ForStatementBaseNode forStatementBaseNode = new ForStatementBaseNode();
+        forStatementBaseNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
+        forStatementBaseNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
+
+        forStatementBaseNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
+        forStatementBaseNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
+        BITEParser.ForInitializerContext initializer = context.forInitializer();
+
+        if ( initializer != null )
+        {
+            forStatementBaseNode.InitializerBase = ( ForInitializerBaseNode ) VisitForInitializer( initializer );
+        }
+
+        if ( context.condition != null )
+        {
+            forStatementBaseNode.Condition = ( ExpressionBaseNode ) VisitExpression( context.condition );
+        }
+
+        BITEParser.ForIteratorContext iterators = context.forIterator();
+
+        if ( iterators != null )
+        {
+            BITEParser.ExpressionContext[] expressions = iterators.expression();
+
+            forStatementBaseNode.Iterators = new ExpressionBaseNode[expressions.Length];
+            int i = 0;
+
+            foreach ( BITEParser.ExpressionContext iterator in expressions )
+            {
+                forStatementBaseNode.Iterators[i++] = ( ExpressionBaseNode ) VisitExpression( iterator );
+            }
+        }
+
+        forStatementBaseNode.StatementBase = ( StatementBaseNode ) VisitStatement( context.statement() );
+
+        return forStatementBaseNode;
     }
 
     public override AstBaseNode VisitFunctionDeclaration( BITEParser.FunctionDeclarationContext context )
@@ -1303,6 +1290,53 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
     public override AstBaseNode VisitInheritance( BITEParser.InheritanceContext context )
     {
         return base.VisitInheritance( context );
+    }
+
+    public override AstBaseNode VisitLocalVarDeclaration( BITEParser.LocalVarDeclarationContext context )
+    {
+        LocalVariableDeclarationBaseNode variableDeclarationBaseNode = new LocalVariableDeclarationBaseNode();
+        variableDeclarationBaseNode.VarId = new Identifier( context.Identifier().Symbol.Text );
+        variableDeclarationBaseNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
+        variableDeclarationBaseNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
+
+        variableDeclarationBaseNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
+        variableDeclarationBaseNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
+        if ( context.expression() != null )
+        {
+            variableDeclarationBaseNode.ExpressionBase = ( ExpressionBaseNode ) VisitExpression( context.expression() );
+        }
+
+        string accessToken = "private";
+
+        ModifiersBaseNode modifiersBase = new ModifiersBaseNode( accessToken, null );
+        variableDeclarationBaseNode.ModifiersBase = modifiersBase;
+
+        return variableDeclarationBaseNode;
+    }
+
+    public override AstBaseNode VisitLocalVarInitializer( BITEParser.LocalVarInitializerContext context )
+    {
+        LocalVariableInitializerBaseNode localVariableInitializerBaseNode = new LocalVariableInitializerBaseNode();
+
+        List < LocalVariableDeclarationBaseNode > variableDeclarationNodes =
+            new List < LocalVariableDeclarationBaseNode >();
+
+        BITEParser.LocalVarDeclarationContext[] localVarDeclarations = context.localVarDeclaration();
+
+        if ( localVarDeclarations != null )
+        {
+            foreach ( BITEParser.LocalVarDeclarationContext localVarDeclarationContext in
+                     context.localVarDeclaration() )
+            {
+                variableDeclarationNodes.Add(
+                    ( LocalVariableDeclarationBaseNode ) VisitLocalVarDeclaration( localVarDeclarationContext ) );
+            }
+        }
+
+        localVariableInitializerBaseNode.VariableDeclarations = variableDeclarationNodes;
+
+        return localVariableInitializerBaseNode;
     }
 
     public override AstBaseNode VisitLogicAnd( BITEParser.LogicAndContext context )
@@ -1429,6 +1463,15 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         return VisitLogicAnd( context.logicAnd( 0 ) );
     }
 
+    public override AstBaseNode VisitMemberInitialization( BITEParser.MemberInitializationContext context )
+    {
+        return new MemberInitializationNode
+        {
+            Identifier = new Identifier( context.Identifier().Symbol.Text ),
+            Expression = ( ExpressionBaseNode ) VisitExpression( context.expression() )
+        };
+    }
+
     public override AstBaseNode VisitModule( BITEParser.ModuleContext context )
     {
         ModuleBaseNode moduleBaseNode = new ModuleBaseNode();
@@ -1437,6 +1480,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         List < ModuleIdentifier > importedModules = new List < ModuleIdentifier >();
         List < ModuleIdentifier > usedModules = new List < ModuleIdentifier >();
         moduleName = context.moduleDeclaration().Identifier( 0 ).Symbol.Text;
+
         for ( int i = 1; i < context.moduleDeclaration().Identifier().Length; i++ )
         {
             parentModules.Add( moduleName );
@@ -1621,13 +1665,19 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         if ( context.IntegerLiteral() != null )
         {
             primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.IntegerLiteral;
-            primaryBaseNode.IntegerLiteral = int.Parse( context.IntegerLiteral().Symbol.Text, NumberFormatInfo.InvariantInfo );
+
+            primaryBaseNode.IntegerLiteral = int.Parse(
+                context.IntegerLiteral().Symbol.Text,
+                NumberFormatInfo.InvariantInfo );
         }
 
         if ( context.FloatingLiteral() != null )
         {
             primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.FloatLiteral;
-            primaryBaseNode.FloatLiteral = double.Parse( context.FloatingLiteral().Symbol.Text, NumberFormatInfo.InvariantInfo );
+
+            primaryBaseNode.FloatLiteral = double.Parse(
+                context.FloatingLiteral().Symbol.Text,
+                NumberFormatInfo.InvariantInfo );
         }
 
         if ( context.@string() != null )
@@ -1636,6 +1686,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
             string lastText = "";
             string interPolated = "";
+
             foreach ( BITEParser.StringPartContext stringContent in context.@string().stringPart() )
             {
                 if ( stringContent.expression() != null )
@@ -1646,10 +1697,15 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                         primaryBaseNode.InterpolatedString = new InterpolatedString();
                         primaryBaseNode.InterpolatedString.StringParts = new List < InterpolatedStringPart >();
                     }
-                    ExpressionBaseNode expressionBaseNode = ( ExpressionBaseNode ) VisitExpression( stringContent.expression() );
+
+                    ExpressionBaseNode expressionBaseNode =
+                        ( ExpressionBaseNode ) VisitExpression( stringContent.expression() );
+
                     if ( expressionBaseNode != null )
                     {
-                        primaryBaseNode.InterpolatedString.StringParts.Add( new InterpolatedStringPart( interPolated, expressionBaseNode) );
+                        primaryBaseNode.InterpolatedString.StringParts.Add(
+                            new InterpolatedStringPart( interPolated, expressionBaseNode ) );
+
                         interPolated = "";
                     }
                 }
@@ -1668,18 +1724,15 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                     interPolated += lastText;
                     primaryBaseNode.StringLiteral += lastText;
                 }
-
             }
 
             if ( primaryBaseNode.PrimaryType == PrimaryBaseNode.PrimaryTypes.InterpolatedString )
             {
                 primaryBaseNode.InterpolatedString.TextAfterLastExpression = interPolated;
             }
-
         }
 
         /**/
-
 
         if ( context.Identifier() != null )
         {
@@ -1696,51 +1749,15 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         if ( context.dictionaryExpression() != null )
         {
             primaryBaseNode.PrimaryType = PrimaryBaseNode.PrimaryTypes.DictionaryExpression;
-            primaryBaseNode.Expression = ( DictionaryInitializerNode ) VisitDictionaryExpression( context.dictionaryExpression() );
+
+            primaryBaseNode.Expression =
+                ( DictionaryInitializerNode ) VisitDictionaryExpression( context.dictionaryExpression() );
         }
 
         return primaryBaseNode;
     }
 
-    public override AstBaseNode VisitArrayExpression( BITEParser.ArrayExpressionContext context )
-    {
-        var initializerNode = new ArrayExpressionNode();
-
-        if ( context.expression() != null )
-        {
-            initializerNode.Expressions = new List < ExpressionBaseNode >();
-            foreach ( var expression in context.expression() )
-            {
-                initializerNode.Expressions.Add( (ExpressionBaseNode) VisitExpression( expression ) );
-            }
-        }
-
-        return initializerNode;
-    }
-
-    public override AstBaseNode VisitDictionaryExpression( BITEParser.DictionaryExpressionContext context )
-    {
-        var initializerNode = new DictionaryInitializerNode();
-
-        if (context.elementInitialization() != null)
-        {
-            initializerNode.ElementInitializers = new Dictionary < Identifier, ExpressionBaseNode >();
-
-            foreach ( var initialization in context.elementInitialization() )
-            {
-                initializerNode.ElementInitializers.Add(
-                    new Identifier( initialization.Identifier().Symbol.Text ),
-                    ( ExpressionBaseNode ) VisitExpression( initialization.expression() )
-                );
-            }
-        }
-
-        return initializerNode;
-    }
-
-
-
-        public override AstBaseNode VisitProgram( BITEParser.ProgramContext context )
+    public override AstBaseNode VisitProgram( BITEParser.ProgramContext context )
     {
         m_ProgramBaseNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
         m_ProgramBaseNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
@@ -1795,12 +1812,14 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
                     if ( terminalNode.GetText() == ">=" )
                     {
-                        currentBinaryOperationBaseNode.Operator = BinaryOperationBaseNode.BinaryOperatorType.GreaterOrEqual;
+                        currentBinaryOperationBaseNode.Operator =
+                            BinaryOperationBaseNode.BinaryOperatorType.GreaterOrEqual;
                     }
 
                     if ( terminalNode.GetText() == "<=" )
                     {
-                        currentBinaryOperationBaseNode.Operator = BinaryOperationBaseNode.BinaryOperatorType.LessOrEqual;
+                        currentBinaryOperationBaseNode.Operator =
+                            BinaryOperationBaseNode.BinaryOperatorType.LessOrEqual;
                     }
                 }
                 else
@@ -1845,7 +1864,9 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
         returnStatementBaseNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
         returnStatementBaseNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
-        returnStatementBaseNode.ExpressionStatementBase.ExpressionBase = ( ExpressionBaseNode ) VisitExpression( context.expression() );
+
+        returnStatementBaseNode.ExpressionStatementBase.ExpressionBase =
+            ( ExpressionBaseNode ) VisitExpression( context.expression() );
 
         return returnStatementBaseNode;
     }
@@ -1894,7 +1915,9 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
 
                         currentBinaryOperationBaseNode.DebugInfoAstNode.ColumnNumberStart = rhsContext.Start.Column;
                         currentBinaryOperationBaseNode.DebugInfoAstNode.ColumnNumberEnd = rhsContext.Stop.Column;
-                        currentBinaryOperationBaseNode.RightOperand = ( ExpressionBaseNode ) VisitAdditive( rhsContext );
+
+                        currentBinaryOperationBaseNode.RightOperand =
+                            ( ExpressionBaseNode ) VisitAdditive( rhsContext );
                     }
                 }
 
@@ -1916,26 +1939,6 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         }
 
         return VisitAdditive( context.additive( 0 ) );
-    }
-
-    /// <summary>
-    /// This is primarily for unit testing
-    /// </summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
-    public override AstBaseNode VisitStatements( BITEParser.StatementsContext context )
-    {
-        DeclarationsBaseNode declarationsBase = new DeclarationsBaseNode()
-        {
-            Statements = new List < StatementBaseNode >()
-        };
-
-        foreach ( var declaration in context.declaration() )
-        {
-            declarationsBase.Statements.Add( ( StatementBaseNode ) VisitDeclaration( declaration ) );
-        }
-
-        return declarationsBase;
     }
 
     public override AstBaseNode VisitStatement( BITEParser.StatementContext context )
@@ -1975,7 +1978,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
             return VisitReturnStatement( context.returnStatement() );
         }
 
-        if (context.syncBlock() != null)
+        if ( context.syncBlock() != null )
         {
             return VisitSyncBlock( context.syncBlock() );
         }
@@ -1986,6 +1989,26 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         }
 
         return null;
+    }
+
+    /// <summary>
+    ///     This is primarily for unit testing
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public override AstBaseNode VisitStatements( BITEParser.StatementsContext context )
+    {
+        DeclarationsBaseNode declarationsBase = new DeclarationsBaseNode
+        {
+            Statements = new List < StatementBaseNode >()
+        };
+
+        foreach ( BITEParser.DeclarationContext declaration in context.declaration() )
+        {
+            declarationsBase.Statements.Add( ( StatementBaseNode ) VisitDeclaration( declaration ) );
+        }
+
+        return declarationsBase;
     }
 
     public override AstBaseNode VisitStructDeclaration( BITEParser.StructDeclarationContext context )
@@ -2015,6 +2038,23 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
         structDeclarationBaseNode.ModifiersBase = modifiersBase;
 
         return structDeclarationBaseNode;
+    }
+
+    public override AstBaseNode VisitSyncBlock( BITEParser.SyncBlockContext context )
+    {
+        SyncBlockNode syncBlockNode = new SyncBlockNode();
+        syncBlockNode.DebugInfoAstNode.LineNumberStart = context.Start.Line;
+        syncBlockNode.DebugInfoAstNode.LineNumberEnd = context.Stop.Line;
+
+        if ( context.block() != null )
+        {
+            syncBlockNode.Block = ( BlockStatementBaseNode ) VisitBlock( context.block() );
+        }
+
+        syncBlockNode.DebugInfoAstNode.ColumnNumberStart = context.Start.Column;
+        syncBlockNode.DebugInfoAstNode.ColumnNumberEnd = context.Stop.Column;
+
+        return syncBlockNode;
     }
 
     public override AstBaseNode VisitTernary( BITEParser.TernaryContext context )
@@ -2103,7 +2143,7 @@ public class BiteAstGenerator : BITEParserBaseVisitor < AstBaseNode >
                 {
                     unaryOperationNode.Operator = UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment;
                 }
-                
+
                 return unaryOperationNode;
             }
         }

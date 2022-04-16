@@ -7,7 +7,7 @@ public enum BiteVmInterpretResult
     InterpretCompileError,
     InterpretRuntimeError,
     Continue,
-    Cancelled,
+    Cancelled
 }
 
 }

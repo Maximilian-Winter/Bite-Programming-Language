@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Bite.Cli.CommandLine;
 using Bite.Compiler;
-using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 
 namespace Bite.Cli

@@ -10,7 +10,6 @@ namespace Bite.Runtime.CodeGen
 {
 
 /// <summary>
-/// 
 /// </summary>
 public class BiteProgram
 {
@@ -28,19 +27,19 @@ public class BiteProgram
     {
     }
 
-    internal static BiteProgram Create( SymbolTable symbolTable, BinaryChunk compiledMainChunk,
+    internal static BiteProgram Create(
+        SymbolTable symbolTable,
+        BinaryChunk compiledMainChunk,
         Dictionary < string, BinaryChunk > compiledChunks )
     {
-        return new BiteProgram()
+        return new BiteProgram
         {
-            SymbolTable = symbolTable,
-            CompiledMainChunk = compiledMainChunk,
-            CompiledChunks = compiledChunks,
+            SymbolTable = symbolTable, CompiledMainChunk = compiledMainChunk, CompiledChunks = compiledChunks
         };
     }
 
     /// <summary>
-    /// Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
+    ///     Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
     /// </summary>
     /// <returns></returns>
     public BiteResult Run( Dictionary < string, object > externalObjects = null )
@@ -56,7 +55,7 @@ public class BiteProgram
     }
 
     /// <summary>
-    /// Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
+    ///     Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
     /// </summary>
     /// <returns></returns>
     public BiteResult Run( CancellationToken cancellationToken, Dictionary < string, object > externalObjects = null )
@@ -72,10 +71,11 @@ public class BiteProgram
     }
 
     /// <summary>
-    /// Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
+    ///     Creates a new <see cref="BiteVm" /> and executes the current <see cref="BiteProgram" />
     /// </summary>
     /// <returns></returns>
-    public async Task < BiteResult > RunAsync( CancellationToken cancellationToken,
+    public async Task < BiteResult > RunAsync(
+        CancellationToken cancellationToken,
         Dictionary < string, object > externalObjects = null )
     {
         BiteVm biteVm = new BiteVm();

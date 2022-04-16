@@ -8,7 +8,7 @@ namespace Benchmarks
 
 public class PropertyAccessBenchmarks
 {
-    string statements = @"module Main;
+    private readonly string statements = @"module Main;
 
             class foo {
                 var x = 5;
@@ -33,23 +33,23 @@ public class PropertyAccessBenchmarks
 
     private readonly BiteProgram program;
 
+    #region Public
+
     public PropertyAccessBenchmarks()
     {
-        var bar = new Bar();
+        Bar bar = new Bar();
 
         BiteCompiler compiler = new BiteCompiler();
         program = compiler.Compile( new[] { statements } );
-
     }
 
     [Benchmark]
     public void ArithmeticAssignment()
     {
-        program.Run( new Dictionary < string, object >() { { "bar", new Bar() } } );
-
-
+        program.Run( new Dictionary < string, object > { { "bar", new Bar() } } );
     }
 
+    #endregion
 }
 
 }

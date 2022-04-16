@@ -7,17 +7,17 @@ namespace Bite.Runtime.Functions.ForeignInterface
 
 public class StaticWrapper
 {
-    private readonly Type _type;
-    private readonly Dictionary < string, FastMethodInfo > CachedStaticMethods = new Dictionary < string, FastMethodInfo >();
+    private readonly Dictionary < string, FastMethodInfo > CachedStaticMethods =
+        new Dictionary < string, FastMethodInfo >();
+
+    public Type StaticWrapperType { get; }
 
     #region Public
 
     public StaticWrapper( Type type )
     {
-        _type = type;
+        StaticWrapperType = type;
     }
-
-    public Type StaticWrapperType => _type;
 
     public object InvokeMember( string name, object[] args, Type[] argsTypes )
     {

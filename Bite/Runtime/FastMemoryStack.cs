@@ -36,7 +36,7 @@ public class FastMemoryStack
             Array.Copy( m_FastMemorySpaces, newProperties, m_FastMemorySpaces.Length );
             m_FastMemorySpaces = newProperties;
         }
-        
+
         m_FastMemorySpaces[Count] = fastMemorySpace;
         Count++;
     }
@@ -81,7 +81,7 @@ public class DynamicBiteVariableStack
             Array.Copy( m_DynamicVariables, newProperties, m_DynamicVariables.Length );
             m_DynamicVariables = newProperties;
         }
-        
+
         m_DynamicVariables[Count] = dynamicVar;
 
         Count++;
@@ -94,6 +94,7 @@ public class BytecodeList
 {
     public List < ByteCode > ByteCodes = new List < ByteCode >();
 }
+
 public class BytecodeListStack
 {
     private readonly BytecodeList[] m_BytecodeLists = new BytecodeList[1024];
@@ -160,7 +161,7 @@ public class UsingStatementStack
             Array.Copy( m_UsedObjects, newProperties, m_UsedObjects.Length );
             m_UsedObjects = newProperties;
         }
-        
+
         m_UsedObjects[Count] = usedObject;
 
         if ( Count >= 1023 )

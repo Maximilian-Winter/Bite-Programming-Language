@@ -11,7 +11,7 @@ public class ExpressionUnitTests
 {
     private BiteResult ExecExpression( string expression )
     {
-        var compiler = new BiteCompiler();
+        BiteCompiler compiler = new BiteCompiler();
 
         BiteProgram program = compiler.CompileExpression( expression );
 
@@ -373,7 +373,6 @@ public class ExpressionUnitTests
             Assert.Equal( "Hello World", result.ReturnValue.StringData );
         }
     }
-
 }
 
 }

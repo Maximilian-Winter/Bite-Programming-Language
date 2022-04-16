@@ -17,7 +17,6 @@ public class VariableSymbol : BaseSymbol, TypedSymbol
         m_AccessModifier = accesModifierType;
         m_ClassAndMemberModifier = classAndMemberModifiers;
     }
-        
 
     #endregion
 

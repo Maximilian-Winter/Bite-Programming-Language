@@ -7,10 +7,14 @@ public class ForInitializerBaseNode : AstBaseNode
 
     public ExpressionBaseNode[] Expressions { get; set; }
 
+    #region Public
+
     public override object Accept( IAstVisitor visitor )
     {
         return visitor.Visit( this );
     }
+
+    #endregion
 }
 
 }

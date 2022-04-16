@@ -10,16 +10,6 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 {
     private readonly TypeRegistry m_TypeRegistry;
 
-    public Type ResolveType( string name )
-    {
-        if (m_TypeRegistry == null || !m_TypeRegistry.TryResolveType( name, out Type type ))
-        {
-            type = Type.GetType( name );
-        }
-
-        return type;
-    }
-
     #region Public
 
     public ForeignLibraryInterfaceVm()
@@ -27,7 +17,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
         m_TypeRegistry = new TypeRegistry();
     }
 
-    public ForeignLibraryInterfaceVm(TypeRegistry typeRegistry)
+    public ForeignLibraryInterfaceVm( TypeRegistry typeRegistry )
     {
         m_TypeRegistry = typeRegistry;
     }
@@ -45,13 +35,15 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                     Type type = ResolveType( typeString );
 
                     DynamicBiteVariable returnClassBool = fliObject.Get( "ReturnClass" );
-                    if ( returnClassBool.DynamicType == DynamicVariableType.True  )
+
+                    if ( returnClassBool.DynamicType == DynamicVariableType.True )
                     {
                         StaticWrapper wrapper = new StaticWrapper( type );
                         fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable( wrapper ) );
 
                         return wrapper;
                     }
+
                     DynamicBiteVariable methodString = fliObject.Get( "Method" );
 
                     if ( methodString.DynamicType == DynamicVariableType.String &&
@@ -67,7 +59,10 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                             }
                         }
 
-                        MethodInfo method = m_TypeRegistry.GetMethod( type, methodString.StringData, argTypes.ToArray() );
+                        MethodInfo method = m_TypeRegistry.GetMethod(
+                            type,
+                            methodString.StringData,
+                            argTypes.ToArray() );
 
                         if ( method != null && method.IsStatic )
                         {
@@ -130,7 +125,10 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                                     }
                                 }
 
-                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type, constructorArgTypes.ToArray() );
+                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
+                                    type,
+                                    constructorArgTypes.ToArray() );
+
                                 object classObject = constructor.Invoke( constructorArgs.ToArray() );
 
                                 fliObject.Put(
@@ -199,7 +197,10 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                             }
                             else
                             {
-                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type, constructorArgTypes.ToArray() );
+                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
+                                    type,
+                                    constructorArgTypes.ToArray() );
+
                                 object classObject = constructor.Invoke( constructorArgs.ToArray() );
 
                                 fliObject.Put(
@@ -228,7 +229,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         FastMemorySpace constructorArgumentsTypes =
                             ( FastMemorySpace ) fliObject.Get( "ConstructorArgumentsTypes" ).ObjectData;
 
-                     if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
+                        if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
                         {
                             foreach ( KeyValuePair < string, DynamicBiteVariable > constructorArgumentsNamesToProperty
                                      in constructorArgumentsTypes.NamesToProperties )
@@ -275,7 +276,9 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         }
                         else
                         {
-                            ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type, constructorArgTypes.ToArray() );
+                            ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
+                                type,
+                                constructorArgTypes.ToArray() );
 
                             object classObject = constructor.Invoke( constructorArgs.ToArray() );
 
@@ -293,6 +296,16 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
         }
 
         return null;
+    }
+
+    public Type ResolveType( string name )
+    {
+        if ( m_TypeRegistry == null || !m_TypeRegistry.TryResolveType( name, out Type type ) )
+        {
+            type = Type.GetType( name );
+        }
+
+        return type;
     }
 
     #endregion

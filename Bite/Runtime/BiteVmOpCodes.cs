@@ -81,7 +81,7 @@ public enum BiteVmOpCodes : byte
     OpBreak,
     OpReturn,
     OpSwitchContext,
-    OpReturnContext,
+    OpReturnContext
 }
 
 }

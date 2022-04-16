@@ -1,50 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Bite.Compiler;
 using Bite.Modules.Callables;
 using Bite.Runtime;
-using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions.ForeignInterface;
-using Bite.Runtime.Memory;
 
 namespace TestApp
 {
+
 public class SampleEventArgs
 {
-    public SampleEventArgs(string text) { Text = text; }
     public string Text { get; } // readonly
+
+    #region Public
+
+    public SampleEventArgs( string text )
+    {
+        Text = text;
+    }
+
+    #endregion
 }
+
 public class DelegateTest
 {
-    public void InvokeEvent(object sender, SampleEventArgs sampleEventArgs)
-    {
-        OnSampleEvent?.Invoke( sender, sampleEventArgs );
-    }
     public delegate object TestDelegate( object sender, SampleEventArgs sampleEventArgs );
 
     public event TestDelegate OnSampleEvent;
+
+    #region Public
+
+    public void InvokeEvent( object sender, SampleEventArgs sampleEventArgs )
+    {
+        OnSampleEvent?.Invoke( sender, sampleEventArgs );
+    }
+
+    #endregion
 }
+
 public class Program
 {
     #region Public
 
-   
-
-    public static object Test( object sender, SampleEventArgs sampleEventArgs )
-    {
-        Console.WriteLine(sampleEventArgs.Text);
-        return sender;
-    }
-    
     public static void Main( string[] args )
     {
-        
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
             "MainModule.bite",
@@ -54,32 +57,36 @@ public class Program
         BiteVm biteVm = new BiteVm();
         biteVm.InitVm();
         DelegateTest delegateTest = new DelegateTest();
+
         foreach ( string file in files )
         {
-            Console.WriteLine($"File: {file}");
+            Console.WriteLine( $"File: {file}" );
             List < string > biteProg = new List < string >();
             biteProg.Add( File.ReadAllText( file ) );
-            BiteProgram program = compiler.Compile(biteProg);
+            BiteProgram program = compiler.Compile( biteProg );
 
-            program.TypeRegistry.RegisterType<TestClassCSharp>();
-            biteVm.RegisterSystemModuleCallables(program.TypeRegistry);
+            program.TypeRegistry.RegisterType < TestClassCSharp >();
+            biteVm.RegisterSystemModuleCallables( program.TypeRegistry );
             biteVm.SynchronizationContext = new SynchronizationContext();
-            
-            biteVm.RegisterExternalGlobalObject( "EventObject", new EventWrapper(delegateTest) );
+
+            ICSharpEvent cSharpEvent =
+                new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
+
+            biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
             delegateTest.OnSampleEvent += Test;
+
             if ( program != null )
             {
                 Task.Run(
-                    () =>
-                    {
-                        biteVm.Interpret( program );
-                    } ).ContinueWith(t=>
-                {
-                    if (t.IsFaulted)
-                    {
-                        Console.WriteLine(t.Exception.InnerException.Message);
-                    }
-                });
+                         () => { biteVm.Interpret( program ); } ).
+                     ContinueWith(
+                         t =>
+                         {
+                             if ( t.IsFaulted )
+                             {
+                                 Console.WriteLine( t.Exception.InnerException.Message );
+                             }
+                         } );
 
                 while ( true )
                 {
@@ -89,11 +96,10 @@ public class Program
                     {
                         break;
                     }
-                    
-                    delegateTest.InvokeEvent( new object(), new SampleEventArgs( line ));
+
+                    delegateTest.InvokeEvent( new object(), new SampleEventArgs( line ) );
                 }
-             
-                
+
                 /*int k = 1;
                 long elapsedMillisecondsAccu = 0;
             
@@ -130,12 +136,17 @@ public class Program
                 }
     
                 ChunkDebugHelper.InstructionCounter.Clear();*/
-
             }
         }
 
         Console.ReadLine();
+    }
 
+    public static object Test( object sender, SampleEventArgs sampleEventArgs )
+    {
+        Console.WriteLine( sampleEventArgs.Text );
+
+        return sender;
     }
 
     #endregion

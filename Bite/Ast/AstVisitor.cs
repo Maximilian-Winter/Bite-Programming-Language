@@ -1,14 +1,8 @@
-using System.Collections.Generic;
-
 namespace Bite.Ast
 {
 
-public abstract class AstVisitor<T>
+public abstract class AstVisitor < T >
 {
-    public AstVisitor()
-    {
-    }
-
     #region Public
 
     public abstract T Visit( ProgramBaseNode node );

@@ -8,11 +8,15 @@ public class InterpolatedStringPart
     public string TextBeforeExpression;
     public ExpressionBaseNode ExpressionBaseNode;
 
+    #region Public
+
     public InterpolatedStringPart( string textBeforeExpression, ExpressionBaseNode expressionBaseNode )
     {
         TextBeforeExpression = textBeforeExpression;
         ExpressionBaseNode = expressionBaseNode;
     }
+
+    #endregion
 }
 
 public class InterpolatedString : ExpressionBaseNode
@@ -22,15 +26,14 @@ public class InterpolatedString : ExpressionBaseNode
 }
 
 public class ArrayExpressionNode : ExpressionBaseNode
-    {
+{
     public List < ExpressionBaseNode > Expressions;
 }
 
 public class DictionaryInitializerNode : ExpressionBaseNode
-    {
-    public Dictionary<Identifier, ExpressionBaseNode> ElementInitializers;
+{
+    public Dictionary < Identifier, ExpressionBaseNode > ElementInitializers;
 }
-
 
 public class PrimaryBaseNode : ExpressionBaseNode
 {

@@ -3,11 +3,11 @@ module HelloWorld;
 import System; 
 using System;
 
-var valueSetByCallback = 0;
+var valueSetByCallback = "Hallo";
 
-function CallBack(s, n)
+function CallBack(n, s)
 {
-   valueSetByCallback = n;
+   valueSetByCallback = s.Text;
 }
 
 PrintLine(valueSetByCallback);

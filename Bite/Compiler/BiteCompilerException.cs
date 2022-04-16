@@ -7,13 +7,6 @@ namespace Bite.Compiler
 
 public class BiteCompilerException : ApplicationException
 {
-    public BiteCompilerException( string message, IReadOnlyCollection < BiteCompilerSyntaxError > syntaxErrors ) :
-        base( message )
-    {
-        BiteCompilerExceptionMessage = message;
-        SyntaxErrors = syntaxErrors;
-    }
-
     public string BiteCompilerExceptionMessage { get; }
 
     public IReadOnlyCollection < BiteCompilerSyntaxError > SyntaxErrors { get; }
@@ -22,13 +15,13 @@ public class BiteCompilerException : ApplicationException
     {
         get
         {
-            var stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
 
             stringBuilder.Append( BiteCompilerExceptionMessage );
 
             stringBuilder.AppendLine();
 
-            foreach ( var syntaxError in SyntaxErrors )
+            foreach ( BiteCompilerSyntaxError syntaxError in SyntaxErrors )
             {
                 stringBuilder.AppendLine( syntaxError.Message );
             }
@@ -36,6 +29,17 @@ public class BiteCompilerException : ApplicationException
             return stringBuilder.ToString();
         }
     }
+
+    #region Public
+
+    public BiteCompilerException( string message, IReadOnlyCollection < BiteCompilerSyntaxError > syntaxErrors ) :
+        base( message )
+    {
+        BiteCompilerExceptionMessage = message;
+        SyntaxErrors = syntaxErrors;
+    }
+
+    #endregion
 }
 
 }

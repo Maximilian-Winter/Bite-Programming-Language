@@ -1,26 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
 using Bite.Compiler;
 using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
-using Bite.Runtime.Functions;
-using Bite.Runtime.Functions.ForeignInterface;
 
 namespace Bite.Cli
 {
 
 public class REPL
 {
-    private static void PrintModule( string module )
-    {
-        var lines = module.Split( new[] { "\r\n" }, StringSplitOptions.None );
-
-        foreach ( var line in lines )
-        {
-            Console.WriteLine( $"> {line}" );
-        }
-    }
+    #region Unity Event Functions
 
     public static void Start()
     {
@@ -60,8 +49,7 @@ public class REPL
                 Console.Write( "> " );
             }
 
-            var buffer = ConsoleEx.Buffer( !declaring, out bool ctrlZPressed );
-
+            string buffer = ConsoleEx.Buffer( !declaring, out bool ctrlZPressed );
 
             if ( ctrlZPressed )
             {
@@ -76,11 +64,9 @@ public class REPL
                 }
             }
 
-
-
             if ( !declaring )
             {
-                var bufferString = buffer.ToString();
+                string bufferString = buffer;
 
                 if ( bufferString.Length > 0 )
                 {
@@ -108,7 +94,6 @@ public class REPL
 
                         Console.WriteLine(
                             "You are now declaring. Type ^Z and press Enter to end and compile your declaration." );
-
                     }
                     else if ( resetting )
                     {
@@ -127,21 +112,37 @@ public class REPL
                         {
                             //var chunks = program.GetChunks();
                             program = compiler.CompileStatements( bufferString, program.SymbolTable );
+
                             //program.RestoreChunks( chunks );
                             BiteVmInterpretResult result = biteVm.Interpret( program );
                         }
-                        catch (Exception e)
+                        catch ( Exception e )
                         {
                             Console.WriteLine( e.Message );
                         }
                     }
                 }
             }
-
         }
 
         Console.WriteLine( "\r\n\r\nGoodbye!\r\n" );
     }
+
+    #endregion
+
+    #region Private
+
+    private static void PrintModule( string module )
+    {
+        string[] lines = module.Split( new[] { "\r\n" }, StringSplitOptions.None );
+
+        foreach ( string line in lines )
+        {
+            Console.WriteLine( $"> {line}" );
+        }
+    }
+
+    #endregion
 }
 
 }

@@ -84,8 +84,9 @@ public abstract class BaseSymbol : Symbol
 
     #endregion
 
-    protected internal AstBaseNode m_DefBaseNode;
     protected internal int lexicalOrder;
+
+    protected internal AstBaseNode m_DefBaseNode;
     protected internal readonly string name;
     protected internal Scope scope;
     protected internal Type type;

@@ -9,10 +9,14 @@ public class LocalVariableDeclarationBaseNode : StatementBaseNode
 
     public ExpressionBaseNode ExpressionBase { get; set; }
 
+    #region Public
+
     public override object Accept( IAstVisitor visitor )
     {
         return visitor.Visit( this );
     }
+
+    #endregion
 }
 
 }

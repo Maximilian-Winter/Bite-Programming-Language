@@ -6,19 +6,22 @@ namespace Bite.Cli
 
 public class ConsoleEx
 {
+    #region Public
+
     public static string Buffer( bool exitOnEnter, out bool ctrlZPressed )
     {
-        var buffering = true;
-        var buffer = new StringBuilder();
+        bool buffering = true;
+        StringBuilder buffer = new StringBuilder();
         ctrlZPressed = false;
 
         while ( buffering )
         {
-            var input = Console.ReadLine();
+            string input = Console.ReadLine();
 
             if ( input == null )
             {
                 ctrlZPressed = true;
+
                 return buffer.ToString();
             }
 
@@ -36,6 +39,8 @@ public class ConsoleEx
 
         return buffer.ToString();
     }
+
+    #endregion
 }
 
 }

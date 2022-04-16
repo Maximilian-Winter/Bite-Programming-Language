@@ -6,6 +6,8 @@ namespace Bite.Symbols
 
 public class FunctionSymbol : SymbolWithScope, TypedSymbol
 {
+    public string LinkName;
+
     public virtual FunctionDeclarationBaseNode DefBaseNode
     {
         set => m_DefBaseNode = value;
@@ -44,17 +46,14 @@ public class FunctionSymbol : SymbolWithScope, TypedSymbol
 
     public bool IsCallable => m_IsCallable;
 
-    public string LinkName;
-
     #region Public
 
-        public FunctionSymbol(
+    public FunctionSymbol(
         string name,
         AccesModifierType accesModifierType,
         ClassAndMemberModifiers classAndMemberModifiers,
         bool isExtern,
-        bool isCallable
-        ) : base( name )
+        bool isCallable ) : base( name )
     {
         m_AccessModifier = accesModifierType;
         m_ClassAndMemberModifier = classAndMemberModifiers;
@@ -69,12 +68,13 @@ public class FunctionSymbol : SymbolWithScope, TypedSymbol
 
     #endregion
 
-    protected internal FunctionDeclarationBaseNode m_DefBaseNode;
     protected internal AccesModifierType m_AccessModifier;
     protected internal ClassAndMemberModifiers m_ClassAndMemberModifier;
-    protected internal Type retType;
-    protected internal bool m_IsExtern;
+
+    protected internal FunctionDeclarationBaseNode m_DefBaseNode;
     protected internal bool m_IsCallable;
+    protected internal bool m_IsExtern;
+    protected internal Type retType;
 }
 
 }

@@ -11,8 +11,6 @@ public class GlobalScope : BaseScope
     {
     }
 
-    #endregion
-
     public void DefineModule( ModuleSymbol moduleSymbol )
     {
         moduleSymbol.EnclosingScope = this;
@@ -23,6 +21,8 @@ public class GlobalScope : BaseScope
     {
         define( variableSymbol );
     }
+
+    #endregion
 }
 
 }

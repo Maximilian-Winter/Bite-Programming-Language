@@ -13,7 +13,12 @@ public class MethodSymbol : FunctionSymbol, MemberSymbol
     public MethodSymbol(
         string name,
         AccesModifierType accessModifier,
-        ClassAndMemberModifiers classAndMemberModifiers ) : base( name, accessModifier, classAndMemberModifiers, false, false )
+        ClassAndMemberModifiers classAndMemberModifiers ) : base(
+        name,
+        accessModifier,
+        classAndMemberModifiers,
+        false,
+        false )
     {
     }
 
