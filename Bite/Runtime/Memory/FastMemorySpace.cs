@@ -21,6 +21,8 @@ public class FastMemorySpace
 
     public int CurrentMemoryPointer { get; set; } = 0;
 
+    public bool IsRunningCallback = false;
+
     #region Public
 
     public FastMemorySpace(
@@ -311,11 +313,11 @@ public class FastMemorySpace
         }
     }
 
-    public void ResetPropertiesArray( int memberCount )
+    /*public void ResetPropertiesArray( int memberCount )
     {
         Properties = new DynamicBiteVariable[memberCount];
         CurrentMemoryPointer = 0;
-    }
+    }*/
 
     public override string ToString()
     {

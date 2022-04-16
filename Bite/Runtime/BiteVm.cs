@@ -616,7 +616,7 @@ public class BiteVm
                         if ( call.ObjectData is BiteChunkWrapper function )
                         {
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
-                            callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                            //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
@@ -662,7 +662,7 @@ public class BiteVm
                         {
                             m_VmStack.Pop();
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
-                            callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                            //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
@@ -731,7 +731,7 @@ public class BiteVm
                                 if ( call.ObjectData is BiteChunkWrapper function )
                                 {
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
-                                    callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                    //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                                     callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                     callSpace.CallerChunk = m_CurrentChunk;
                                     callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
@@ -5683,25 +5683,7 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpEnterBlock:
                     {
-                        int memberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
-                                          ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
-                                          ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
-                                          ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
-
-                        m_CurrentInstructionPointer += 4;
-                        FastMemorySpace block = m_PoolFastMemoryFastMemory.Get();
-                        block.ResetPropertiesArray( memberCount );
-                        block.m_EnclosingSpace = m_CurrentMemorySpace;
-                        block.StackCountAtBegin = m_VmStack.Count;
-                        m_CurrentMemorySpace = block;
-                        m_CallStack.Push( m_CurrentMemorySpace );
-
-                        break;
-                    }
-
-                    case BiteVmOpCodes.OpExitBlock:
-                    {
-                        if ( m_FunctionCalls.Count > 0 )
+                        if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback)
                         {
                             m_CurrentInstructionPointer -= 1;
                             BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
@@ -5711,11 +5693,12 @@ public class BiteVm
                             if ( call.ObjectData is BiteChunkWrapper function )
                             {
                                 FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
-                                callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                                 callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                 callSpace.CallerChunk = m_CurrentChunk;
                                 callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
                                 callSpace.StackCountAtBegin = m_VmStack.Count;
+                                callSpace.IsRunningCallback = true;
                                 m_CurrentMemorySpace = callSpace;
                                 m_CallStack.Push( callSpace );
 
@@ -5745,7 +5728,25 @@ public class BiteVm
 
                             break;
                         }
+                        
+                        int memberCount = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                          ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                          ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                          ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
+                        m_CurrentInstructionPointer += 4;
+                        FastMemorySpace block = m_PoolFastMemoryFastMemory.Get();
+                        //block.ResetPropertiesArray( memberCount );
+                        block.m_EnclosingSpace = m_CurrentMemorySpace;
+                        block.StackCountAtBegin = m_VmStack.Count;
+                        m_CurrentMemorySpace = block;
+                        m_CallStack.Push( m_CurrentMemorySpace );
+
+                        break;
+                    }
+
+                    case BiteVmOpCodes.OpExitBlock:
+                    {
                         if ( m_KeepLastItemOnStackToReturn )
                         {
                             ReturnValue = m_VmStack.Pop();
@@ -5822,9 +5823,8 @@ public class BiteVm
             }
             else
             {
-                if ( m_FunctionCalls.Count > 0 )
+                if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback)
                 {
-                    m_CurrentInstructionPointer -= 1;
                     BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
                     string method = biteFunctionCall.FunctionName;
                     DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
@@ -5832,11 +5832,12 @@ public class BiteVm
                     if ( call.ObjectData is BiteChunkWrapper function )
                     {
                         FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
-                        callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                        //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
                         callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                         callSpace.CallerChunk = m_CurrentChunk;
                         callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
                         callSpace.StackCountAtBegin = m_VmStack.Count;
+                        callSpace.IsRunningCallback = true;
                         m_CurrentMemorySpace = callSpace;
                         m_CallStack.Push( callSpace );
 
@@ -5864,8 +5865,7 @@ public class BiteVm
                         throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
                     }
                 }
-
-                if ( m_CallStack.Count > 0 )
+                else if ( m_CallStack.Count > 0 )
                 {
                     if ( m_VmStack.Count > 0 )
                     {

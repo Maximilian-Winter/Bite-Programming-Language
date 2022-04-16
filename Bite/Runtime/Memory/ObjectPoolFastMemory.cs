@@ -34,11 +34,12 @@ public class ObjectPoolFastMemory
         
         FastMemorySpace fastMemorySpace = m_FastCallMemorySpaces[m_FastMemorySpacePointer];
         fastMemorySpace.Properties = Array.Empty < DynamicBiteVariable >();
+        fastMemorySpace.CurrentMemoryPointer = 0;
         fastMemorySpace.NamesToProperties.Clear();
         fastMemorySpace.CallerChunk = null;
         fastMemorySpace.CallerIntructionPointer = 0;
         fastMemorySpace.StackCountAtBegin = 0;
-       
+        fastMemorySpace.IsRunningCallback = false;
 
         m_FastMemorySpacePointer++;
 

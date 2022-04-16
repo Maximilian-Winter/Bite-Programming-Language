@@ -55,17 +55,26 @@ public class Program
                     }
                 });
 
-                string line = Console.ReadLine();
-
-                if ( Int32.TryParse( line, out int i ) )
+                while ( true )
                 {
-                    BiteFunctionCall functionCall = new BiteFunctionCall(
-                        "CallBack",
-                        new[] { DynamicVariableExtension.ToDynamicVariable( i ) });
+                    string line = Console.ReadLine();
+
+                    if ( line == "exit" )
+                    {
+                        break;
+                    }
                     
-                    biteVm.CallBiteFunction( functionCall );
+                    if ( Int32.TryParse( line, out int i ) )
+                    {
+                        BiteFunctionCall functionCall = new BiteFunctionCall(
+                            "CallBack",
+                            new[] { DynamicVariableExtension.ToDynamicVariable( i ) });
+                    
+                        biteVm.CallBiteFunction( functionCall );
+                    }
+
                 }
-                
+             
                 
                 /*int k = 1;
                 long elapsedMillisecondsAccu = 0;
