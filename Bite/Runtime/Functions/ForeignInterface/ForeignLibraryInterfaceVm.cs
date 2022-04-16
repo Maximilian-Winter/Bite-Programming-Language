@@ -26,64 +26,47 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
     {
         if ( arguments.Count > 0 )
         {
-            if ( arguments[0].ObjectData is FastMemorySpace fliObject )
+            if ( arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.Object )
             {
-                string typeString = fliObject.Get( "Type" ).StringData;
-
-                if ( !string.IsNullOrEmpty( typeString ) )
+                if ( arguments[0].ObjectData is FastMemorySpace fliObject )
                 {
-                    Type type = ResolveType( typeString );
+                    string typeString = fliObject.Get( "Type" ).StringData;
 
-                    DynamicBiteVariable returnClassBool = fliObject.Get( "ReturnClass" );
-
-                    if ( returnClassBool.DynamicType == DynamicVariableType.True )
+                    if ( !string.IsNullOrEmpty( typeString ) )
                     {
-                        StaticWrapper wrapper = new StaticWrapper( type );
-                        fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable( wrapper ) );
+                        Type type = ResolveType( typeString );
 
-                        return wrapper;
-                    }
+                        DynamicBiteVariable returnClassBool = fliObject.Get( "ReturnClass" );
 
-                    DynamicBiteVariable methodString = fliObject.Get( "Method" );
-
-                    if ( methodString.DynamicType == DynamicVariableType.String &&
-                         !string.IsNullOrEmpty( methodString.StringData ) )
-                    {
-                        List < Type > argTypes = new List < Type >();
-
-                        if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instanceTypes )
+                        if ( returnClassBool.DynamicType == DynamicVariableType.True )
                         {
-                            foreach ( DynamicBiteVariable instanceProperty in instanceTypes.Properties )
-                            {
-                                argTypes.Add( instanceProperty.GetType() );
-                            }
+                            StaticWrapper wrapper = new StaticWrapper( type );
+                            fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable( wrapper ) );
+
+                            return wrapper;
                         }
 
-                        MethodInfo method = m_TypeRegistry.GetMethod(
-                            type,
-                            methodString.StringData,
-                            argTypes.ToArray() );
+                        DynamicBiteVariable methodString = fliObject.Get( "Method" );
 
-                        if ( method != null && method.IsStatic )
+                        if ( methodString.DynamicType == DynamicVariableType.String &&
+                             !string.IsNullOrEmpty( methodString.StringData ) )
                         {
-                            if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
-                            {
-                                List < object > args = new List < object >();
+                            List < Type > argTypes = new List < Type >();
 
-                                foreach ( DynamicBiteVariable instanceProperty in instance.Properties )
+                            if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instanceTypes )
+                            {
+                                foreach ( DynamicBiteVariable instanceProperty in instanceTypes.Properties )
                                 {
-                                    args.Add( instanceProperty.ToObject() );
+                                    argTypes.Add( instanceProperty.GetType() );
                                 }
-
-                                return method.Invoke( null, args.ToArray() );
                             }
 
-                            return method.Invoke( null, null );
-                        }
+                            MethodInfo method = m_TypeRegistry.GetMethod(
+                                type,
+                                methodString.StringData,
+                                argTypes.ToArray() );
 
-                        if ( method != null && !method.IsStatic )
-                        {
-                            if ( fliObject.Get( "ObjectInstance" ) is object objectInstance )
+                            if ( method != null && method.IsStatic )
                             {
                                 if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
                                 {
@@ -94,20 +77,101 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                                         args.Add( instanceProperty.ToObject() );
                                     }
 
-                                    return method.Invoke( objectInstance, args.ToArray() );
+                                    return method.Invoke( null, args.ToArray() );
                                 }
 
-                                return method.Invoke( objectInstance, null );
+                                return method.Invoke( null, null );
                             }
-                            else
+
+                            if ( method != null && !method.IsStatic )
+                            {
+                                if ( fliObject.Get( "ObjectInstance" ) is object objectInstance )
+                                {
+                                    if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
+                                    {
+                                        List < object > args = new List < object >();
+
+                                        foreach ( DynamicBiteVariable instanceProperty in instance.Properties )
+                                        {
+                                            args.Add( instanceProperty.ToObject() );
+                                        }
+
+                                        return method.Invoke( objectInstance, args.ToArray() );
+                                    }
+
+                                    return method.Invoke( objectInstance, null );
+                                }
+                                else
+                                {
+                                    List < Type > constructorArgTypes = new List < Type >();
+
+                                    if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace
+                                        constructorInstanceTypes )
+                                    {
+                                        foreach ( DynamicBiteVariable instanceProperty in
+                                                 constructorInstanceTypes.Properties )
+                                        {
+                                            constructorArgTypes.Add( instanceProperty.GetType() );
+                                        }
+                                    }
+
+                                    List < object > constructorArgs = new List < object >();
+
+                                    if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace
+                                        constructorInstance )
+                                    {
+                                        foreach ( DynamicBiteVariable instanceProperty in constructorInstance.
+                                                     Properties )
+                                        {
+                                            constructorArgs.Add( instanceProperty.ToObject() );
+                                        }
+                                    }
+
+                                    ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
+                                        type,
+                                        constructorArgTypes.ToArray() );
+
+                                    object classObject = constructor.Invoke( constructorArgs.ToArray() );
+
+                                    fliObject.Put(
+                                        "ObjectInstance",
+                                        DynamicVariableExtension.ToDynamicVariable( classObject ) );
+
+                                    if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
+                                    {
+                                        List < object > args = new List < object >();
+
+                                        foreach ( DynamicBiteVariable instanceProperty in instance.Properties )
+                                        {
+                                            args.Add( instanceProperty.ToObject() );
+                                        }
+
+                                        return method.Invoke( classObject, args.ToArray() );
+                                    }
+
+                                    return method.Invoke( classObject, null );
+                                }
+                            }
+
+                            if ( type.IsSealed && type.IsAbstract )
+                            {
+                                StaticWrapper wrapper = new StaticWrapper( type );
+
+                                fliObject.Put(
+                                    "ObjectInstance",
+                                    DynamicVariableExtension.ToDynamicVariable( wrapper ) );
+
+                                return wrapper;
+                            }
+
                             {
                                 List < Type > constructorArgTypes = new List < Type >();
 
                                 if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace
                                     constructorInstanceTypes )
                                 {
-                                    foreach ( DynamicBiteVariable instanceProperty in
-                                             constructorInstanceTypes.Properties )
+                                    foreach ( DynamicBiteVariable instanceProperty in constructorInstanceTypes.
+                                                 Properties )
                                     {
                                         constructorArgTypes.Add( instanceProperty.GetType() );
                                     }
@@ -125,29 +189,31 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                                     }
                                 }
 
-                                ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
-                                    type,
-                                    constructorArgTypes.ToArray() );
-
-                                object classObject = constructor.Invoke( constructorArgs.ToArray() );
-
-                                fliObject.Put(
-                                    "ObjectInstance",
-                                    DynamicVariableExtension.ToDynamicVariable( classObject ) );
-
-                                if ( fliObject.Get( "Arguments" ).ObjectData is FastMemorySpace instance )
+                                if ( constructorArgs.Count == 0 )
                                 {
-                                    List < object > args = new List < object >();
+                                    ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type );
+                                    object classObject = constructor.Invoke( new object[] { } );
 
-                                    foreach ( DynamicBiteVariable instanceProperty in instance.Properties )
-                                    {
-                                        args.Add( instanceProperty.ToObject() );
-                                    }
+                                    fliObject.Put(
+                                        "ObjectInstance",
+                                        DynamicVariableExtension.ToDynamicVariable( classObject ) );
 
-                                    return method.Invoke( classObject, args.ToArray() );
+                                    return classObject;
                                 }
+                                else
+                                {
+                                    ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
+                                        type,
+                                        constructorArgTypes.ToArray() );
 
-                                return method.Invoke( classObject, null );
+                                    object classObject = constructor.Invoke( constructorArgs.ToArray() );
+
+                                    fliObject.Put(
+                                        "ObjectInstance",
+                                        DynamicVariableExtension.ToDynamicVariable( classObject ) );
+
+                                    return classObject;
+                                }
                             }
                         }
 
@@ -162,25 +228,45 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         {
                             List < Type > constructorArgTypes = new List < Type >();
 
-                            if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace
-                                constructorInstanceTypes )
+                            FastMemorySpace constructorArguments =
+                                ( FastMemorySpace ) fliObject.Get( "ConstructorArguments" ).ObjectData;
+
+                            FastMemorySpace constructorArgumentsTypes =
+                                ( FastMemorySpace ) fliObject.Get( "ConstructorArgumentsTypes" ).ObjectData;
+
+                            if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
                             {
-                                foreach ( DynamicBiteVariable instanceProperty in constructorInstanceTypes.
-                                             Properties )
+                                foreach ( KeyValuePair < string, DynamicBiteVariable >
+                                             constructorArgumentsNamesToProperty
+                                         in constructorArgumentsTypes.NamesToProperties )
                                 {
-                                    constructorArgTypes.Add( instanceProperty.GetType() );
+                                    if ( constructorArgumentsNamesToProperty.Key != "this" )
+                                    {
+                                        constructorArgTypes.Add(
+                                            ResolveType( constructorArgumentsNamesToProperty.Value.StringData ) );
+                                    }
                                 }
                             }
 
                             List < object > constructorArgs = new List < object >();
 
-                            if ( fliObject.Get( "ConstructorArguments" ).ObjectData is FastMemorySpace
-                                constructorInstance )
+                            if ( constructorArguments != null )
                             {
-                                foreach ( DynamicBiteVariable instanceProperty in constructorInstance.
-                                             Properties )
+                                int i = 0;
+
+                                foreach ( KeyValuePair < string, DynamicBiteVariable >
+                                             constructorArgumentsNamesToProperty
+                                         in constructorArguments.NamesToProperties )
                                 {
-                                    constructorArgs.Add( instanceProperty.ToObject() );
+                                    if ( constructorArgumentsNamesToProperty.Key != "this" )
+                                    {
+                                        constructorArgs.Add(
+                                            Convert.ChangeType(
+                                                constructorArgumentsNamesToProperty.Value.ToObject(),
+                                                constructorArgTypes[i] ) );
+
+                                        i++;
+                                    }
                                 }
                             }
 
@@ -211,85 +297,15 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                             }
                         }
                     }
-
-                    if ( type.IsSealed && type.IsAbstract )
-                    {
-                        StaticWrapper wrapper = new StaticWrapper( type );
-                        fliObject.Put( "ObjectInstance", DynamicVariableExtension.ToDynamicVariable( wrapper ) );
-
-                        return wrapper;
-                    }
-
-                    {
-                        List < Type > constructorArgTypes = new List < Type >();
-
-                        FastMemorySpace constructorArguments =
-                            ( FastMemorySpace ) fliObject.Get( "ConstructorArguments" ).ObjectData;
-
-                        FastMemorySpace constructorArgumentsTypes =
-                            ( FastMemorySpace ) fliObject.Get( "ConstructorArgumentsTypes" ).ObjectData;
-
-                        if ( constructorArguments != null && constructorArguments.NamesToProperties.Count > 0 )
-                        {
-                            foreach ( KeyValuePair < string, DynamicBiteVariable > constructorArgumentsNamesToProperty
-                                     in constructorArgumentsTypes.NamesToProperties )
-                            {
-                                if ( constructorArgumentsNamesToProperty.Key != "this" )
-                                {
-                                    constructorArgTypes.Add(
-                                        ResolveType( constructorArgumentsNamesToProperty.Value.StringData ) );
-                                }
-                            }
-                        }
-
-                        List < object > constructorArgs = new List < object >();
-
-                        if ( constructorArguments != null )
-                        {
-                            int i = 0;
-
-                            foreach ( KeyValuePair < string, DynamicBiteVariable > constructorArgumentsNamesToProperty
-                                     in constructorArguments.NamesToProperties )
-                            {
-                                if ( constructorArgumentsNamesToProperty.Key != "this" )
-                                {
-                                    constructorArgs.Add(
-                                        Convert.ChangeType(
-                                            constructorArgumentsNamesToProperty.Value.ToObject(),
-                                            constructorArgTypes[i] ) );
-
-                                    i++;
-                                }
-                            }
-                        }
-
-                        if ( constructorArgs.Count == 0 )
-                        {
-                            ConstructorInfo constructor = m_TypeRegistry.GetConstructor( type );
-                            object classObject = constructor.Invoke( new object[] { } );
-
-                            fliObject.Put(
-                                "ObjectInstance",
-                                DynamicVariableExtension.ToDynamicVariable( classObject ) );
-
-                            return classObject;
-                        }
-                        else
-                        {
-                            ConstructorInfo constructor = m_TypeRegistry.GetConstructor(
-                                type,
-                                constructorArgTypes.ToArray() );
-
-                            object classObject = constructor.Invoke( constructorArgs.ToArray() );
-
-                            fliObject.Put(
-                                "ObjectInstance",
-                                DynamicVariableExtension.ToDynamicVariable( classObject ) );
-
-                            return classObject;
-                        }
-                    }
                 }
+            }
+            else if (  arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.String )
+            {
+                Type type = ResolveType( arguments[0].StringData );
+
+                StaticWrapper wrapper = new StaticWrapper( type );
+
+                return wrapper;
             }
 
             return null;
