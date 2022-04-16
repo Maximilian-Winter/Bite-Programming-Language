@@ -18,31 +18,31 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="Modules\System.bite"/>
+        <None Remove="Modules\System.bite" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Modules\System.bite"/>
-    </ItemGroup>
-
-
-    <ItemGroup>
-        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2"/>
-        <PackageReference Include="System.Runtime" Version="4.3.1"/>
+        <EmbeddedResource Include="Modules\System.bite" />
     </ItemGroup>
 
 
     <ItemGroup>
-        <Folder Include="AntlrGenerated"/>
-        <None Include="LICENSE" Pack="true" Visible="false" PackagePath=""/>
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />
+        <PackageReference Include="System.Runtime" Version="4.3.1" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <Folder Include="AntlrGenerated" />
+        <None Include="LICENSE" Pack="true" Visible="false" PackagePath="" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="LICENSE" Pack="true" Visible="false" PackagePath=""/>
+        <None Include="LICENSE" Pack="true" Visible="false" PackagePath="" />
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="WindowsBase"/>
+        <Reference Include="WindowsBase" />
     </ItemGroup>
 
 </Project>

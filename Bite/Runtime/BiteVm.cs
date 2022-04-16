@@ -14,229 +14,6 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime
 {
 
-public class BiteVmRuntimeException : ApplicationException
-{
-    public string BiteVmRuntimeExceptionMessage { get; }
-
-    #region Public
-
-    public BiteVmRuntimeException( string message ) : base( message )
-    {
-        BiteVmRuntimeExceptionMessage = message;
-    }
-
-    #endregion
-}
-
-public static class StackExtensions
-{
-    #region Public
-
-    /// <summary>
-    ///     Retrieves the current value on the stack based on the specified type
-    /// </summary>
-    /// <param name="vmStack"></param>
-    /// <param name="type"></param>
-    /// <returns></returns>
-    public static object PopDataByType( this DynamicBiteVariableStack vmStack, Type type )
-    {
-        object data;
-
-        DynamicBiteVariable currentStack = vmStack.Peek();
-
-        // Cast the data based on the recieving propertyType
-        if ( type == typeof( double ) && currentStack.IsNumeric() )
-        {
-            data = vmStack.Pop().NumberData;
-        }
-        else if ( type == typeof( float ) && currentStack.IsNumeric() )
-        {
-            data = ( float ) vmStack.Pop().NumberData;
-        }
-        else if ( type == typeof( int ) && currentStack.IsNumeric() )
-        {
-            data = ( int ) vmStack.Pop().NumberData;
-        }
-        else if ( type == typeof( string ) && currentStack.DynamicType == DynamicVariableType.String )
-        {
-            data = vmStack.Pop().StringData;
-        }
-        else if ( type == typeof( bool ) && currentStack.IsBoolean() )
-        {
-            data = currentStack.DynamicType == DynamicVariableType.True;
-        }
-        else
-        {
-            data = vmStack.Pop().ObjectData;
-        }
-
-        return data;
-    }
-
-    #endregion
-}
-
-public class PropertyCache
-{
-    private static readonly Dictionary < string, PropertyInfo > m_PropertyCache =
-        new Dictionary < string, PropertyInfo >();
-
-    #region Public
-
-    public bool TryGetProperty( Type type, string propertyName, out PropertyInfo propertyInfo )
-    {
-        string key = $"{type.FullName}.{propertyName}";
-
-        if ( !m_PropertyCache.TryGetValue( key, out propertyInfo ) )
-        {
-            propertyInfo = type.GetProperty( propertyName );
-
-            if ( propertyInfo != null )
-            {
-                m_PropertyCache.Add( key, propertyInfo );
-
-                return true;
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    #endregion
-}
-
-public class FastPropertyCache
-{
-    private static Dictionary < string, IFastPropertyInfo > m_PropertyCache = new Dictionary < string, IFastPropertyInfo >();
-
-    #region Public
-
-    public static void AddPropertyToCache<T>(string propertyName)
-    {
-        string key = $"{typeof(T).FullName}.{propertyName}";
-        var type = typeof(T);
-        var pi = type.GetProperty(propertyName);
-        var fp = new FastPropertyInfo<T>(pi);
-
-        IFastPropertyInfo fastPropertyInfo = new CachedProperty < T >(fp.GetterDelegate, fp.SetterDelegate);
-        m_PropertyCache.Add( key, fastPropertyInfo );
-    }
-    public bool TryGetProperty( Type type, string propertyName, out IFastPropertyInfo propertyInfo )
-    {
-        string key = $"{type.FullName}.{propertyName}";
-
-        if ( !m_PropertyCache.TryGetValue( key, out propertyInfo ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    #endregion
-}
-
-public class MethodCache
-{
-    private static readonly Dictionary < string, FastMethodInfo > m_MethodCache =
-        new Dictionary < string, FastMethodInfo >();
-
-    #region Public
-
-    public bool TryGetMethod(
-        Type type,
-        Type[] functionArgumentTypes,
-        string methodName,
-        out FastMethodInfo fastMethodInfo )
-    {
-        string key = $"{type.FullName}.{methodName}";
-
-        for ( int i = 0; i < functionArgumentTypes.Length; i++ )
-        {
-            key += "." + functionArgumentTypes[i].Name;
-        }
-
-        if ( !m_MethodCache.TryGetValue( key, out fastMethodInfo ) )
-        {
-            MethodInfo methodInfo = type.GetMethod( methodName, functionArgumentTypes );
-
-            if ( methodInfo != null )
-            {
-                fastMethodInfo = new FastMethodInfo( methodInfo );
-                m_MethodCache.Add( key, fastMethodInfo );
-
-                return true;
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    #endregion
-}
-
-public class FieldCache
-{
-    private static readonly Dictionary < string, FastFieldInfo > m_FieldCache = new Dictionary < string, FastFieldInfo >();
-
-    #region Public
-
-    public bool TryGetField( Type type, string fieldName, out FastFieldInfo fieldInfo )
-    {
-        string key = $"{type.FullName}.{fieldName}";
-
-        if ( !m_FieldCache.TryGetValue( key, out fieldInfo ) )
-        {
-            FieldInfo fi = type.GetField( fieldName );
-            
-            if ( fi != null )
-            {
-                FastFieldInfo ffi = new FastFieldInfo( fi );
-                m_FieldCache.Add( key, ffi );
-                fieldInfo = ffi;
-                return true;
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    #endregion
-}
-
-public class BiteFunctionCall
-{
-    public string FunctionName;
-    public BiteChunkWrapper BiteChunkWrapper = null;
-    public DynamicBiteVariable[] FunctionArguments;
-
-    #region Public
-
-    public BiteFunctionCall(
-        string functionName,
-        DynamicBiteVariable[] functionArguments )
-    {
-        FunctionName = functionName;
-        FunctionArguments = functionArguments;
-    }
-
-    public BiteFunctionCall(
-        BiteChunkWrapper fWrapper,
-        DynamicBiteVariable[] functionArguments )
-    {
-        BiteChunkWrapper = fWrapper;
-        FunctionArguments = functionArguments;
-    }
-
-    #endregion
-}
-
 public class BiteVm
 {
     private enum ContextMode
@@ -262,10 +39,6 @@ public class BiteVm
     public FastPropertyCache FastCachedProperties = new FastPropertyCache();
     private readonly FieldCache m_CachedFields = new FieldCache();
 
-    
-    
-    private string m_LastGetVarName = "";
-
     private int m_LastGetLocalVarId = -1;
     private int m_LastGetLocalVarModuleId = -1;
     private int m_LastGetLocalVarDepth = -1;
@@ -288,7 +61,7 @@ public class BiteVm
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
-    private Queue < BiteFunctionCall > m_FunctionCalls = new Queue < BiteFunctionCall >();
+    private BiteFunctionCallStack m_FunctionCalls = new BiteFunctionCallStack();
 
     private ContextMode m_ContextMode;
     private bool m_ExitRunLoop;
@@ -310,7 +83,7 @@ public class BiteVm
 
     public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
     {
-        m_FunctionCalls.Enqueue( biteFunctionCall );
+        m_FunctionCalls.Push( biteFunctionCall );
     }
 
     public void InitVm()
@@ -361,7 +134,7 @@ public class BiteVm
 
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
 
-        m_FunctionCalls = new Queue < BiteFunctionCall >();
+        m_FunctionCalls = new BiteFunctionCallStack();
 
         // This while loop exists to allow us to switch contexts from within code using the sync keyword
         while ( result == BiteVmInterpretResult.Continue && !m_Stopping )
@@ -1163,7 +936,6 @@ public class BiteVm
                     case BiteVmOpCodes.OpGetMemberWithString:
                     {
                         string member = ReadConstant().StringConstantValue;
-                        m_LastGetVarName = member;
                         if ( m_VmStack.Peek().ObjectData is FastMemorySpace )
                         {
                             FastMemorySpace obj = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
@@ -6542,7 +6314,7 @@ public class BiteVm
                         if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback )
                         {
                             m_CurrentInstructionPointer -= 1;
-                            BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
+                            BiteFunctionCall biteFunctionCall = m_FunctionCalls.Pop();
                             string method = biteFunctionCall.FunctionName;
 
                             if ( biteFunctionCall.BiteChunkWrapper != null )
@@ -6710,7 +6482,7 @@ public class BiteVm
             {
                 if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback )
                 {
-                    BiteFunctionCall biteFunctionCall = m_FunctionCalls.Dequeue();
+                    BiteFunctionCall biteFunctionCall = m_FunctionCalls.Pop();
                     string method = biteFunctionCall.FunctionName;
 
                     if ( biteFunctionCall.BiteChunkWrapper != null )

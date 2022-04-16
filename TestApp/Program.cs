@@ -51,104 +51,108 @@ public class Program
     {
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "MainModule.bite",
+            "CSharpEventReceiverExample.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
-        BiteVm biteVm = new BiteVm();
-        biteVm.InitVm();
+        
+        BiteVm biteVmReciever = new BiteVm();
+        BiteVm biteVmSender = new BiteVm();
+        
+        biteVmReciever.InitVm();
+        biteVmSender.InitVm();
+        
         DelegateTest delegateTest = new DelegateTest();
-
+        
+        ICSharpEvent cSharpEvent =
+            new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
+        
+        BiteProgram programReciever = null;
         foreach ( string file in files )
         {
             Console.WriteLine( $"File: {file}" );
             List < string > biteProg = new List < string >();
             biteProg.Add( File.ReadAllText( file ) );
-            BiteProgram program = compiler.Compile( biteProg );
-
-            program.TypeRegistry.RegisterType < SampleEventArgs >();
-            program.TypeRegistry.RegisterType < TestClassCSharp >();
-            biteVm.RegisterSystemModuleCallables( program.TypeRegistry );
-            biteVm.SynchronizationContext = new SynchronizationContext();
-            delegateTest.OnSampleEvent += Test;
-            ICSharpEvent cSharpEvent =
-                new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
-
-            biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
-           
-
-            if ( program != null )
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                
-                Task.Run(
-                         () =>
-                         { 
-                             stopwatch.Start();
-                             biteVm.Interpret( program ); 
-                             stopwatch.Stop();
-                             Console.WriteLine(stopwatch.ElapsedMilliseconds);
-                         } ).
-                     ContinueWith(
-                         t =>
-                         {
-                             
-                             
-                             if ( t.IsFaulted )
-                             {
-                                 Console.WriteLine( t.Exception.InnerException.Message );
-                             }
-                         } );
-
-                while ( true )
-                {
-                    string line = Console.ReadLine();
-
-                    if ( line == "exit" )
-                    {
-                        break;
-                    }
-
-                    delegateTest.InvokeEvent( new object(), new SampleEventArgs( line ) );
-                }
-
-                /*int k = 1;
-                long elapsedMillisecondsAccu = 0;
+            programReciever = compiler.Compile( biteProg );
             
-                for ( int i = 0; i < k; i++ )
-                {
-                    Stopwatch stopwatch2 = new Stopwatch();
-                    stopwatch2.Start();
-                    program.Run();
-                    stopwatch2.Stop();
-                    Console.WriteLine( "--Elapsed Time for Interpreting Run {0} is {1} ms", i, stopwatch2.ElapsedMilliseconds );
-                    elapsedMillisecondsAccu += stopwatch2.ElapsedMilliseconds;
-                }
-    
-                Console.WriteLine( "--Average Elapsed Time for Interpreting per Run is {0} ms", elapsedMillisecondsAccu / k );
-                Console.WriteLine( "--Total Elapsed Time for Interpreting {0} Runs is {1} ms", k, elapsedMillisecondsAccu );
-    
-                IOrderedEnumerable < KeyValuePair < string, long > > sortedDict =
-                    from entry in ChunkDebugHelper.InstructionCounter orderby entry.Value descending select entry;
-    
-                long totalInstructions = 0;
-    
-                foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
-                {
-                    totalInstructions += keyValuePair.Value;
-                }
-    
-                foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
-                {
-                    Console.WriteLine(
-                        "--Instruction Count for Instruction {0}: {2}     {1}%",
-                        keyValuePair.Key,
-                        ( 100.0 / totalInstructions * keyValuePair.Value ).ToString( "00.0" ),
-                        keyValuePair.Value );
-                }
-    
-                ChunkDebugHelper.InstructionCounter.Clear();*/
+            programReciever.TypeRegistry.RegisterType < SampleEventArgs >();
+            programReciever.TypeRegistry.RegisterType < TestClassCSharp >();
+            
+            biteVmReciever.RegisterSystemModuleCallables( programReciever.TypeRegistry );
+            biteVmReciever.SynchronizationContext = new SynchronizationContext();
+            
+            biteVmReciever.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
+            
+            Task.Run(
+                     () =>
+                     {
+                         Stopwatch stopwatch = new Stopwatch();
+                         stopwatch.Start();
+                         biteVmReciever.Interpret( programReciever );
+                         stopwatch.Stop();
+                         Console.WriteLine( stopwatch.ElapsedMilliseconds );
+                     } ).
+                 ContinueWith(
+                     t =>
+                     {
+                         if ( t.IsFaulted )
+                         {
+                             Console.WriteLine( t.Exception.InnerException.Message );
+                         }
+                     } );
+        }
+        
+        
+        files = Directory.EnumerateFiles(
+            ".\\TestProgram",
+            "CSharpEventInvokeExample.bite",
+            SearchOption.AllDirectories );
+
+        BiteProgram programSender = null;
+        foreach ( string file in files )
+        {
+            Console.WriteLine( $"File: {file}" );
+            List < string > biteProg = new List < string >();
+            biteProg.Add( File.ReadAllText( file ) );
+            programSender = compiler.Compile( biteProg );
+            
+            programSender.TypeRegistry.RegisterType < SampleEventArgs >();
+            programSender.TypeRegistry.RegisterType < TestClassCSharp >();
+            
+            biteVmSender.RegisterSystemModuleCallables( programSender.TypeRegistry );
+            biteVmSender.SynchronizationContext = biteVmReciever.SynchronizationContext;
+            
+            biteVmSender.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
+            
+            Task.Run(
+                     () =>
+                     {
+                         Stopwatch stopwatch = new Stopwatch();
+                         stopwatch.Start();
+                         biteVmSender.Interpret( programSender );
+                         stopwatch.Stop();
+                         Console.WriteLine( stopwatch.ElapsedMilliseconds );
+                     } ).
+                 ContinueWith(
+                     t =>
+                     {
+                         if ( t.IsFaulted )
+                         {
+                             Console.WriteLine( t.Exception.InnerException.Message );
+                         }
+                     } );
+        }
+        
+        while ( true )
+        {
+            string line = Console.ReadLine();
+
+            if ( line == "exit" )
+            {
+                break;
             }
+
+            delegateTest.InvokeEvent( new object(), new SampleEventArgs( line ) );
         }
 
         Console.ReadLine();
