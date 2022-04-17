@@ -135,11 +135,6 @@ The first parameter is the C# Type, the second is an alias used in Bite to ident
 After this, you can use the registered class, in Bite code, through the `NetLanguageInterface` like so:
 
 ```
-module NetLanguageExample;
-
-import System;
-using System;
-
 // Get the static class System.Console
 var Console = NetLanguageInterface("Console");
 
