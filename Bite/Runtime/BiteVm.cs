@@ -548,16 +548,26 @@ public class BiteVm
                                 it++;
                             }
 
-                            object returnVal = wrapper.InvokeMember(
-                                methodName,
-                                functionArguments,
-                                functionArgumentTypes );
-
-                            m_FunctionArguments.Clear();
-
-                            if ( returnVal != null )
+                            if ( m_CachedMethods.TryGetMethod(
+                                    wrapper.StaticWrapperType,
+                                    functionArgumentTypes,
+                                    constant.StringConstantValue,
+                                    out FastMethodInfo fastMethodInfo ) )
                             {
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                object returnVal = fastMethodInfo.
+                                    Invoke( dynamicBiteVariable.ObjectData, functionArguments );
+
+                                m_FunctionArguments.Clear();
+
+                                if ( returnVal != null )
+                                {
+                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                }
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException(
+                                    "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
                             }
                         }
                         else if ( dynamicBiteVariable.ObjectData is ICSharpEvent cSharpEvent )
