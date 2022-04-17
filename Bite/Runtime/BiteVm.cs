@@ -85,19 +85,7 @@ public class BiteVm
     public SynchronizationContext SynchronizationContext { get; set; }
 
     #region Public
-
-    public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
-    {
-        m_CallBack = biteFunctionCall;
-        m_SpinLock = true;
-        m_CallbackWaiting = true;
-
-        while ( m_SpinLock )
-        {
-            Thread.Sleep( new TimeSpan( 1 ) );
-        }
-    }
-
+    
     public void InitVm()
     {
         m_VmStack = new DynamicBiteVariableStack();
@@ -230,6 +218,18 @@ public class BiteVm
             {
                 m_ExternalObjects.Add( externalObject.Key, externalObject.Value );
             }
+        }
+    }
+    
+    public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
+    {
+        m_CallBack = biteFunctionCall;
+        m_SpinLock = true;
+        m_CallbackWaiting = true;
+
+        while ( m_SpinLock )
+        {
+            Thread.Sleep( new TimeSpan( 1 ) );
         }
     }
 
