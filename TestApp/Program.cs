@@ -109,7 +109,7 @@ public class Program
             SearchOption.AllDirectories );
 
         BiteProgram programSender = null;
-        foreach ( string file in files )
+        /*foreach ( string file in files )
         {
             Console.WriteLine( $"File: {file}" );
             List < string > biteProg = new List < string >();
@@ -141,7 +141,7 @@ public class Program
                              Console.WriteLine( t.Exception.InnerException.Message );
                          }
                      } );
-        }
+        }*/
         
         while ( true )
         {
