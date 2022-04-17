@@ -8,6 +8,7 @@
 
 [Most of the following information and more can also be found here in the wiki!](https://github.com/Maximilian-Winter/Bite-Programming-Language/wiki)
 
+[Join the Bite Language Discord Server!](https://discord.gg/wM44r5Ustt)
 
 **Bite** is a dynamically typed, object oriented programming language
 
