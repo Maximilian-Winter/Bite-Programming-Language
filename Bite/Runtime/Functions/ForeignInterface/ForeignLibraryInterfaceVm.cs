@@ -309,7 +309,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                 return wrapper;
             }
-            else if (  arguments.Count > 1 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.String )
+            else if (  arguments.Count == 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.String )
             {
                 Type type = ResolveType( arguments[0].StringData );
 
@@ -321,6 +321,16 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                     return obj;
                 }
             }
+            else if (  arguments.Count == 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.True  )
+            {
+                Type type = ResolveType( arguments[0].StringData );
+
+                ConstructorInfo constructorInfo = m_TypeRegistry.GetConstructor( type );
+                object classObject = constructorInfo.Invoke( new object[] { } );
+
+                return classObject;
+            }
+            
 
             return null;
         }
