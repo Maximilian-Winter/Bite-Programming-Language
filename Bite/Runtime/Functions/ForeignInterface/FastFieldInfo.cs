@@ -23,7 +23,9 @@ public class FastFieldInfo
         ParameterExpression valueExpression = Expression.Parameter( typeof( object ), "value" );
 
         MemberExpression callExpression = Expression.Field(
-            !propertyInfo.IsStatic ? Expression.Convert( instanceExpression, propertyInfo.ReflectedType ) : null,
+            !propertyInfo.IsStatic ? propertyInfo.ReflectedType.IsValueType
+                ? Expression.Unbox(instanceExpression, propertyInfo.ReflectedType)
+                : Expression.Convert(instanceExpression, propertyInfo.ReflectedType) : null,
             propertyInfo );
 
         Delegate = Expression.Lambda < ReturnValueDelegate >(

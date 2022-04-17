@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Bite.Runtime.Memory;
 
@@ -24,6 +25,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
     public object Call( List < DynamicBiteVariable > arguments )
     {
+        arguments.Reverse();
         if ( arguments.Count > 0 )
         {
             if ( arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.Object )
