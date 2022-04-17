@@ -47,7 +47,7 @@ Bite is still in early stages and some things may change as the language develop
 * Module-level code, variables and functions
 * Classes, with inheritance
 * Functions are first class citizens and allow Higher Order Functions 
-* Importing  and using .Net Types and Objects
+* Importing and using .NET Types and Objects
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
 * [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
@@ -123,9 +123,9 @@ The function will return a `BiteProgram` instance. You can call the `Run()` meth
         program.Run();
 ```
 
-# Importing and using .Net Types and Objects.
+# Importing and using .NET Types and Objects.
 
-You can register .Net types in the BiteProgram Type Registry and import these types into a module. For example, to get and use the static class `System.Console` from C#, you first has to register it in a BiteProgram through the TypeRegisty RegisterType Function.
+You can register .NET types in the BiteProgram Type Registry and import these types into a module. For example, to get and use the static class `System.Console` from C#, you first has to register it in a BiteProgram through the TypeRegisty RegisterType Function.
 
 ```c#
         program.TypeRegistry.RegisterType (typeof(System.Console),"Console");
