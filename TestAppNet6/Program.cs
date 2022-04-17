@@ -88,9 +88,9 @@ public class Program
                 Name = "CSharpSystem",
                 Imports = new[] { "System" },
                 Code = @"
-var CSharpInterfaceObject = new CSharpInterface();
+var CSharpInterfaceObject = new NetInterfaceObject();
 CSharpInterfaceObject.Type = ""System.Console, System.Console"";
-var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+var Console = NetLanguageInterface(CSharpInterfaceObject);
 "
             },
             new()

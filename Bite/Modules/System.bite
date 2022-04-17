@@ -6,7 +6,7 @@ class Object {
 
 }
 
-class CSharpInterface {
+class NetInterfaceObject {
     var Type = "";
     var Method = "";
     var Arguments = new Object();
@@ -18,14 +18,14 @@ class CSharpInterface {
 
 // Linked to ForeignLibraryInterfaceVm
 
-extern callable function CSharpInterfaceCall ( object );
+extern callable function NetLanguageInterface ( object );
 
 function CreateFromType( typeName, arguments, types ) {
-    var interface = new CSharpInterface();
+    var interface = new NetInterfaceObject();
     interface.Type = typeName;
     interface.ConstructorArguments = arguments;
     interface.ConstructorArgumentsTypes = types;
-    return CSharpInterfaceCall ( interface );
+    return NetLanguageInterface ( interface );
 }
 
 // Linked to PrintFunctionVm

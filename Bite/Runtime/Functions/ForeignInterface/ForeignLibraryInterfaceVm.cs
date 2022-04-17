@@ -38,6 +38,12 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                     {
                         Type type = ResolveType( typeString );
 
+                        if ( type == null )
+                        {
+                            throw new BiteVmRuntimeException(
+                                $"Runtime Error: Type: {typeString} not registered as a type!" );
+                        }
+                        
                         DynamicBiteVariable returnClassBool = fliObject.Get( "ReturnClass" );
 
                         if ( returnClassBool.DynamicType == DynamicVariableType.True )
@@ -305,6 +311,11 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
             {
                 Type type = ResolveType( arguments[0].StringData );
 
+                if ( type == null )
+                {
+                    throw new BiteVmRuntimeException(
+                        $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
+                }
                 StaticWrapper wrapper = new StaticWrapper( type );
 
                 return wrapper;
@@ -313,6 +324,12 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
             {
                 Type type = ResolveType( arguments[0].StringData );
 
+                if ( type == null )
+                {
+                    throw new BiteVmRuntimeException(
+                        $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
+                }
+                
                 MemberInfo[] memberInfo = type.GetMember( arguments[1].StringData, BindingFlags.Public | BindingFlags.Static );
 
                 if ( memberInfo.Length > 0 )
@@ -325,13 +342,60 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
             {
                 Type type = ResolveType( arguments[0].StringData );
 
+                if ( type == null )
+                {
+                    throw new BiteVmRuntimeException(
+                        $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
+                }
+                
                 ConstructorInfo constructorInfo = m_TypeRegistry.GetConstructor( type );
                 object classObject = constructorInfo.Invoke( new object[] { } );
 
                 return classObject;
             }
-            
+            else if (  arguments.Count > 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.True  )
+            {
+                Type type = ResolveType( arguments[0].StringData );
 
+                if ( type == null )
+                {
+                    throw new BiteVmRuntimeException(
+                        $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
+                }
+                
+                Type[] constructorArgTypes = new Type[(arguments.Count - 2) / 2];
+                object[] constructorArgs = new object[(arguments.Count - 2) / 2];
+
+                int counter = 0;
+                for ( int i = 2; i < arguments.Count; i+=2 )
+                {
+                    if ( arguments[i + 1].DynamicType == DynamicVariableType.String )
+                    {
+                        Type argType = ResolveType( arguments[i + 1].StringData );
+                        
+                        if ( argType == null )
+                        {
+                            throw new BiteVmRuntimeException(
+                                $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
+                        }
+                        
+                        constructorArgTypes[counter] = argType;
+                        constructorArgs[counter] = Convert.ChangeType(
+                            arguments[i].ToObject(),
+                            argType );
+                        
+                    }
+
+                    counter++;
+                }
+
+                ConstructorInfo constructorInfo = m_TypeRegistry.GetConstructor( type, constructorArgTypes );
+                object classObject = constructorInfo.Invoke( constructorArgs );
+
+                return classObject;
+            }
+            
+            
             return null;
         }
 

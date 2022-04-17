@@ -11,7 +11,7 @@ public static class SystemModule
 
     public static void RegisterSystemModuleCallables( this BiteVm biteVm, TypeRegistry typeRegistry = null )
     {
-        biteVm.RegisterCallable( "CSharpInterfaceCall", new ForeignLibraryInterfaceVm( typeRegistry ) );
+        biteVm.RegisterCallable( "NetLanguageInterface", new ForeignLibraryInterfaceVm( typeRegistry ) );
         biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
         biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
     }

@@ -95,6 +95,7 @@ public class TypeRegistry
         Type type = typeof( T );
         m_RegisteredTypes.Add( type.Name, type );
     }
+    
 
     /// <summary>
     ///     Registers the type using the specified alias

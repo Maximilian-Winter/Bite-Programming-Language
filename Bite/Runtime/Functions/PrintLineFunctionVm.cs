@@ -11,18 +11,11 @@ public class PrintLineFunctionVm : IBiteVmCallable
 
     public object Call( List < DynamicBiteVariable > arguments )
     {
-        if ( arguments[0].DynamicType != DynamicVariableType.Null )
-        {
-            int arraySize = arguments.Count;
+        int argumentsCount = arguments.Count;
 
-            for ( int i = 0; i < arraySize; i++ )
-            {
-                Console.WriteLine( arguments[i].ToString() );
-            }
-        }
-        else
+        for ( int i = 0; i < argumentsCount; i++ )
         {
-            Console.WriteLine( "Error: Passed Null Reference to Function!" );
+            Console.WriteLine( arguments[i].ToString() );
         }
 
         return null;

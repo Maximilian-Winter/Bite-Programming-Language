@@ -208,11 +208,14 @@ public class EventWrapper < V, T, K >
         
     private void RaiseEventViaReflection(object source, string eventName, object[] eventArgs)
     {
-        ((Delegate)source
-                   .GetType()
-                   .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
-                   .GetValue(source))
-            .DynamicInvoke(eventArgs);
+        if ( source != null )
+        {
+            ((Delegate)source
+                       .GetType()
+                       .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
+                       .GetValue(source))
+                .DynamicInvoke(eventArgs);
+        }
     }
     private void RaiseEventViaReflection(object source, string eventName)
     {

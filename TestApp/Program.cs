@@ -51,7 +51,7 @@ public class Program
     {
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "CSharpEventReceiverExample.bite",
+            "NetLanguageInterfaceExample.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
@@ -77,6 +77,8 @@ public class Program
             
             programReciever.TypeRegistry.RegisterType < SampleEventArgs >();
             programReciever.TypeRegistry.RegisterType < TestClassCSharp >();
+            programReciever.TypeRegistry.RegisterType < FSharpTest.Line >();
+            programReciever.TypeRegistry.RegisterType (typeof(Console),"Console");
             
             biteVmReciever.RegisterSystemModuleCallables( programReciever.TypeRegistry );
             biteVmReciever.SynchronizationContext = new SynchronizationContext();
@@ -90,7 +92,7 @@ public class Program
                          stopwatch.Start();
                          biteVmReciever.Interpret( programReciever );
                          stopwatch.Stop();
-                         Console.WriteLine( stopwatch.ElapsedMilliseconds );
+                         Console.WriteLine($"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- ");
                      } ).
                  ContinueWith(
                      t =>

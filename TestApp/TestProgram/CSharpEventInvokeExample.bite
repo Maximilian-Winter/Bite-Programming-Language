@@ -9,23 +9,14 @@ class TestSender
     
 }
 var valueSetByCallback = "Hallo";
-var oldValue = new TestSender();
+var sender = new TestSender();
 var counter = 0;
 
-var testClassInterface = new CSharpInterface();
-
-testClassInterface.Type = "SampleEventArgs";
-testClassInterface.ConstructorArguments[0] = "42";
-testClassInterface.ConstructorArgumentsTypes[0] = "string";
-
-var TestCSharp = CSharpInterfaceCall(testClassInterface);
+var SampleEventArgs = NetLanguageInterface("SampleEventArgs", true, "", "string");
 
 while(true)
 {
-    TestCSharp.Text = "Hallo: ${counter}";
-    if(EventObject.OnSampleEvent != null)
-    {
-        EventObject.OnSampleEvent.Invoke(oldValue, TestCSharp);
-    }
+    SampleEventArgs.Text = "Hallo: ${counter}";
+    EventObject.OnSampleEvent.Invoke(sender, SampleEventArgs);
     counter++;
 }
