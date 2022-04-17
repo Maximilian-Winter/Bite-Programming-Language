@@ -44,37 +44,58 @@ public class FastMemoryStack
 
 public class BiteFunctionCallStack
 {
-    private BiteFunctionCall[] m_FastMemorySpaces = new BiteFunctionCall[128];
+    private BiteFunctionCall[] m_BiteFunctionCalls = new BiteFunctionCall[128];
 
-    public int Count { get; private set; } = 0;
+    private int m_EnqueuePointer;
+    private int m_DequeuePointer;
+    private int m_Size;
+    public int Count
+    {
+        get
+        {
+            return m_DequeuePointer - m_EnqueuePointer;
+        }
+    }
 
+    
     #region Public
+
+    public BiteFunctionCallStack()
+    {
+        m_EnqueuePointer = 127;
+        m_DequeuePointer = 127;
+        m_Size = 128;
+    }
 
     public BiteFunctionCall Peek()
     {
-        BiteFunctionCall fastMemorySpace = m_FastMemorySpaces[Count - 1];
+        BiteFunctionCall fastMemorySpace = m_BiteFunctionCalls[m_DequeuePointer];
 
         return fastMemorySpace;
     }
 
-    public BiteFunctionCall Pop()
+    public BiteFunctionCall Dequeue()
     {
-        BiteFunctionCall fastMemorySpace = m_FastMemorySpaces[--Count];
+        BiteFunctionCall fastMemorySpace = m_BiteFunctionCalls[m_DequeuePointer--];
 
-        return fastMemorySpace;
-    }
-
-    public void Push( BiteFunctionCall fastMemorySpace )
-    {
-        if ( Count >= m_FastMemorySpaces.Length )
+        if ( m_DequeuePointer == m_EnqueuePointer )
         {
-            BiteFunctionCall[] newProperties = new BiteFunctionCall[m_FastMemorySpaces.Length * 2];
-            Array.Copy( m_FastMemorySpaces, newProperties, m_FastMemorySpaces.Length );
-            m_FastMemorySpaces = newProperties;
+            m_EnqueuePointer = m_Size - 1;
+            m_DequeuePointer = m_Size - 1;
+        }
+        return fastMemorySpace;
+    }
+
+    public void Enqueue( BiteFunctionCall functionCall )
+    {
+        if ( Count >= m_BiteFunctionCalls.Length )
+        {
+            BiteFunctionCall[] newProperties = new BiteFunctionCall[m_BiteFunctionCalls.Length * 2];
+            Array.Copy( m_BiteFunctionCalls, newProperties, m_BiteFunctionCalls.Length );
+            m_BiteFunctionCalls = newProperties;
         }
 
-        m_FastMemorySpaces[Count] = fastMemorySpace;
-        Count++;
+        m_BiteFunctionCalls[m_EnqueuePointer++] = functionCall;
     }
 
     #endregion

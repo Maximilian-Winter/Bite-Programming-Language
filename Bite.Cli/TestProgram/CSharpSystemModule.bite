@@ -2,14 +2,14 @@ module CSharpSystem;
 import System;
 using System;
 
-var CSharpInterfaceObject = new CSharpInterface();
+var CSharpInterfaceObject = new NetInterfaceObject();
 
 CSharpInterfaceObject.Type = "System.Console";
 
-var Console = CSharpInterfaceCall(CSharpInterfaceObject);
+var Console = NetLanguageInterface(CSharpInterfaceObject);
 
 CSharpInterfaceObject.Type = "System.IO.File";
 
-var File = CSharpInterfaceCall(CSharpInterfaceObject);
+var File = NetLanguageInterface(CSharpInterfaceObject);
 
 

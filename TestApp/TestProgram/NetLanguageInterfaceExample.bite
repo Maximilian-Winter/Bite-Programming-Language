@@ -14,24 +14,28 @@ Console.WriteLine("Hello World!");
 // Create variable that holds an instance of TestClassCSharp through use of the default constructor.
 var TestCSharp1 = NetLanguageInterface("TestClassCSharp", true);
 
+// Access the field 'i' from the TestClassCSharp instance.
 Console.WriteLine(TestCSharp1.i);
 
 
 // Create variable that holds an instance of TestClassCSharp, it passes an argument of type int to the constructor.
 var TestCSharp2 = NetLanguageInterface("TestClassCSharp", true, 42, "int");
 
+// Access the field 'i' from the TestClassCSharp instance.
 Console.WriteLine(TestCSharp2.i);
 
 
 // Create variable that holds an instance of TestClassCSharp, it passes 4 arguments to the constructor int, double, int and float.
 var TestCSharp3 = NetLanguageInterface("TestClassCSharp", true, 42, "int", 42.24, "double", 42, "int", 42.42, "float");
 
+// Access the field 'i' from the TestClassCSharp instance.
 Console.WriteLine(TestCSharp3.i);
 
 
 // Create variable that holds an instance of Line from a F# Library, it passes 4 arguments to the constructor all of them floats.
 var FSharpLine = NetLanguageInterface("Line", true, 1, "float", 2, "float", 3, "float", 4, "float");
 
+// Access the field 'Y2' from the Line instance.
 Console.WriteLine(FSharpLine.Y2);
 
 

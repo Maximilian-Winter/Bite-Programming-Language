@@ -51,7 +51,7 @@ public class Program
     {
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "NetLanguageInterfaceExample.bite",
+            "CSharpEventReceiverExample.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
@@ -66,7 +66,8 @@ public class Program
         
         ICSharpEvent cSharpEvent =
             new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
-        
+
+        //delegateTest.OnSampleEvent += Test;
         BiteProgram programReciever = null;
         foreach ( string file in files )
         {
@@ -111,7 +112,7 @@ public class Program
             SearchOption.AllDirectories );
 
         BiteProgram programSender = null;
-        /*foreach ( string file in files )
+        foreach ( string file in files )
         {
             Console.WriteLine( $"File: {file}" );
             List < string > biteProg = new List < string >();
@@ -143,7 +144,7 @@ public class Program
                              Console.WriteLine( t.Exception.InnerException.Message );
                          }
                      } );
-        }*/
+        }
         
         while ( true )
         {

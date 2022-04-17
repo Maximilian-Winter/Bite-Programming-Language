@@ -1,6 +1,7 @@
 //#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -61,7 +62,7 @@ public class BiteVm
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
-    private BiteFunctionCallStack m_FunctionCalls = new BiteFunctionCallStack();
+    private ConcurrentQueue <BiteFunctionCall> m_FunctionCalls = new ConcurrentQueue <BiteFunctionCall>();
 
     private ContextMode m_ContextMode;
     private bool m_ExitRunLoop;
@@ -83,7 +84,7 @@ public class BiteVm
 
     public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
     {
-        m_FunctionCalls.Push( biteFunctionCall );
+        m_FunctionCalls.Enqueue( biteFunctionCall );
     }
 
     public void InitVm()
@@ -134,7 +135,7 @@ public class BiteVm
 
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
 
-        m_FunctionCalls = new BiteFunctionCallStack();
+        m_FunctionCalls = new ConcurrentQueue < BiteFunctionCall >();
 
         // This while loop exists to allow us to switch contexts from within code using the sync keyword
         while ( result == BiteVmInterpretResult.Continue && !m_Stopping )
@@ -6356,36 +6357,12 @@ public class BiteVm
                         if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback )
                         {
                             m_CurrentInstructionPointer -= 1;
-                            BiteFunctionCall biteFunctionCall = m_FunctionCalls.Pop();
-                            string method = biteFunctionCall.FunctionName;
 
-                            if ( biteFunctionCall.BiteChunkWrapper != null )
+                            if ( m_FunctionCalls.TryDequeue( out BiteFunctionCall biteFunctionCall ) )
                             {
-                                FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+                                 string method = biteFunctionCall.FunctionName;
 
-                                //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
-                                callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
-                                callSpace.CallerChunk = m_CurrentChunk;
-                                callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                                callSpace.StackCountAtBegin = m_VmStack.Count;
-                                callSpace.IsRunningCallback = true;
-                                m_CurrentMemorySpace = callSpace;
-                                m_CallStack.Push( callSpace );
-
-                                for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
-                                {
-                                    m_CurrentMemorySpace.Define(
-                                        biteFunctionCall.FunctionArguments[i] );
-                                }
-
-                                m_CurrentChunk = biteFunctionCall.BiteChunkWrapper.ChunkToWrap;
-                                m_CurrentInstructionPointer = 0;
-                            }
-                            else
-                            {
-                                DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
-
-                                if ( call.ObjectData is BiteChunkWrapper function )
+                                if ( biteFunctionCall.BiteChunkWrapper != null )
                                 {
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
@@ -6404,25 +6381,53 @@ public class BiteVm
                                             biteFunctionCall.FunctionArguments[i] );
                                     }
 
-                                    m_CurrentChunk = function.ChunkToWrap;
+                                    m_CurrentChunk = biteFunctionCall.BiteChunkWrapper.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
-                                }
-                                else if ( call.ObjectData is IBiteVmCallable callable )
-                                {
-                                    object returnVal = callable.Call( m_FunctionArguments );
-                                    m_FunctionArguments.Clear();
-
-                                    if ( returnVal != null )
-                                    {
-                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                                    }
                                 }
                                 else
                                 {
-                                    throw new BiteVmRuntimeException(
-                                        "Runtime Error: Function " + method + " not found!" );
+                                    DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                                    if ( call.ObjectData is BiteChunkWrapper function )
+                                    {
+                                        FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
+                                        //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                        callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                                        callSpace.CallerChunk = m_CurrentChunk;
+                                        callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                                        callSpace.StackCountAtBegin = m_VmStack.Count;
+                                        callSpace.IsRunningCallback = true;
+                                        m_CurrentMemorySpace = callSpace;
+                                        m_CallStack.Push( callSpace );
+
+                                        for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
+                                        {
+                                            m_CurrentMemorySpace.Define(
+                                                biteFunctionCall.FunctionArguments[i] );
+                                        }
+
+                                        m_CurrentChunk = function.ChunkToWrap;
+                                        m_CurrentInstructionPointer = 0;
+                                    }
+                                    else if ( call.ObjectData is IBiteVmCallable callable )
+                                    {
+                                        object returnVal = callable.Call( m_FunctionArguments );
+                                        m_FunctionArguments.Clear();
+
+                                        if ( returnVal != null )
+                                        {
+                                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new BiteVmRuntimeException(
+                                            "Runtime Error: Function " + method + " not found!" );
+                                    }
                                 }
                             }
+                           
 
                             break;
                         }
@@ -6524,36 +6529,11 @@ public class BiteVm
             {
                 if ( m_FunctionCalls.Count > 0 && !m_CurrentMemorySpace.IsRunningCallback )
                 {
-                    BiteFunctionCall biteFunctionCall = m_FunctionCalls.Pop();
-                    string method = biteFunctionCall.FunctionName;
-
-                    if ( biteFunctionCall.BiteChunkWrapper != null )
+                    if ( m_FunctionCalls.TryDequeue( out BiteFunctionCall biteFunctionCall ) )
                     {
-                        FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+                         string method = biteFunctionCall.FunctionName;
 
-                        //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
-                        callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
-                        callSpace.CallerChunk = m_CurrentChunk;
-                        callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                        callSpace.StackCountAtBegin = m_VmStack.Count;
-                        callSpace.IsRunningCallback = true;
-                        m_CurrentMemorySpace = callSpace;
-                        m_CallStack.Push( callSpace );
-
-                        for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
-                        {
-                            m_CurrentMemorySpace.Define(
-                                biteFunctionCall.FunctionArguments[i] );
-                        }
-
-                        m_CurrentChunk = biteFunctionCall.BiteChunkWrapper.ChunkToWrap;
-                        m_CurrentInstructionPointer = 0;
-                    }
-                    else
-                    {
-                        DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
-
-                        if ( call.ObjectData is BiteChunkWrapper function )
+                        if ( biteFunctionCall.BiteChunkWrapper != null )
                         {
                             FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
@@ -6572,22 +6552,50 @@ public class BiteVm
                                     biteFunctionCall.FunctionArguments[i] );
                             }
 
-                            m_CurrentChunk = function.ChunkToWrap;
+                            m_CurrentChunk = biteFunctionCall.BiteChunkWrapper.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
-                        }
-                        else if ( call.ObjectData is IBiteVmCallable callable )
-                        {
-                            object returnVal = callable.Call( m_FunctionArguments );
-                            m_FunctionArguments.Clear();
-
-                            if ( returnVal != null )
-                            {
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                            }
                         }
                         else
                         {
-                            throw new BiteVmRuntimeException( "Runtime Error: Function " + method + " not found!" );
+                            DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                            if ( call.ObjectData is BiteChunkWrapper function )
+                            {
+                                FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
+                                //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                                callSpace.CallerChunk = m_CurrentChunk;
+                                callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                                callSpace.StackCountAtBegin = m_VmStack.Count;
+                                callSpace.IsRunningCallback = true;
+                                m_CurrentMemorySpace = callSpace;
+                                m_CallStack.Push( callSpace );
+
+                                for ( int i = 0; i < biteFunctionCall.FunctionArguments.Length; i++ )
+                                {
+                                    m_CurrentMemorySpace.Define(
+                                        biteFunctionCall.FunctionArguments[i] );
+                                }
+
+                                m_CurrentChunk = function.ChunkToWrap;
+                                m_CurrentInstructionPointer = 0;
+                            }
+                            else if ( call.ObjectData is IBiteVmCallable callable )
+                            {
+                                object returnVal = callable.Call( m_FunctionArguments );
+                                m_FunctionArguments.Clear();
+
+                                if ( returnVal != null )
+                                {
+                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                }
+                            }
+                            else
+                            {
+                                throw new BiteVmRuntimeException(
+                                    "Runtime Error: Function " + method + " not found!" );
+                            }
                         }
                     }
                 }
