@@ -47,7 +47,7 @@ Bite is still in early stages and some things may change as the language develop
 * Module-level code, variables and functions
 * Classes, with inheritance
 * Functions are first class citizens and allow Higher Order Functions 
-* Importing  and using C# Types and Objects
+* Importing  and using .Net Types and Objects
 * Supports .NET Framework 4.x and .NET Core 3.1 to .NET 6.0 (netstandard2.0)
 * [VS Code Language Extension for Bite](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code) ([VISX Installer](https://github.com/Maximilian-Winter/Bite-Language-Extension-for-VS-Code/releases))
 
@@ -104,6 +104,8 @@ Install the nuget package:
 ```ps
 > Install-package BiteVM
 ```
+Or download the release package.
+
 Create an instance of the `BiteCompiler` class and call the `Compile()` method. The only argument is an `IEnumerable<string>` that takes a collection of strings that contain the Bite code of each module. For this sample the modules are being loaded from disk, but they can come from memory as they are compiled during runtime.
 
 The function will return a `BiteProgram` instance. You can call the `Run()` method on this object to execute the compiled Bite modules.
@@ -121,43 +123,40 @@ The function will return a `BiteProgram` instance. You can call the `Run()` meth
         program.Run();
 ```
 
-# Importing and using C# Types and Objects.
+# Importing and using .Net Types and Objects.
 
-You can import c# types into a module. For example, to write to the console you can use the `CSharpInterface` object like so:
+You can register .Net types in the BiteProgram Type Registry and import these types into a module. For example, to get and use the static class `System.Console` from C#, you first has to register it in a BiteProgram through the TypeRegisty RegisterType Function.
+
+```c#
+        program.TypeRegistry.RegisterType (typeof(System.Console),"Console");
+```
+The first parameter is the C# Type, the second is an alias used in Bite to identifiy the class.
+
+After this, you can use the registered class, in Bite code, through the `NetLanguageInterface` like so:
 
 ```
-module CSharpSystem;
+module NetLanguageExample;
 
 import System;
 using System;
 
-var CSharpInterfaceObject = new CSharpInterface();
+// Get the static class System.Console
+var Console = NetLanguageInterface("Console");
 
-CSharpInterfaceObject.Type = "System.Console";
-
-var Console = CSharpInterfaceCall(CSharpInterfaceObject);
-```
-Now you can use the variable Console like the static Class Console in C#.
-
-
-
-For .NET Core to .NET 6.0, you need to specify an Assembly Qualified Name if the type it is not in mscorlib. You don't need the full name, but you need to specify the assembly.
-
-```
-CSharpInterfaceObject.Type = "System.Console, System.Console";
+// Use the static class and call the method WriteLine.
+Console.WriteLine("Hello World!");
 ```
 
-The following code  shows how to create an C# Object by calling his constructor and the use after it:
+
+The following code shows how to create an C# Object in Bite by calling his constructor and the use after it:
 
 ```
-var testClassInterface = new CSharpInterface();
-testClassInterface.Type = "TestApp.TestClassCSharp, TestApp";
+// Create an instance of TestClassCSharp, the first argument of NetLanguageInterface function is the class name,
+// the second argument is a boolean that signals to the NetLanguageInterface to create an object.
+// The third argument is a argument for the constructor and the fourth is its C# type.
+// Constructor Arguments are passed to the NetLanguageInterface like this: constructorArgument, constructorArgumentCSharpType
 
-testClassInterface.ConstructorArguments[0] = 42;
-testClassInterface.ConstructorArgumentsTypes[0] = "System.Int32";
-
-
-var TestCSharp = CSharpInterfaceCall(testClassInterface);
+var TestCSharp = NetLanguageInterface("TestClassCSharp", true, 42, "int");
 
 TestCSharp.PrintVar();
 PrintLine(TestCSharp.testfield.i);
@@ -174,15 +173,26 @@ public class Foo
 
 public class TestClassCSharp
 {
-    private readonly int i = 5;
+    public static int t = 45;
+    public double i = 5;
 
     public Foo testfield { get; set; } = new Foo();
 
     #region Public
+    
+    public TestClassCSharp()
+    {
+        i = 0;
+    }
 
     public TestClassCSharp( int n )
     {
         i = n;
+    }
+    
+    public TestClassCSharp( int n, double x, int y, float z )
+    {
+        i = n * x * y * z;
     }
 
     public void PrintVar()
