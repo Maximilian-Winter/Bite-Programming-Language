@@ -1379,7 +1379,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         Compile( node.ExpressionStatementBase );
         EmitByteCode( BiteVmOpCodes.OpKeepLastItemOnStack );
 
-        for ( int i = 0; i < m_CurrentEnterBlockCount; i++ )
+        for ( int i = 0; i < m_CurrentEnterBlockCount + 1; i++ )
         {
             EmitByteCode( BiteVmOpCodes.OpExitBlock );
         }

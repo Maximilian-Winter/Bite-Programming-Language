@@ -292,6 +292,8 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
             classSymbol.BaseClassNames = baseClasses;
         }
 
+        m_SymbolTable.CurrentScope.define( classSymbol );
+        
         m_SymbolTable.PushScope( classSymbol );
 
         foreach ( FieldSymbol fieldSymbol in classSymbol.Fields )
@@ -408,6 +410,8 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
                 f.IsConstructor = declarationType == FunctionType.CONSTRUCTOR;
                 f.m_DefBaseNode = memberDeclarationContext;
                 f.EnclosingScope = m_SymbolTable.CurrentScope;
+                
+                m_SymbolTable.CurrentScope.define( f );
                 m_SymbolTable.PushScope( f );
 
                 if ( memberDeclarationContext.ParametersBase != null &&
@@ -428,7 +432,7 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
                 }
 
                 m_SymbolTable.PopScope();
-                m_SymbolTable.CurrentScope.define( f );
+                
                 m_CurrentFunction = FunctionType.NONE;
             }
         }
@@ -439,7 +443,7 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
 
         m_SymbolTable.PopScope();
 
-        m_SymbolTable.CurrentScope.define( classSymbol );
+        
         m_CurrentClass = enclosingClass;
 
         return null;
@@ -478,15 +482,21 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
         m_CurrentFunction = FunctionType.FUNCTION;
         int depth = 0;
 
-        FunctionSymbol f = new FunctionSymbol(
-            node.FunctionId.Id,
-            declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
-            isStatic ? ClassAndMemberModifiers.Static :
-            isAbstract ? ClassAndMemberModifiers.Abstract : ClassAndMemberModifiers.None,
-            isExtern,
-            isCallable
-        );
-
+        
+        FunctionSymbol f = node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref depth, false ) as FunctionSymbol;
+        if (f == null )
+        {
+            f = new FunctionSymbol(
+                node.FunctionId.Id,
+                declaredPublicOrPrivate ? AccesModifierType.Public : AccesModifierType.Private,
+                isStatic ? ClassAndMemberModifiers.Static :
+                isAbstract ? ClassAndMemberModifiers.Abstract : ClassAndMemberModifiers.None,
+                isExtern,
+                isCallable
+            );
+            m_SymbolTable.CurrentScope.define( f );
+        }
+        
         if ( isCallable )
         {
             f.LinkName = node.LinkFunctionId.Id;
@@ -520,10 +530,7 @@ public class SymbolTableBuilder : AstVisitor < object >, IAstVisitor
 
         m_SymbolTable.PopScope();
 
-        if ( node.AstScopeNode.resolve( node.FunctionId.Id, out int moduleId, ref depth, false ) == null )
-        {
-            m_SymbolTable.CurrentScope.define( f );
-        }
+        
 
         m_CurrentFunction = FunctionType.NONE;
 

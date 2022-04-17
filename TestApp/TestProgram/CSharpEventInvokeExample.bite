@@ -12,11 +12,11 @@ var valueSetByCallback = "Hallo";
 var sender = new TestSender();
 var counter = 0;
 
-var SampleEventArgs = NetLanguageInterface("SampleEventArgs", true, "", "string");
+
 
 while(true)
 {
-    SampleEventArgs.Text = "Hallo: ${counter}";
+    var SampleEventArgs = NetLanguageInterface("SampleEventArgs", true, "Hallo: ${counter}", "string");
     EventObject.OnSampleEvent.Invoke(sender, SampleEventArgs);
     counter++;
 }

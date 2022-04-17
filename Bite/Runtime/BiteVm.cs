@@ -6501,7 +6501,8 @@ public class BiteVm
                             m_VmStack.Count -= stackCounter;
                         }
 
-                        if ( m_CallStack.Peek().CallerChunk.Code != null &&
+                        if ( m_CallStack.Peek().CallerChunk != null && 
+                             m_CallStack.Peek().CallerChunk.Code != null &&
                              m_CallStack.Peek().CallerChunk.Code != m_CurrentChunk.Code )
                         {
                             m_CurrentChunk = m_CallStack.Peek().CallerChunk;
@@ -6612,8 +6613,9 @@ public class BiteVm
                         m_VmStack.Count -= stackCounter;
                     }
 
-                    if ( m_CallStack.Peek().CallerChunk.Code != null &&
-                         m_CallStack.Peek().CallerChunk.Code != m_CurrentChunk.Code )
+                    if (m_CallStack.Peek().CallerChunk != null && 
+                        m_CallStack.Peek().CallerChunk.Code != null &&
+                        m_CallStack.Peek().CallerChunk.Code != m_CurrentChunk.Code )
                     {
                         m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                         m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;
