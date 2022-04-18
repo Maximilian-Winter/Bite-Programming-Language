@@ -10,7 +10,7 @@ public class FastGlobalMemorySpace : FastMemorySpace
 
     #region Public
 
-    public FastGlobalMemorySpace( int memberCount ) : base( "Global", null, 0, new BinaryChunk(), 0, memberCount )
+    public FastGlobalMemorySpace( int memberCount ) : base( "Global", null, 0, new BinaryChunk(), 0, 0, memberCount )
     {
     }
 

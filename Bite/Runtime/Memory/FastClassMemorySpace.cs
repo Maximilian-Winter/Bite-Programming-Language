@@ -14,12 +14,14 @@ public class FastClassMemorySpace : FastMemorySpace
         int stackCount,
         BinaryChunk callerChunk,
         int callerInstructionPointer,
+        int callerLineNumberPointer,
         int memberCount ) : base(
         $"$class_{name}",
         enclosingSpace,
         stackCount,
         callerChunk,
         callerInstructionPointer,
+        callerLineNumberPointer,
         memberCount )
     {
     }

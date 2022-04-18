@@ -1,7 +1,6 @@
 //#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -73,6 +72,8 @@ public class BiteVm
     private bool m_Stopping = false;
 
     private CancellationToken m_CancellationToken;
+    
+    private int m_CurrentLineNumberPointer = 0;
 
     /// <summary>
     ///     Will contain the last value on the stack when the program exits
@@ -131,7 +132,7 @@ public class BiteVm
 
         m_CompiledChunks = program.CompiledChunks;
         m_CurrentInstructionPointer = 0;
-
+        m_CurrentLineNumberPointer = 0;
         BiteVmInterpretResult result = BiteVmInterpretResult.Continue;
 
         // This while loop exists to allow us to switch contexts from within code using the sync keyword
@@ -293,6 +294,7 @@ public class BiteVm
                         callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                         callSpace.CallerChunk = m_CurrentChunk;
                         callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                        callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
                         callSpace.StackCountAtBegin = m_VmStack.Count;
                         callSpace.IsRunningCallback = true;
                         m_CurrentMemorySpace = callSpace;
@@ -306,6 +308,7 @@ public class BiteVm
 
                         m_CurrentChunk = m_CallBack.BiteChunkWrapper.ChunkToWrap;
                         m_CurrentInstructionPointer = 0;
+                        m_CurrentLineNumberPointer = 0;
                     }
                     else
                     {
@@ -319,6 +322,7 @@ public class BiteVm
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                            callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
                             callSpace.StackCountAtBegin = m_VmStack.Count;
                             callSpace.IsRunningCallback = true;
                             m_CurrentMemorySpace = callSpace;
@@ -332,6 +336,7 @@ public class BiteVm
 
                             m_CurrentChunk = function.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
+                            m_CurrentLineNumberPointer = 0;
                         }
                         else if ( call.ObjectData is IBiteVmCallable callable )
                         {
@@ -363,7 +368,7 @@ public class BiteVm
 
                 Console.Write( "\n" );
 
-                m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer );
+                m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer, m_CurrentLineNumberPointer );
 #endif
 
                 BiteVmOpCodes instruction = ReadInstruction();
@@ -426,11 +431,13 @@ public class BiteVm
                                 m_VmStack.Count,
                                 m_CurrentChunk,
                                 m_CurrentInstructionPointer,
+                                m_CurrentLineNumberPointer,
                                 numberOfMembers );
 
                             m_GlobalMemorySpace.AddModule( callSpace );
                             m_CurrentChunk = m_CompiledChunks[moduleName];
                             m_CurrentInstructionPointer = 0;
+                            m_CurrentLineNumberPointer = 0;
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
                         }
@@ -541,6 +548,7 @@ public class BiteVm
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                            callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
                             callSpace.StackCountAtBegin = m_VmStack.Count;
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
@@ -553,6 +561,7 @@ public class BiteVm
                             m_FunctionArguments.Clear();
                             m_CurrentChunk = function.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
+                            m_CurrentLineNumberPointer = 0;
                         }
                         else if ( call.ObjectData is IBiteVmCallable callable )
                         {
@@ -588,6 +597,7 @@ public class BiteVm
                             callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                             callSpace.CallerChunk = m_CurrentChunk;
                             callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                            callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
                             callSpace.StackCountAtBegin = m_VmStack.Count;
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
@@ -600,6 +610,7 @@ public class BiteVm
                             m_FunctionArguments.Clear();
                             m_CurrentChunk = functionFromStack.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
+                            m_CurrentLineNumberPointer = 0;
                         }
                         else
                         {
@@ -674,6 +685,7 @@ public class BiteVm
                                     callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                     callSpace.CallerChunk = m_CurrentChunk;
                                     callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                                    callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
                                     callSpace.StackCountAtBegin = m_VmStack.Count;
                                     m_CurrentMemorySpace = callSpace;
                                     m_CallStack.Push( callSpace );
@@ -686,6 +698,7 @@ public class BiteVm
                                     m_FunctionArguments.Clear();
                                     m_CurrentChunk = function.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
+                                    m_CurrentLineNumberPointer = 0;
                                 }
 
                                 if ( call.ObjectData is IBiteVmCallable callable )
@@ -795,6 +808,7 @@ public class BiteVm
                                 m_VmStack.Count + 1,
                                 m_CurrentChunk,
                                 m_CurrentInstructionPointer,
+                                m_CurrentLineNumberPointer,
                                 classMemberCount );
 
                             m_CurrentMemorySpace.Define(
@@ -804,6 +818,7 @@ public class BiteVm
                             m_CurrentMemorySpace = classInstanceMemorySpace;
                             m_CurrentChunk = classWrapper.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
+                            m_CurrentLineNumberPointer = 0;
                             m_CallStack.Push( m_CurrentMemorySpace );
                             m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( classInstanceMemorySpace ) );
                         }
@@ -892,6 +907,7 @@ public class BiteVm
                                 m_VmStack.Count,
                                 m_CurrentChunk,
                                 m_CurrentInstructionPointer,
+                                m_CurrentLineNumberPointer,
                                 classMemberCount );
 
                             classInstanceMemorySpace.m_EnclosingSpace = m_CurrentMemorySpace;
@@ -909,7 +925,7 @@ public class BiteVm
                             m_CurrentMemorySpace = classInstanceMemorySpace;
                             m_CurrentChunk = classWrapper.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
-
+                            m_CurrentLineNumberPointer = 0;
                             m_CallStack.Push( classInstanceMemorySpace );
                             m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( classInstanceMemorySpace ) );
                         }
@@ -6470,6 +6486,7 @@ public class BiteVm
                         {
                             m_CurrentChunk = fastMemorySpace.CallerChunk;
                             m_CurrentInstructionPointer = fastMemorySpace.CallerIntructionPointer;
+                            m_CurrentLineNumberPointer = fastMemorySpace.CallerLineNumberPointer;
                         }
 
                         m_PoolFastMemoryFastMemory.Return( fastMemorySpace );
@@ -6509,6 +6526,7 @@ public class BiteVm
                         {
                             m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                             m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;
+                            m_CurrentLineNumberPointer = m_CallStack.Peek().CallerLineNumberPointer;
                         }
 
                         m_PoolFastMemoryFastMemory.Return( m_CallStack.Pop() );
@@ -6531,6 +6549,7 @@ public class BiteVm
                     default:
                         throw new ArgumentOutOfRangeException( "Instruction : " + instruction );
                 }
+                m_CurrentLineNumberPointer++;
             }
             else
             {
@@ -6553,6 +6572,7 @@ public class BiteVm
                     {
                         m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                         m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;
+                        m_CurrentLineNumberPointer = m_CallStack.Peek().CallerLineNumberPointer;
                     }
 
                     if ( m_CurrentMemorySpace is FastClassMemorySpace || m_CurrentMemorySpace is FastModuleMemorySpace )

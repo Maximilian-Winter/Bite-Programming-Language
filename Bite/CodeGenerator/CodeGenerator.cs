@@ -143,19 +143,19 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     public override object Visit( UsingStatementBaseNode node )
     {
-        EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, 0 );
+        EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, node.DebugInfoAstNode.LineNumberStart );
         Compile( node.UsingBaseNode );
-        EmitByteCode( BiteVmOpCodes.OpUsingStatmentHead );
+        EmitByteCode( BiteVmOpCodes.OpUsingStatmentHead, node.DebugInfoAstNode.LineNumberStart );
         Compile( node.UsingBlock );
-        EmitByteCode( BiteVmOpCodes.OpUsingStatmentEnd );
-        EmitByteCode( BiteVmOpCodes.OpExitBlock );
+        EmitByteCode( BiteVmOpCodes.OpUsingStatmentEnd, node.DebugInfoAstNode.LineNumberEnd );
+        EmitByteCode( BiteVmOpCodes.OpExitBlock, node.DebugInfoAstNode.LineNumberEnd );
 
         return null;
     }
 
     public override object Visit( DeclarationsBaseNode node )
     {
-        EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, 0 );
+        EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, node.DebugInfoAstNode.LineNumberStart );
 
         m_CurrentEnterBlockCount++;
 
@@ -207,7 +207,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
         }
 
-        EmitByteCode( BiteVmOpCodes.OpExitBlock );
+        EmitByteCode( BiteVmOpCodes.OpExitBlock, node.DebugInfoAstNode.LineNumberEnd );
         m_CurrentEnterBlockCount--;
 
         return null;
@@ -227,7 +227,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         }
         else
         {
-            EmitByteCode( BiteVmOpCodes.OpDefineClass, new ConstantValue( m_CurrentClassName ) );
+            EmitByteCode( BiteVmOpCodes.OpDefineClass, new ConstantValue( m_CurrentClassName ), node.DebugInfoAstNode.LineNumberStart );
 
             //EmitByteCode( symbol.InsertionOrderNumber );
 
@@ -251,8 +251,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             {
                 if ( !field.Name.Equals( "this" ) )
                 {
-                    EmitByteCode( BiteVmOpCodes.OpDefineVar );
-                    EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( field.Name ) );
+                    EmitByteCode( BiteVmOpCodes.OpDefineVar, node.DebugInfoAstNode.LineNumberStart );
+                    EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( field.Name ), node.DebugInfoAstNode.LineNumberStart );
                 }
 
                 //EmitByteCode( field.Type );
@@ -267,14 +267,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             }
             else
             {
-                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( method.QualifiedName ) );
+                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( method.QualifiedName ), node.DebugInfoAstNode.LineNumberStart );
 
                 //EmitByteCode( method.InsertionOrderNumber );
             }
         }
 
-        EmitByteCode( BiteVmOpCodes.OpDefineVar );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "this" ) );
+        EmitByteCode( BiteVmOpCodes.OpDefineVar, node.DebugInfoAstNode.LineNumberStart );
+        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( "this" ), node.DebugInfoAstNode.LineNumberStart );
         m_Context.PopChunk();
 
         return null;
@@ -295,11 +295,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         {
             if ( symbol.m_IsExtern && symbol.IsCallable )
             {
-                EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ) );
+                EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ), node.DebugInfoAstNode.LineNumberStart );
             }
             else
             {
-                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
+                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ), node.DebugInfoAstNode.LineNumberStart );
             }
 
             //m_CompilingChunk = CompilingChunks[symbol.QualifiedName];
@@ -309,11 +309,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         {
             if ( symbol.m_IsExtern && symbol.IsCallable )
             {
-                EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ) );
+                EmitByteCode( BiteVmOpCodes.OpDefineCallableMethod, new ConstantValue( symbol.QualifiedName ), node.DebugInfoAstNode.LineNumberStart );
             }
             else
             {
-                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ) );
+                EmitByteCode( BiteVmOpCodes.OpDefineMethod, new ConstantValue( symbol.QualifiedName ), node.DebugInfoAstNode.LineNumberStart );
             }
 
             //EmitByteCode( symbol.InsertionOrderNumber );
@@ -329,7 +329,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 EmitConstant( new ConstantValue( parametersIdentifier.Id ) );
             }
 
-            EmitByteCode( BiteVmOpCodes.OpSetFunctionParameterName, node.ParametersBase.Identifiers.Count, 0 );
+            EmitByteCode( BiteVmOpCodes.OpSetFunctionParameterName, node.ParametersBase.Identifiers.Count, node.DebugInfoAstNode.LineNumberStart );
         }
 
         if ( node.FunctionBlock != null )
@@ -355,20 +355,20 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             m_IsCompilingAssignmentRhs = true;
             Compile( node.InitializerBase );
             m_IsCompilingAssignmentRhs = false;
-            EmitByteCode( BiteVmOpCodes.OpDefineVar );
-            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
+            EmitByteCode( BiteVmOpCodes.OpDefineVar, node.DebugInfoAstNode.LineNumberStart );
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
 
             BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
             foreach ( ByteCode code in byteCodes.ByteCodes )
             {
-                EmitByteCode( code );
+                EmitByteCode( code, node.DebugInfoAstNode.LineNumberStart );
             }
         }
         else
         {
-            EmitByteCode( BiteVmOpCodes.OpDeclareVar );
-            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
+            EmitByteCode( BiteVmOpCodes.OpDeclareVar, node.DebugInfoAstNode.LineNumberStart );
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
         }
 
         return null;
@@ -398,8 +398,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 classSymbol.InsertionOrderNumber,
                 classSymbol.NumberOfSymbols );
 
-            EmitByteCode( byteCode );
-            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
+            EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
         }
         else
         {
@@ -410,8 +410,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 classSymbol.InsertionOrderNumber,
                 classSymbol.NumberOfSymbols );
 
-            EmitByteCode( byteCode );
-            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
+            EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
+            EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
         }
 
         if ( node.ArgumentsBase != null && node.ArgumentsBase.Expressions.Count > 0 )
@@ -438,17 +438,17 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         Compile( argument );
                     }
 
-                    EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.ArgumentsBase.Expressions.Count, 0 );
+                    EmitByteCode( BiteVmOpCodes.OpBindToFunction, node.ArgumentsBase.Expressions.Count, node.DebugInfoAstNode.LineNumberStart );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
                     foreach ( ByteCode code in byteCodes.ByteCodes )
                     {
-                        EmitByteCode( code );
+                        EmitByteCode( code, node.DebugInfoAstNode.LineNumberStart );
                     }
 
-                    EmitByteCode( byteCode2 );
-                    EmitByteCode( byteCode );
-                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
+                    EmitByteCode( byteCode2, node.DebugInfoAstNode.LineNumberStart );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
+                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
                 }
             }
         }
@@ -468,9 +468,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     ByteCode byteCode2 = new ByteCode(
                         BiteVmOpCodes.OpGetNextVarByRef );
 
-                    EmitByteCode( byteCode2 );
-                    EmitByteCode( byteCode );
-                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ) );
+                    EmitByteCode( byteCode2, node.DebugInfoAstNode.LineNumberStart );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
+                    EmitByteCode( BiteVmOpCodes.OpCallMemberFunction, new ConstantValue( methodSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
                 }
             }
         }
@@ -555,13 +555,13 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 BiteVmOpCodes.OpBindToFunction,
                 node.ArgumentsBase.Expressions.Count );
 
-            EmitByteCode( byteCode );
+            EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
 
             BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
             foreach ( ByteCode code in byteCodes.ByteCodes )
             {
-                EmitByteCode( code );
+                EmitByteCode( code, node.DebugInfoAstNode.LineNumberStart );
             }
         }
 
@@ -584,14 +584,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                  false ) !=
                              null )
                         {
-                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar, node.DebugInfoAstNode.LineNumberStart );
                             Compile( node.PrimaryBase );
                         }
                         else
                         {
                             EmitByteCode(
                                 BiteVmOpCodes.OpSetVarExternal,
-                                new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                                new ConstantValue( node.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                         }
                     }
                     else
@@ -606,7 +606,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                         if ( var is ModuleSymbol m )
                         {
-                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetModule );
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetModule, node.DebugInfoAstNode.LineNumberStart );
                             AddToConstuctingByteCodeInstruction( m.InsertionOrderNumber );
                             EndConstuctingByteCodeInstruction();
                         }
@@ -614,14 +614,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         {
                             if ( var != null )
                             {
-                                BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
+                                BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar, node.DebugInfoAstNode.LineNumberStart );
                                 Compile( node.PrimaryBase );
                             }
                             else
                             {
                                 EmitByteCode(
                                     BiteVmOpCodes.OpGetVarExternal,
-                                    new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                                    new ConstantValue( node.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                             }
                         }
                     }
@@ -649,7 +649,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         BiteVmOpCodes.OpSetElement,
                         node.ElementAccess.Count );
 
-                    EmitByteCode( byteCode );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                 }
                 else
                 {
@@ -657,7 +657,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         BiteVmOpCodes.OpGetElement,
                         node.ElementAccess.Count );
 
-                    EmitByteCode( byteCode );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                 }
 
                 int dObject = 0;
@@ -678,14 +678,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 ByteCode byteCode2 = new ByteCode(
                     BiteVmOpCodes.OpGetNextVarByRef );
 
-                EmitByteCode( byteCode2 );
-                EmitByteCode( byteCodeObj );
+                EmitByteCode( byteCode2, node.DebugInfoAstNode.LineNumberStart );
+                EmitByteCode( byteCodeObj, node.DebugInfoAstNode.LineNumberStart );
 
-                EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack );
+                EmitByteCode( BiteVmOpCodes.OpCallFunctionFromStack, node.DebugInfoAstNode.LineNumberStart );
             }
             else
             {
-                EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                EmitByteCode( BiteVmOpCodes.OpCallFunctionByName, new ConstantValue( node.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
             }
         }
         else
@@ -699,14 +699,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     if ( node.AstScopeNode.resolve( node.PrimaryBase.PrimaryId.Id, out int moduleId, ref d, false ) !=
                          null )
                     {
-                        BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar );
+                        BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpSetVar, node.DebugInfoAstNode.LineNumberStart );
                         Compile( node.PrimaryBase );
                     }
                     else
                     {
                         EmitByteCode(
                             BiteVmOpCodes.OpSetVarExternal,
-                            new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                            new ConstantValue( node.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                     }
                 }
                 else
@@ -721,7 +721,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                     if ( var is ModuleSymbol m )
                     {
-                        BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetModule );
+                        BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetModule, node.DebugInfoAstNode.LineNumberStart );
                         AddToConstuctingByteCodeInstruction( m.InsertionOrderNumber );
                         EndConstuctingByteCodeInstruction();
                     }
@@ -731,11 +731,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         {
                             EmitByteCode(
                                 BiteVmOpCodes.OpGetVarExternal,
-                                new ConstantValue( node.PrimaryBase.PrimaryId.Id ) );
+                                new ConstantValue( node.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                         }
                         else
                         {
-                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar );
+                            BeginConstuctingByteCodeInstruction( BiteVmOpCodes.OpGetVar, node.DebugInfoAstNode.LineNumberStart );
                             Compile( node.PrimaryBase );
                         }
                     }
@@ -756,7 +756,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     }
                     else
                     {
-                        EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
+                        EmitConstant( new ConstantValue( callElementEntry.Identifier ), node.DebugInfoAstNode.LineNumberStart );
                     }
                 }
 
@@ -766,7 +766,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         BiteVmOpCodes.OpSetElement,
                         node.ElementAccess.Count );
 
-                    EmitByteCode( byteCode );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                 }
                 else
                 {
@@ -774,7 +774,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         BiteVmOpCodes.OpGetElement,
                         node.ElementAccess.Count );
 
-                    EmitByteCode( byteCode );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                 }
             }
         }
@@ -829,12 +829,12 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         BiteVmOpCodes.OpBindToFunction,
                         terminalNode.ArgumentsBase.Expressions.Count );
 
-                    EmitByteCode( byteCode );
+                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                     BytecodeList byteCodes = m_PostfixInstructions.Pop();
 
                     foreach ( ByteCode code in byteCodes.ByteCodes )
                     {
-                        EmitByteCode( code );
+                        EmitByteCode( code, node.DebugInfoAstNode.LineNumberStart );
                     }
                 }
 
@@ -844,19 +844,19 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                     {
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
-                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                     }
                     else if ( isClassSymbol )
                     {
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
-                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                     }
                     else
                     {
                         EmitByteCode(
                             BiteVmOpCodes.OpCallMemberFunction,
-                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                            new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                     }
                 }
                 else
@@ -879,7 +879,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                     BiteVmOpCodes.OpSetMember,
                                     memberSymbol.InsertionOrderNumber );
 
-                                EmitByteCode( byteCode );
+                                EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                             }
                             else if ( isClassSymbol )
                             {
@@ -895,7 +895,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                 {
                                     EmitByteCode(
                                         BiteVmOpCodes.OpSetMemberWithString,
-                                        new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                                        new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                                 }
                                 else
                                 {
@@ -903,14 +903,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                         BiteVmOpCodes.OpSetMember,
                                         memberSymbol.InsertionOrderNumber );
 
-                                    EmitByteCode( byteCode );
+                                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                                 }
                             }
                             else
                             {
                                 EmitByteCode(
                                     BiteVmOpCodes.OpSetMemberWithString,
-                                    new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                                    new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                             }
                         }
                         else
@@ -929,7 +929,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                     BiteVmOpCodes.OpGetMember,
                                     memberSymbol.InsertionOrderNumber );
 
-                                EmitByteCode( byteCode );
+                                EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                             }
                             else if ( isClassSymbol )
                             {
@@ -945,7 +945,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                 {
                                     EmitByteCode(
                                         BiteVmOpCodes.OpGetMemberWithString,
-                                        new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                                        new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                                 }
                                 else
                                 {
@@ -953,14 +953,14 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                                         BiteVmOpCodes.OpGetMember,
                                         memberSymbol.InsertionOrderNumber );
 
-                                    EmitByteCode( byteCode );
+                                    EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                                 }
                             }
                             else
                             {
                                 EmitByteCode(
                                     BiteVmOpCodes.OpGetMemberWithString,
-                                    new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ) );
+                                    new ConstantValue( terminalNode.PrimaryBase.PrimaryId.Id ), node.DebugInfoAstNode.LineNumberStart );
                             }
                         }
                     }
@@ -976,7 +976,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                         }
                         else
                         {
-                            EmitConstant( new ConstantValue( callElementEntry.Identifier ) );
+                            EmitConstant( new ConstantValue( callElementEntry.Identifier ), node.DebugInfoAstNode.LineNumberStart );
                         }
                     }
 
@@ -986,7 +986,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                             BiteVmOpCodes.OpSetElement,
                             terminalNode.ElementAccess.Count );
 
-                        EmitByteCode( byteCode );
+                        EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                     }
                     else
                     {
@@ -994,7 +994,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                             BiteVmOpCodes.OpGetElement,
                             terminalNode.ElementAccess.Count );
 
-                        EmitByteCode( byteCode );
+                        EmitByteCode( byteCode, node.DebugInfoAstNode.LineNumberStart );
                     }
                 }
 
@@ -1022,7 +1022,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             case AssignmentTypes.Assignment:
                 if ( m_IsCompilingAssignmentRhs )
                 {
-                    EmitByteCode( BiteVmOpCodes.OpPushNextAssignmentOnStack );
+                    EmitByteCode( BiteVmOpCodes.OpPushNextAssignmentOnStack, node.DebugInfoAstNode.LineNumberStart );
                 }
 
                 m_PostfixInstructions.Push( new BytecodeList() );
@@ -1036,57 +1036,57 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 switch ( node.OperatorType )
                 {
                     case AssignmentOperatorTypes.Assign:
-                        EmitByteCode( BiteVmOpCodes.OpAssign );
+                        EmitByteCode( BiteVmOpCodes.OpAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.DivAssign:
-                        EmitByteCode( BiteVmOpCodes.OpDivideAssign );
+                        EmitByteCode( BiteVmOpCodes.OpDivideAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.MultAssign:
-                        EmitByteCode( BiteVmOpCodes.OpMultiplyAssign );
+                        EmitByteCode( BiteVmOpCodes.OpMultiplyAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.PlusAssign:
-                        EmitByteCode( BiteVmOpCodes.OpPlusAssign );
+                        EmitByteCode( BiteVmOpCodes.OpPlusAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.MinusAssign:
-                        EmitByteCode( BiteVmOpCodes.OpMinusAssign );
+                        EmitByteCode( BiteVmOpCodes.OpMinusAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.ModuloAssignOperator:
-                        EmitByteCode( BiteVmOpCodes.OpModuloAssign );
+                        EmitByteCode( BiteVmOpCodes.OpModuloAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.BitwiseAndAssignOperator:
-                        EmitByteCode( BiteVmOpCodes.OpBitwiseAndAssign );
+                        EmitByteCode( BiteVmOpCodes.OpBitwiseAndAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.BitwiseOrAssignOperator:
-                        EmitByteCode( BiteVmOpCodes.OpBitwiseOrAssign );
+                        EmitByteCode( BiteVmOpCodes.OpBitwiseOrAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.BitwiseXorAssignOperator:
-                        EmitByteCode( BiteVmOpCodes.OpBitwiseXorAssign );
+                        EmitByteCode( BiteVmOpCodes.OpBitwiseXorAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.BitwiseLeftShiftAssignOperator:
-                        EmitByteCode( BiteVmOpCodes.OpBitwiseLeftShiftAssign );
+                        EmitByteCode( BiteVmOpCodes.OpBitwiseLeftShiftAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
                     case AssignmentOperatorTypes.BitwiseRightShiftAssignOperator:
-                        EmitByteCode( BiteVmOpCodes.OpBitwiseRightShiftAssign );
+                        EmitByteCode( BiteVmOpCodes.OpBitwiseRightShiftAssign, node.DebugInfoAstNode.LineNumberStart );
 
                         break;
 
@@ -1098,7 +1098,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                 foreach ( ByteCode code in byteCodes.ByteCodes )
                 {
-                    EmitByteCode( code );
+                    EmitByteCode( code, node.DebugInfoAstNode.LineNumberStart );
                 }
 
                 break;
@@ -1156,11 +1156,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     public override object Visit( SyncBlockNode node )
     {
-        EmitByteCode( BiteVmOpCodes.OpSwitchContext );
+        EmitByteCode( BiteVmOpCodes.OpSwitchContext, node.DebugInfoAstNode.LineNumberStart );
 
         Compile( node.Block );
 
-        EmitByteCode( BiteVmOpCodes.OpReturnContext );
+        EmitByteCode( BiteVmOpCodes.OpReturnContext, node.DebugInfoAstNode.LineNumberStart );
 
         return null;
     }
@@ -1229,9 +1229,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     public override object Visit( IfStatementBaseNode node )
     {
         Compile( node.ExpressionBase );
-        int thenJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
+        int thenJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, node.DebugInfoAstNode.LineNumberStart );
         Compile( node.ThenStatementBase );
-        int overElseJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
+        int overElseJump = EmitByteCode( BiteVmOpCodes.OpNone, 0, node.DebugInfoAstNode.LineNumberStart );
 
         m_Context.CurrentChunk.Code[thenJump] = new ByteCode(
             BiteVmOpCodes.OpJumpIfFalse,
@@ -1270,8 +1270,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             node.AstScopeNode.resolve( node.VarId.Id, out int moduleId, ref d ) as DynamicVariable;
 
         Compile( node.ExpressionBase );
-        EmitByteCode( BiteVmOpCodes.OpDefineVar );
-        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ) );
+        EmitByteCode( BiteVmOpCodes.OpDefineVar, node.DebugInfoAstNode.LineNumberStart );
+        EmitByteCode( BiteVmOpCodes.OpNone, new ConstantValue( variableSymbol.Name ), node.DebugInfoAstNode.LineNumberStart );
 
         return null;
     }
@@ -1288,7 +1288,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
     public override object Visit( ForStatementBaseNode node )
     {
-        EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, 0 );
+        EmitByteCode( BiteVmOpCodes.OpEnterBlock, ( node.AstScopeNode as BaseScope ).NestedSymbolCount, node.DebugInfoAstNode.LineNumberStart );
         m_CurrentEnterBlockCount++;
         m_PreviousLoopBlockCount = m_CurrentEnterBlockCount;
 
@@ -1315,7 +1315,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         }
         else
         {
-            EmitConstant( new ConstantValue( true ) );
+            EmitConstant( new ConstantValue( true ), node.DebugInfoAstNode.LineNumberStart );
         }
 
         int toFix = EmitByteCode( BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0 );
@@ -1346,9 +1346,9 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             jumpCodeWhileBegin,
             m_Context.CurrentChunk.SerializeToBytes().Length );
 
-        EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
-        EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
-        EmitByteCode( BiteVmOpCodes.OpExitBlock );
+        EmitByteCode( BiteVmOpCodes.OpNone, 0, node.DebugInfoAstNode.LineNumberStart );
+        EmitByteCode( BiteVmOpCodes.OpNone, 0, node.DebugInfoAstNode.LineNumberStart );
+        EmitByteCode( BiteVmOpCodes.OpExitBlock, node.DebugInfoAstNode.LineNumberStart );
         m_CurrentEnterBlockCount--;
 
         return null;
@@ -1360,7 +1360,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         int jumpCodeWhileBegin = m_Context.CurrentChunk.SerializeToBytes().Length;
         Compile( node.ExpressionBase );
-        int toFix = EmitByteCode( BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, 0 );
+        int toFix = EmitByteCode( BiteVmOpCodes.OpWhileLoop, jumpCodeWhileBegin, 0, node.DebugInfoAstNode.LineNumberStart );
         Compile( node.WhileBlock );
 
         m_Context.CurrentChunk.Code[toFix] = new ByteCode(
@@ -1368,8 +1368,8 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             jumpCodeWhileBegin,
             m_Context.CurrentChunk.SerializeToBytes().Length );
 
-        EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
-        EmitByteCode( BiteVmOpCodes.OpNone, 0, 0 );
+        EmitByteCode( BiteVmOpCodes.OpNone, 0, node.DebugInfoAstNode.LineNumberStart );
+        EmitByteCode( BiteVmOpCodes.OpNone, 0, node.DebugInfoAstNode.LineNumberStart );
 
         return null;
     }
@@ -1377,11 +1377,11 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     public override object Visit( ReturnStatementBaseNode node )
     {
         Compile( node.ExpressionStatementBase );
-        EmitByteCode( BiteVmOpCodes.OpKeepLastItemOnStack );
+        EmitByteCode( BiteVmOpCodes.OpKeepLastItemOnStack, node.DebugInfoAstNode.LineNumberStart );
 
         for ( int i = 0; i < m_CurrentEnterBlockCount + 1; i++ )
         {
-            EmitByteCode( BiteVmOpCodes.OpExitBlock );
+            EmitByteCode( BiteVmOpCodes.OpExitBlock, node.DebugInfoAstNode.LineNumberStart );
         }
 
         EmitReturn();
@@ -1393,10 +1393,10 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
     {
         for ( int i = 0; i < m_CurrentEnterBlockCount - m_PreviousLoopBlockCount; i++ )
         {
-            EmitByteCode( BiteVmOpCodes.OpExitBlock );
+            EmitByteCode( BiteVmOpCodes.OpExitBlock, node.DebugInfoAstNode.LineNumberStart );
         }
 
-        EmitByteCode( BiteVmOpCodes.OpBreak );
+        EmitByteCode( BiteVmOpCodes.OpBreak, node.DebugInfoAstNode.LineNumberStart );
 
         return null;
     }
@@ -1416,92 +1416,92 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         switch ( node.Operator )
         {
             case BinaryOperationBaseNode.BinaryOperatorType.Plus:
-                EmitByteCode( BiteVmOpCodes.OpAdd );
+                EmitByteCode( BiteVmOpCodes.OpAdd, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Minus:
-                EmitByteCode( BiteVmOpCodes.OpSubtract );
+                EmitByteCode( BiteVmOpCodes.OpSubtract, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Mult:
-                EmitByteCode( BiteVmOpCodes.OpMultiply );
+                EmitByteCode( BiteVmOpCodes.OpMultiply, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Div:
-                EmitByteCode( BiteVmOpCodes.OpDivide );
+                EmitByteCode( BiteVmOpCodes.OpDivide, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Modulo:
-                EmitByteCode( BiteVmOpCodes.OpModulo );
+                EmitByteCode( BiteVmOpCodes.OpModulo, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Equal:
-                EmitByteCode( BiteVmOpCodes.OpEqual );
+                EmitByteCode( BiteVmOpCodes.OpEqual, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.NotEqual:
-                EmitByteCode( BiteVmOpCodes.OpNotEqual );
+                EmitByteCode( BiteVmOpCodes.OpNotEqual, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Less:
-                EmitByteCode( BiteVmOpCodes.OpLess );
+                EmitByteCode( BiteVmOpCodes.OpLess, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.LessOrEqual:
-                EmitByteCode( BiteVmOpCodes.OpLessOrEqual );
+                EmitByteCode( BiteVmOpCodes.OpLessOrEqual, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Greater:
-                EmitByteCode( BiteVmOpCodes.OpGreater );
+                EmitByteCode( BiteVmOpCodes.OpGreater, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.GreaterOrEqual:
-                EmitByteCode( BiteVmOpCodes.OpGreaterEqual );
+                EmitByteCode( BiteVmOpCodes.OpGreaterEqual, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.And:
-                EmitByteCode( BiteVmOpCodes.OpAnd );
+                EmitByteCode( BiteVmOpCodes.OpAnd, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.Or:
-                EmitByteCode( BiteVmOpCodes.OpOr );
+                EmitByteCode( BiteVmOpCodes.OpOr, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.BitwiseOr:
-                EmitByteCode( BiteVmOpCodes.OpBitwiseOr );
+                EmitByteCode( BiteVmOpCodes.OpBitwiseOr, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.BitwiseAnd:
-                EmitByteCode( BiteVmOpCodes.OpBitwiseAnd );
+                EmitByteCode( BiteVmOpCodes.OpBitwiseAnd, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.BitwiseXor:
-                EmitByteCode( BiteVmOpCodes.OpBitwiseXor );
+                EmitByteCode( BiteVmOpCodes.OpBitwiseXor, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.ShiftLeft:
-                EmitByteCode( BiteVmOpCodes.OpBitwiseLeftShift );
+                EmitByteCode( BiteVmOpCodes.OpBitwiseLeftShift, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case BinaryOperationBaseNode.BinaryOperatorType.ShiftRight:
-                EmitByteCode( BiteVmOpCodes.OpBitwiseRightShift );
+                EmitByteCode( BiteVmOpCodes.OpBitwiseRightShift, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
@@ -1517,7 +1517,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         Compile( node.RightOperand );
         Compile( node.MidOperand );
         Compile( node.LeftOperand );
-        EmitByteCode( BiteVmOpCodes.OpTernary );
+        EmitByteCode( BiteVmOpCodes.OpTernary, node.DebugInfoAstNode.LineNumberStart );
 
         return null;
     }
@@ -1566,22 +1566,22 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
                 return null;
 
             case PrimaryBaseNode.PrimaryTypes.BooleanLiteral:
-                EmitConstant( new ConstantValue( node.BooleanLiteral.Value ) );
+                EmitConstant( new ConstantValue( node.BooleanLiteral.Value ), node.DebugInfoAstNode.LineNumberStart );
 
                 return null;
 
             case PrimaryBaseNode.PrimaryTypes.IntegerLiteral:
-                EmitConstant( new ConstantValue( node.IntegerLiteral.Value ) );
+                EmitConstant( new ConstantValue( node.IntegerLiteral.Value ), node.DebugInfoAstNode.LineNumberStart );
 
                 return null;
 
             case PrimaryBaseNode.PrimaryTypes.FloatLiteral:
-                EmitConstant( new ConstantValue( node.FloatLiteral.Value ) );
+                EmitConstant( new ConstantValue( node.FloatLiteral.Value ), node.DebugInfoAstNode.LineNumberStart );
 
                 return null;
 
             case PrimaryBaseNode.PrimaryTypes.StringLiteral:
-                EmitConstant( new ConstantValue( node.StringLiteral ) );
+                EmitConstant( new ConstantValue( node.StringLiteral ), node.DebugInfoAstNode.LineNumberStart );
 
                 return null;
 
@@ -1590,20 +1590,20 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
                 foreach ( InterpolatedStringPart interpolatedStringStringPart in node.InterpolatedString.StringParts )
                 {
-                    EmitConstant( new ConstantValue( interpolatedStringStringPart.TextBeforeExpression ) );
+                    EmitConstant( new ConstantValue( interpolatedStringStringPart.TextBeforeExpression ), node.DebugInfoAstNode.LineNumberStart );
 
                     if ( i > 0 )
                     {
-                        EmitByteCode( BiteVmOpCodes.OpAdd );
+                        EmitByteCode( BiteVmOpCodes.OpAdd, node.DebugInfoAstNode.LineNumberStart );
                     }
 
                     Compile( interpolatedStringStringPart.ExpressionBaseNode );
-                    EmitByteCode( BiteVmOpCodes.OpAdd );
+                    EmitByteCode( BiteVmOpCodes.OpAdd, node.DebugInfoAstNode.LineNumberStart );
                     i++;
                 }
 
                 EmitConstant( new ConstantValue( node.InterpolatedString.TextAfterLastExpression ) );
-                EmitByteCode( BiteVmOpCodes.OpAdd );
+                EmitByteCode( BiteVmOpCodes.OpAdd, node.DebugInfoAstNode.LineNumberStart );
 
                 return null;
 
@@ -1614,7 +1614,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
             case PrimaryBaseNode.PrimaryTypes.NullReference:
                 object obj = null;
-                EmitConstant( new ConstantValue(obj) );
+                EmitConstant( new ConstantValue(obj), node.DebugInfoAstNode.LineNumberStart );
 
                 return null;
 
@@ -1645,7 +1645,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
 
         if ( m_PostfixInstructions.Count == 0 )
         {
-            toFix = EmitByteCode( BiteVmOpCodes.OpNone );
+            toFix = EmitByteCode( BiteVmOpCodes.OpNone, node.DebugInfoAstNode.LineNumberStart );
         }
 
         Compile( node.Primary );
@@ -1663,7 +1663,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             case UnaryPostfixOperation.UnaryPostfixOperatorType.PlusPlus:
                 if ( m_PostfixInstructions.Count == 0 )
                 {
-                    EmitByteCode( BiteVmOpCodes.OpPostfixIncrement );
+                    EmitByteCode( BiteVmOpCodes.OpPostfixIncrement, node.DebugInfoAstNode.LineNumberStart );
                 }
                 else
                 {
@@ -1678,7 +1678,7 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
             case UnaryPostfixOperation.UnaryPostfixOperatorType.MinusMinus:
                 if ( m_PostfixInstructions.Count == 0 )
                 {
-                    EmitByteCode( BiteVmOpCodes.OpPostfixDecrement );
+                    EmitByteCode( BiteVmOpCodes.OpPostfixDecrement, node.DebugInfoAstNode.LineNumberStart );
                 }
                 else
                 {
@@ -1704,32 +1704,32 @@ public class CodeGenerator : AstVisitor < object >, IAstVisitor
         switch ( node.Operator )
         {
             case UnaryPrefixOperation.UnaryPrefixOperatorType.Plus:
-                EmitByteCode( BiteVmOpCodes.OpAffirm );
+                EmitByteCode( BiteVmOpCodes.OpAffirm, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case UnaryPrefixOperation.UnaryPrefixOperatorType.Compliment:
-                EmitByteCode( BiteVmOpCodes.OpCompliment );
+                EmitByteCode( BiteVmOpCodes.OpCompliment, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case UnaryPrefixOperation.UnaryPrefixOperatorType.PlusPlus:
-                EmitByteCode( BiteVmOpCodes.OpPrefixIncrement );
+                EmitByteCode( BiteVmOpCodes.OpPrefixIncrement, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case UnaryPrefixOperation.UnaryPrefixOperatorType.MinusMinus:
-                EmitByteCode( BiteVmOpCodes.OpPrefixDecrement );
+                EmitByteCode( BiteVmOpCodes.OpPrefixDecrement, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case UnaryPrefixOperation.UnaryPrefixOperatorType.LogicalNot:
-                EmitByteCode( BiteVmOpCodes.OpNot );
+                EmitByteCode( BiteVmOpCodes.OpNot, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 
             case UnaryPrefixOperation.UnaryPrefixOperatorType.Negate:
-                EmitByteCode( BiteVmOpCodes.OpNegate );
+                EmitByteCode( BiteVmOpCodes.OpNegate, node.DebugInfoAstNode.LineNumberStart );
 
                 break;
 

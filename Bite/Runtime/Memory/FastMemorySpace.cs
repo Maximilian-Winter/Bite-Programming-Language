@@ -18,6 +18,8 @@ public class FastMemorySpace
 
     public BinaryChunk CallerChunk;
     public int CallerIntructionPointer;
+    
+    public int CallerLineNumberPointer;
 
     public bool IsRunningCallback = false;
 
@@ -31,10 +33,12 @@ public class FastMemorySpace
         int stackCount,
         BinaryChunk callerChunk,
         int callerInstructionPointer,
+        int callerLineNumberPointer,
         int memberCount )
     {
         CallerChunk = callerChunk;
         CallerIntructionPointer = callerInstructionPointer;
+        CallerLineNumberPointer = callerLineNumberPointer;
         m_EnclosingSpace = enclosingSpace;
         Name = name;
         StackCountAtBegin = stackCount;

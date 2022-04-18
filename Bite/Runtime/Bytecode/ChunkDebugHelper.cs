@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Bite.Runtime.Bytecode
@@ -11,10 +12,10 @@ public class InstructionAnalysis
 
 public static class ChunkDebugHelper
 {
-    public static Dictionary < string, long > InstructionCounter = new Dictionary < string, long >();
+    public static ConcurrentDictionary < string, long > InstructionCounter = new ConcurrentDictionary < string, long >();
 
-    public static Dictionary < string, InstructionAnalysis > InstructionAnalysis =
-        new Dictionary < string, InstructionAnalysis >();
+    public static ConcurrentDictionary < string, InstructionAnalysis > InstructionAnalysis =
+        new ConcurrentDictionary < string, InstructionAnalysis >();
 
     #region Public
 
@@ -28,13 +29,14 @@ public static class ChunkDebugHelper
         }*/
     }
 
-    public static int DissassembleInstruction( this BinaryChunk chunk, int offset )
+    public static int DissassembleInstruction( this BinaryChunk chunk, int offset, int lineOffset )
     {
         Console.Write( offset + " " );
 
         BiteVmOpCodes instruction = ( BiteVmOpCodes ) chunk.Code[offset];
         offset++;
 
+       
         switch ( instruction )
         {
             default:
@@ -46,12 +48,22 @@ public static class ChunkDebugHelper
                 }
                 else
                 {
-                    InstructionCounter.Add( inst, 1 );
+                    InstructionCounter.TryAdd( inst, 1 );
 
                     //InstructionAnalysis.Add( inst, new InstructionAnalysis() );
                 }
 
-                Console.WriteLine( inst );
+                int lineNumber = 0;
+                if ( lineOffset < chunk.Lines.Count )
+                {
+                    lineNumber = chunk.Lines[lineOffset];
+                }
+                else
+                {
+                    lineNumber = chunk.Lines[chunk.Lines.Count - 1];
+                }
+               
+                Console.WriteLine( $"{inst} Line: {lineNumber}" );
 
                 return offset + 1;
         }

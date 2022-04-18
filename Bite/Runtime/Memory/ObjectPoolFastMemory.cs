@@ -14,7 +14,7 @@ public class ObjectPoolFastMemory
     {
         for ( int i = 0; i < 128; i++ )
         {
-            m_FastCallMemorySpaces[i] = new FastMemorySpace( $"$objectpool_{i}", null, 0, null, 0, 0 );
+            m_FastCallMemorySpaces[i] = new FastMemorySpace( $"$objectpool_{i}", null, 0, null, 0, 0, 0 );
         }
     }
 
@@ -27,7 +27,7 @@ public class ObjectPoolFastMemory
 
             for ( int i = m_FastMemorySpacePointer; i < newProperties.Length; i++ )
             {
-                newProperties[i] = new FastMemorySpace( $"$objectpool_{i}", null, 0, null, 0, 0 );
+                newProperties[i] = new FastMemorySpace( $"$objectpool_{i}", null, 0, null, 0, 0,0 );
             }
 
             m_FastCallMemorySpaces = newProperties;
@@ -39,6 +39,7 @@ public class ObjectPoolFastMemory
         fastMemorySpace.NamesToProperties.Clear();
         fastMemorySpace.CallerChunk = null;
         fastMemorySpace.CallerIntructionPointer = 0;
+        fastMemorySpace.CallerLineNumberPointer = 0;
         fastMemorySpace.StackCountAtBegin = 0;
         fastMemorySpace.IsRunningCallback = false;
 

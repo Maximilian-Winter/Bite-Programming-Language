@@ -13,7 +13,8 @@ public class FastModuleMemorySpace : FastMemorySpace
         int stackCount,
         BinaryChunk callerChunk,
         int callerInstructionPointer,
-        int memberCount ) : base( name, enclosingSpace, stackCount, callerChunk, callerInstructionPointer, memberCount )
+        int callerLineNumberPointer,
+        int memberCount ) : base( name, enclosingSpace, stackCount, callerChunk, callerInstructionPointer, callerLineNumberPointer, memberCount )
     {
     }
 
