@@ -1,4 +1,4 @@
-//#define BITE_VM_DEBUG_TRACE_EXECUTION
+#define BITE_VM_DEBUG_TRACE_EXECUTION
 
 using System;
 using System.Collections.Generic;
@@ -6521,8 +6521,7 @@ public class BiteVm
                         }
 
                         if ( m_CallStack.Peek().CallerChunk != null && 
-                             m_CallStack.Peek().CallerChunk.Code != null &&
-                             m_CallStack.Peek().CallerChunk.Code != m_CurrentChunk.Code )
+                             m_CallStack.Peek().CallerChunk.Code != null)
                         {
                             m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                             m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;
@@ -6567,8 +6566,7 @@ public class BiteVm
                     }
 
                     if (m_CallStack.Peek().CallerChunk != null && 
-                        m_CallStack.Peek().CallerChunk.Code != null &&
-                        m_CallStack.Peek().CallerChunk.Code != m_CurrentChunk.Code )
+                        m_CallStack.Peek().CallerChunk.Code != null)
                     {
                         m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                         m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;

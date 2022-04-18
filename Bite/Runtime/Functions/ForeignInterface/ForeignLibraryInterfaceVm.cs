@@ -11,6 +11,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 {
     private readonly TypeRegistry m_TypeRegistry;
 
+    private MethodCache m_MethodCache = new MethodCache();
     #region Public
 
     public ForeignLibraryInterfaceVm()
@@ -396,8 +397,6 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                 object obj = arguments[0].ToObject();
                 Type type = obj.GetType();
 
-                
-
                 Type[] argTypes = new Type[(arguments.Count - 2) / 2];
                 object[] args = new object[(arguments.Count - 2) / 2];
 
@@ -423,11 +422,15 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                     counter++;
                 }
-                
-                MethodInfo method = type.GetMethod(arguments[1].StringData, argTypes);
 
-                method.Invoke( obj, args );
-                return null;
+                if ( m_MethodCache.TryGetMethod(
+                        type,
+                        argTypes,
+                        arguments[1].StringData,
+                        out FastMethodInfo fastMethodInfo ) )
+                {
+                    return fastMethodInfo.Invoke( obj, args );
+                }
             }
             
             
