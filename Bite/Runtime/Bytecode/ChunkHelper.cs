@@ -91,6 +91,21 @@ public static class ChunkHelper
 
         return chunk.Code.Count - 1;
     }
+    
+    public static int WriteToChunk(
+        this Chunk chunk,
+        BiteVmOpCodes code,
+        ConstantValue constant,
+        int opCodeData,
+        int opCodeData2,
+        int line )
+    {
+        chunk.Code.Add( new ByteCode( code, chunk.Constants.Count, opCodeData, opCodeData2 ) );
+        chunk.Constants.Add( constant );
+        chunk.Lines.Add( line );
+
+        return chunk.Code.Count - 1;
+    }
 
     #endregion
 }
