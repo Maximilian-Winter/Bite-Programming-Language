@@ -8,7 +8,6 @@ var valueSetByCallback = "Hallo";
 function CallBack(n, s)
 {
    valueSetByCallback = s.Text;
-   PrintLine("New Value From Callback: ${valueSetByCallback}");
 }
 
 PrintLine(valueSetByCallback);
@@ -17,5 +16,8 @@ EventObject.OnSampleEvent += CallBack;
 var oldValue = valueSetByCallback;
 while(true)
 {
-
+   if(oldValue != valueSetByCallback)
+   {
+       PrintLine("New Value From Callback: ${valueSetByCallback}");
+   }
 }

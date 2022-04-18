@@ -1,0 +1,65 @@
+module Mandelbrot;
+
+import System; 
+using System;
+
+
+var xmin = -2.0;
+var xmax = 2.0;
+var ymin = -2.0;
+var ymax = 2.0;
+
+var maxiter = 1000;
+
+var xres = 1024;
+var yres = ( xres * ( ymax - ymin ) ) / ( xmax - xmin );
+
+var dx = ( xmax - xmin ) / xres;
+var dy = ( ymax - ymin ) / yres;
+
+var x;
+var y;
+var i;
+var j;
+var k;
+
+var img = NetLanguageInterface("Bitmap", true, xres, "int", yres, "int");
+var imgFormat = NetLanguageInterface("ImageFormat", "Png");
+var colorBlack = NetLanguageInterface("Color", "Black");
+var colorBrown = NetLanguageInterface("Color", "Brown");
+
+
+for ( j = 0; j < yres; j++ )
+{
+    y = ymax - j * dy;
+
+    for ( i = 0; i < xres; i++ )
+    {
+        var u = 0.0;
+        var v = 0.0;
+        var u2 = u * u;
+        var v2 = v * v;
+        x = xmin + i * dx;
+
+        for ( k = 1; k < maxiter && ( u2 + v2 < 4.0 ); k++ )
+        {
+            v = 2 * u * v + y;
+            u = u2 - v2 + x;
+            u2 = u * u;
+            v2 = v * v;
+        }
+
+        if ( k >= maxiter )
+        {
+            NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBlack, "Color");
+            //img.SetPixel( i, j, colorBlack );
+        }
+        else
+        {
+            NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBrown, "Color");
+            //img.SetPixel( i, j, colorBrown );
+        }
+    }
+}
+
+img.Save( "file.png", imgFormat );

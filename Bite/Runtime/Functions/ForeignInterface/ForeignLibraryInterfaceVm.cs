@@ -28,11 +28,9 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
         arguments.Reverse();
         if ( arguments.Count > 0 )
         {
-            if ( arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.Object )
+            if ( arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.Object && arguments[0].ObjectData is FastMemorySpace fliObject)
             {
-                if ( arguments[0].ObjectData is FastMemorySpace fliObject )
-                {
-                    string typeString = fliObject.Get( "Type" ).StringData;
+                string typeString = fliObject.Get( "Type" ).StringData;
 
                     if ( !string.IsNullOrEmpty( typeString ) )
                     {
@@ -305,7 +303,6 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                             }
                         }
                     }
-                }
             }
             else if (  arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.String )
             {
@@ -393,6 +390,44 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                 object classObject = constructorInfo.Invoke( constructorArgs );
 
                 return classObject;
+            }
+            else if (  arguments.Count > 2 && arguments[0].DynamicType == DynamicVariableType.Object && arguments[1].DynamicType == DynamicVariableType.String  )
+            {
+                object obj = arguments[0].ToObject();
+                Type type = obj.GetType();
+
+                
+
+                Type[] argTypes = new Type[(arguments.Count - 2) / 2];
+                object[] args = new object[(arguments.Count - 2) / 2];
+
+                int counter = 0;
+                for ( int i = 2; i < arguments.Count; i+=2 )
+                {
+                    if ( arguments[i + 1].DynamicType == DynamicVariableType.String )
+                    {
+                        Type argType = ResolveType( arguments[i + 1].StringData );
+                        
+                        if ( argType == null )
+                        {
+                            throw new BiteVmRuntimeException(
+                                $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
+                        }
+                        
+                        argTypes[counter] = argType;
+                        args[counter] = Convert.ChangeType(
+                            arguments[i].ToObject(),
+                            argType );
+                        
+                    }
+
+                    counter++;
+                }
+                
+                MethodInfo method = type.GetMethod(arguments[1].StringData, argTypes);
+
+                method.Invoke( obj, args );
+                return null;
             }
             
             

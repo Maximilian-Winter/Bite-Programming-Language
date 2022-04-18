@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfThreadTest", "WpfThreadT
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpTest", "FSharpTest\FSharpTest.fsproj", "{69E5A329-0D7E-4C21-A44D-6B2DA04D3A98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMandelbrot", "TestMandelbrot\TestMandelbrot.csproj", "{46A37F39-770C-42DB-888A-CDB8EB674B3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{69E5A329-0D7E-4C21-A44D-6B2DA04D3A98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69E5A329-0D7E-4C21-A44D-6B2DA04D3A98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69E5A329-0D7E-4C21-A44D-6B2DA04D3A98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46A37F39-770C-42DB-888A-CDB8EB674B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46A37F39-770C-42DB-888A-CDB8EB674B3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46A37F39-770C-42DB-888A-CDB8EB674B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46A37F39-770C-42DB-888A-CDB8EB674B3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
