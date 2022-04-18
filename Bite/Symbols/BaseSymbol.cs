@@ -53,10 +53,10 @@ public abstract class BaseSymbol : Symbol
         return name.Equals( ( ( Symbol ) obj ).Name );
     }
 
-    public override int GetHashCode()
+    /*public override int GetHashCode()
     {
         return name.GetHashCode();
-    }
+    }*/
 
     public override string ToString()
     {

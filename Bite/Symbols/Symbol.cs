@@ -5,7 +5,7 @@ public interface Symbol
 {
     bool Equals( object o );
 
-    int GetHashCode();
+    //int GetHashCode();
 
     int InsertionOrderNumber { get; set; }
 

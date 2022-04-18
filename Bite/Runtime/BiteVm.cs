@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Antlr4.Runtime.Dfa;
@@ -14,6 +15,12 @@ using Bite.Runtime.Memory;
 
 namespace Bite.Runtime
 {
+
+public class BiteVmCallSite
+{
+    public FastMethodInfo FastMethodInfo;
+    public Type[] FunctionArgumentTypes;
+}
 
 public class BiteVm
 {
@@ -61,6 +68,9 @@ public class BiteVm
 
     private Dictionary < string, BinaryChunk > m_CompiledChunks;
 
+    private Dictionary < (int InstructionPointer, BinaryChunk CallerChunk), BiteVmCallSite > m_CallSites =
+        new Dictionary < (int InstructionPointer, BinaryChunk CallerChunk), BiteVmCallSite >();
+
     private readonly Dictionary < string, object > m_ExternalObjects = new Dictionary < string, object >();
     private readonly Dictionary < string, IBiteVmCallable > m_Callables = new Dictionary < string, IBiteVmCallable >();
 
@@ -69,13 +79,13 @@ public class BiteVm
     private bool m_CallbackWaiting = false;
     private bool m_SpinLock = false;
     private int m_InstructionPointerBeforeExecutingCallback = -1;
-    
+
     private ContextMode m_ContextMode;
     private bool m_ExitRunLoop;
     private bool m_Stopping = false;
 
     private CancellationToken m_CancellationToken;
-    
+
     private int m_CurrentLineNumberPointer = 0;
 
     /// <summary>
@@ -89,7 +99,7 @@ public class BiteVm
     public SynchronizationContext SynchronizationContext { get; set; }
 
     #region Public
-    
+
     public void InitVm()
     {
         m_VmStack = new DynamicBiteVariableStack();
@@ -224,7 +234,7 @@ public class BiteVm
             }
         }
     }
-    
+
     public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
     {
         m_CallBack = biteFunctionCall;
@@ -286,10 +296,38 @@ public class BiteVm
 
             if ( m_CallbackWaiting && m_CurrentInstructionPointer != m_InstructionPointerBeforeExecutingCallback )
             {
-                 m_InstructionPointerBeforeExecutingCallback = m_CurrentInstructionPointer;
-                    string method = m_CallBack.FunctionName;
+                m_InstructionPointerBeforeExecutingCallback = m_CurrentInstructionPointer;
+                string method = m_CallBack.FunctionName;
 
-                    if ( m_CallBack.BiteChunkWrapper != null )
+                if ( m_CallBack.BiteChunkWrapper != null )
+                {
+                    FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
+
+                    //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                    callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                    callSpace.CallerChunk = m_CurrentChunk;
+                    callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
+                    callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
+                    callSpace.StackCountAtBegin = m_VmStack.Count;
+                    callSpace.IsRunningCallback = true;
+                    m_CurrentMemorySpace = callSpace;
+                    m_CallStack.Push( callSpace );
+
+                    for ( int i = 0; i < m_CallBack.FunctionArguments.Length; i++ )
+                    {
+                        m_CurrentMemorySpace.Define(
+                            m_CallBack.FunctionArguments[i] );
+                    }
+
+                    m_CurrentChunk = m_CallBack.BiteChunkWrapper.ChunkToWrap;
+                    m_CurrentInstructionPointer = 0;
+                    m_CurrentLineNumberPointer = 0;
+                }
+                else
+                {
+                    DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+
+                    if ( call.ObjectData is BiteChunkWrapper function )
                     {
                         FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
@@ -309,56 +347,30 @@ public class BiteVm
                                 m_CallBack.FunctionArguments[i] );
                         }
 
-                        m_CurrentChunk = m_CallBack.BiteChunkWrapper.ChunkToWrap;
+                        m_CurrentChunk = function.ChunkToWrap;
                         m_CurrentInstructionPointer = 0;
                         m_CurrentLineNumberPointer = 0;
                     }
-                    else
+                    else if ( call.ObjectData is IBiteVmCallable callable )
                     {
-                        DynamicBiteVariable call = m_CurrentMemorySpace.Get( method );
+                        object returnVal = callable.Call( m_FunctionArguments );
+                        m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
 
-                        if ( call.ObjectData is BiteChunkWrapper function )
+                        if ( returnVal != null )
                         {
-                            FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
-
-                            //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
-                            callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
-                            callSpace.CallerChunk = m_CurrentChunk;
-                            callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
-                            callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
-                            callSpace.StackCountAtBegin = m_VmStack.Count;
-                            callSpace.IsRunningCallback = true;
-                            m_CurrentMemorySpace = callSpace;
-                            m_CallStack.Push( callSpace );
-
-                            for ( int i = 0; i < m_CallBack.FunctionArguments.Length; i++ )
-                            {
-                                m_CurrentMemorySpace.Define(
-                                    m_CallBack.FunctionArguments[i] );
-                            }
-
-                            m_CurrentChunk = function.ChunkToWrap;
-                            m_CurrentInstructionPointer = 0;
-                            m_CurrentLineNumberPointer = 0;
-                        }
-                        else if ( call.ObjectData is IBiteVmCallable callable )
-                        {
-                            object returnVal = callable.Call( m_FunctionArguments );
-                            m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
-
-                            if ( returnVal != null )
-                            {
-                                m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                            }
-                        }
-                        else
-                        {
-                            throw new BiteVmRuntimeException(
-                                "Runtime Error: Function " + method + " not found!" );
+                            m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
                         }
                     }
-                    m_CallbackWaiting = false;
+                    else
+                    {
+                        throw new BiteVmRuntimeException(
+                            "Runtime Error: Function " + method + " not found!" );
+                    }
+                }
+
+                m_CallbackWaiting = false;
             }
+
             if ( m_CurrentInstructionPointer < m_CurrentChunk.Code.Length )
             {
 #if BITE_VM_DEBUG_TRACE_EXECUTION
@@ -514,6 +526,7 @@ public class BiteVm
                         m_CurrentInstructionPointer += 4;
 
                         m_FunctionArguments = new DynamicBiteVariable[numberOfArguments];
+
                         for ( int i = numberOfArguments - 1; i >= 0; i-- )
                         {
                             m_FunctionArguments[i] = ( m_VmStack.Pop() );
@@ -562,7 +575,7 @@ public class BiteVm
                                 m_CurrentMemorySpace.Define( m_FunctionArguments[i] );
                             }
 
-                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                            m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
                             m_CurrentChunk = function.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                             m_CurrentLineNumberPointer = 0;
@@ -570,7 +583,7 @@ public class BiteVm
                         else if ( call.ObjectData is IBiteVmCallable callable )
                         {
                             object returnVal = callable.Call( m_FunctionArguments );
-                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                            m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
 
                             if ( returnVal != null )
                             {
@@ -611,7 +624,7 @@ public class BiteVm
                                 m_CurrentMemorySpace.Define( functionArgument );
                             }
 
-                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                            m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
                             m_CurrentChunk = functionFromStack.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                             m_CurrentLineNumberPointer = 0;
@@ -652,7 +665,7 @@ public class BiteVm
                                 object returnVal = fastMethodInfo.
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
 
-                                m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                                m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
 
                                 if ( returnVal != null )
                                 {
@@ -667,9 +680,9 @@ public class BiteVm
                         }
                         else if ( dynamicBiteVariable.ObjectData is ICSharpEvent cSharpEvent )
                         {
-                            EventInfo eventInfo = (EventInfo)m_VmStack.Pop().ObjectData;
+                            EventInfo eventInfo = ( EventInfo ) m_VmStack.Pop().ObjectData;
                             cSharpEvent.Invoke( eventInfo.Name, m_FunctionArguments );
-                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                            m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
                         }
                         else if ( dynamicBiteVariable.ObjectData is FastMemorySpace fastMemorySpace )
                         {
@@ -698,7 +711,7 @@ public class BiteVm
                                         m_CurrentMemorySpace.Define( functionArgument );
                                     }
 
-                                    m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                                    m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
                                     m_CurrentChunk = function.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
                                     m_CurrentLineNumberPointer = 0;
@@ -707,7 +720,7 @@ public class BiteVm
                                 if ( call.ObjectData is IBiteVmCallable callable )
                                 {
                                     object returnVal = callable.Call( m_FunctionArguments );
-                                    m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
+                                    m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
 
                                     if ( returnVal != null )
                                     {
@@ -723,50 +736,81 @@ public class BiteVm
                         }
                         else if ( dynamicBiteVariable.ObjectData is object obj )
                         {
-                            //string callString = obj + "." + constant.StringConstantValue;
-                            Type type = obj.GetType();
-
-                            object[] functionArguments = new object[m_FunctionArguments.Length / 2];
-                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Length / 2];
-
-                            int it = 0;
-                            for ( int i = 0; i < m_FunctionArguments.Length; i += 2 )
+                            if ( m_CallSites.TryGetValue( ( m_CurrentInstructionPointer, m_CurrentChunk ), out BiteVmCallSite biteVmCallSite ) )
                             {
-                                if ( m_FunctionArguments[i + 1].DynamicType == DynamicVariableType.String )
+                                object[] functionArguments = new object[m_FunctionArguments.Length / 2];
+                                
+                                int it = 0;
+
+                                for ( int i = 0; i < m_FunctionArguments.Length; i += 2 )
                                 {
-                                    if ( TypeRegistry.TryResolveType(
-                                            m_FunctionArguments[i + 1].StringData,
-                                            out Type argType ) )
-                                    {
-                                        functionArgumentTypes[it] = argType;
-                                        functionArguments[it] = Convert.ChangeType(m_FunctionArguments[i].ToObject(), argType);
-                                    }
+                                    functionArguments[it] = Convert.ChangeType(
+                                        m_FunctionArguments[i].ToObject(),
+                                        biteVmCallSite.FunctionArgumentTypes[it] );
+
+                                    it++;
                                 }
 
-                                it++;
-                            }
-
-                            if ( m_CachedMethods.TryGetMethod(
-                                    type,
-                                    functionArgumentTypes,
-                                    constant.StringConstantValue,
-                                    out FastMethodInfo fastMethodInfo ) )
-                            {
-                                object returnVal = fastMethodInfo.
-                                    Invoke( dynamicBiteVariable.ObjectData, functionArguments );
-
-                                m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
-
-                                if ( returnVal != null )
-                                {
-                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
-                                }
+                                biteVmCallSite.FastMethodInfo.Invoke( obj, functionArguments );
                             }
                             else
                             {
-                                throw new BiteVmRuntimeException(
-                                    "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
+                                Type type = obj.GetType();
+
+                                object[] functionArguments = new object[m_FunctionArguments.Length / 2];
+                                Type[] functionArgumentTypes = new Type[m_FunctionArguments.Length / 2];
+
+                                int it = 0;
+
+                                for ( int i = 0; i < m_FunctionArguments.Length; i += 2 )
+                                {
+                                    if ( m_FunctionArguments[i + 1].DynamicType == DynamicVariableType.String )
+                                    {
+                                        if ( TypeRegistry.TryResolveType(
+                                                m_FunctionArguments[i + 1].StringData,
+                                                out Type argType ) )
+                                        {
+                                            functionArgumentTypes[it] = argType;
+
+                                            functionArguments[it] = Convert.ChangeType(
+                                                m_FunctionArguments[i].ToObject(),
+                                                argType );
+                                        }
+                                    }
+
+                                    it++;
+                                }
+
+                                if ( m_CachedMethods.TryGetMethod(
+                                        type,
+                                        functionArgumentTypes,
+                                        constant.StringConstantValue,
+                                        out FastMethodInfo fastMethodInfo ) )
+                                {
+                                    object returnVal = fastMethodInfo.
+                                        Invoke( dynamicBiteVariable.ObjectData, functionArguments );
+
+                                    BiteVmCallSite newBiteVmCallSite = new BiteVmCallSite();
+                                    newBiteVmCallSite.FastMethodInfo = fastMethodInfo;
+                                    newBiteVmCallSite.FunctionArgumentTypes = functionArgumentTypes;
+                                    
+                                    m_CallSites.Add( (m_CurrentInstructionPointer, m_CurrentChunk), newBiteVmCallSite );
+                                    
+                                    m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
+
+                                    if ( returnVal != null )
+                                    {
+                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                    }
+                                }
+                                else
+                                {
+                                    throw new BiteVmRuntimeException(
+                                        "Runtime Error: Function " + constant.StringConstantValue + " not found!" );
+                                }
                             }
+
+                            //string callString = obj + "." + constant.StringConstantValue;
                         }
                         else
                         {
@@ -1054,6 +1098,7 @@ public class BiteVm
                     case BiteVmOpCodes.OpGetMemberWithString:
                     {
                         string member = ReadConstant().StringConstantValue;
+
                         if ( m_VmStack.Peek().ObjectData is FastMemorySpace )
                         {
                             FastMemorySpace obj = ( FastMemorySpace ) m_VmStack.Pop().ObjectData;
@@ -1077,9 +1122,9 @@ public class BiteVm
                                                 fastPropertyInfo.InvokeGet( null ) ) );
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            wrapper.StaticWrapperType,
-                                            member,
-                                            out PropertyInfo propertyInfo ) )
+                                                 wrapper.StaticWrapperType,
+                                                 member,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         m_VmStack.Push(
                                             DynamicVariableExtension.ToDynamicVariable(
@@ -1104,8 +1149,8 @@ public class BiteVm
                                 {
                                     if ( eventWrapper.TryGetEventInfo( member, out EventInfo eventInfo ) )
                                     {
-                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(eventInfo) );
-                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable(eventWrapper) );
+                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( eventInfo ) );
+                                        m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( eventWrapper ) );
                                     }
                                     else
                                     {
@@ -1127,9 +1172,9 @@ public class BiteVm
                                                 fastPropertyInfo.InvokeGet( obj ) ) );
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            member,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 member,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         m_VmStack.Push(
                                             DynamicVariableExtension.ToDynamicVariable(
@@ -1259,10 +1304,13 @@ public class BiteVm
                             case ConstantValueType.Bool:
                                 m_VmStack.Push(
                                     DynamicVariableExtension.ToDynamicVariable( constantValue.BoolConstantValue ) );
+
                                 break;
+
                             case ConstantValueType.Null:
                                 DynamicBiteVariable dynamicBiteVariable = new DynamicBiteVariable();
                                 dynamicBiteVariable.DynamicType = DynamicVariableType.Null;
+
                                 m_VmStack.Push(
                                     dynamicBiteVariable );
 
@@ -1444,9 +1492,9 @@ public class BiteVm
                                         fastPropertyInfo.InvokeSet( obj, data );
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         object data = m_VmStack.PopDataByType( propertyInfo.PropertyType );
 
@@ -1712,6 +1760,7 @@ public class BiteVm
                                                 "Runtime Error: Invalid types for arithmetic operation!" );
                                         }
                                     }
+
                                     if ( m_CachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -2061,6 +2110,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -2136,9 +2186,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -2493,6 +2543,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -2568,9 +2619,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -2916,6 +2967,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -2988,9 +3040,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -3333,6 +3385,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -3405,9 +3458,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -3750,6 +3803,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -3822,9 +3876,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -4240,9 +4294,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -4585,6 +4639,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -4657,9 +4712,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -5075,9 +5130,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -5420,6 +5475,7 @@ public class BiteVm
                                     }
 
                                     DynamicBiteVariable valueRhs = m_VmStack.Pop();
+
                                     if ( FastCachedProperties.TryGetProperty(
                                             type,
                                             m_MemberWithStringToSet,
@@ -5492,9 +5548,9 @@ public class BiteVm
                                         }
                                     }
                                     else if ( m_CachedProperties.TryGetProperty(
-                                            type,
-                                            m_MemberWithStringToSet,
-                                            out PropertyInfo propertyInfo ) )
+                                                 type,
+                                                 m_MemberWithStringToSet,
+                                                 out PropertyInfo propertyInfo ) )
                                     {
                                         if ( propertyInfo.PropertyType == typeof( double ) &&
                                              valueRhs.DynamicType < DynamicVariableType.True )
@@ -6365,11 +6421,12 @@ public class BiteVm
                                 DynamicVariableExtension.ToDynamicVariable(
                                     valueLhs.NumberData * valueRhs.NumberData ) );
                         }
-                        else if(valueLhs.DynamicType == DynamicVariableType.Object && valueRhs.DynamicType < DynamicVariableType.True)
+                        else if ( valueLhs.DynamicType == DynamicVariableType.Object &&
+                                  valueRhs.DynamicType < DynamicVariableType.True )
                         {
                             object obj = valueLhs.ToObject();
                             Type objType = obj.GetType();
-                            Type[] argsTypes = { objType, typeof(float) };
+                            Type[] argsTypes = { objType, typeof( float ) };
 
                             if ( m_CachedMethods.TryGetMethod(
                                     obj.GetType(),
@@ -6377,15 +6434,16 @@ public class BiteVm
                                     "op_Multiply",
                                     out FastMethodInfo fastMethodInfo ) )
                             {
-                                object[] args = { obj, (float)valueRhs.NumberData };
+                                object[] args = { obj, ( float ) valueRhs.NumberData };
                                 fastMethodInfo.Invoke( obj, args );
                             }
                         }
-                        else if(valueLhs.DynamicType < DynamicVariableType.True && valueRhs.DynamicType == DynamicVariableType.Object)
+                        else if ( valueLhs.DynamicType < DynamicVariableType.True &&
+                                  valueRhs.DynamicType == DynamicVariableType.Object )
                         {
                             object obj = valueRhs.ToObject();
                             Type objType = obj.GetType();
-                            Type[] argsTypes = { typeof(float), objType };
+                            Type[] argsTypes = { typeof( float ), objType };
 
                             if ( m_CachedMethods.TryGetMethod(
                                     obj.GetType(),
@@ -6393,7 +6451,7 @@ public class BiteVm
                                     "op_Multiply",
                                     out FastMethodInfo fastMethodInfo ) )
                             {
-                                object[] args = { (float)valueLhs.NumberData, obj };
+                                object[] args = { ( float ) valueLhs.NumberData, obj };
                                 fastMethodInfo.Invoke( obj, args );
                             }
                         }
@@ -6537,8 +6595,8 @@ public class BiteVm
                             m_VmStack.Count -= stackCounter;
                         }
 
-                        if ( m_CallStack.Peek().CallerChunk != null && 
-                             m_CallStack.Peek().CallerChunk.Code != null)
+                        if ( m_CallStack.Peek().CallerChunk != null &&
+                             m_CallStack.Peek().CallerChunk.Code != null )
                         {
                             m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                             m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;
@@ -6546,25 +6604,28 @@ public class BiteVm
                         }
 
                         m_PoolFastMemoryFastMemory.Return( m_CallStack.Pop() );
-                        
+
                         if ( m_KeepLastItemOnStackToReturn )
                         {
                             m_VmStack.Push( ReturnValue );
                         }
 
                         m_KeepLastItemOnStackToReturn = false;
-                        
+
                         if ( m_CurrentMemorySpace.IsRunningCallback )
                         {
                             m_SpinLock = false;
                         }
+
                         m_CurrentMemorySpace = m_CallStack.Peek();
+
                         break;
                     }
 
                     default:
                         throw new ArgumentOutOfRangeException( "Instruction : " + instruction );
                 }
+
                 m_CurrentLineNumberPointer++;
             }
             else
@@ -6582,8 +6643,8 @@ public class BiteVm
                         m_VmStack.Count -= stackCounter;
                     }
 
-                    if (m_CallStack.Peek().CallerChunk != null && 
-                        m_CallStack.Peek().CallerChunk.Code != null)
+                    if ( m_CallStack.Peek().CallerChunk != null &&
+                         m_CallStack.Peek().CallerChunk.Code != null )
                     {
                         m_CurrentChunk = m_CallStack.Peek().CallerChunk;
                         m_CurrentInstructionPointer = m_CallStack.Peek().CallerIntructionPointer;
@@ -6603,6 +6664,7 @@ public class BiteVm
                     {
                         m_SpinLock = false;
                     }
+
                     if ( m_CallStack.Count > 0 )
                     {
                         m_CurrentMemorySpace = m_CallStack.Peek();
