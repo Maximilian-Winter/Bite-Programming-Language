@@ -51,15 +51,15 @@ for ( j = 0; j < yres; j++ )
 
         if ( k >= maxiter )
         {
-            NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBlack, "Color");
-            //img.SetPixel( i, j, colorBlack );
+            //NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBlack, "Color");
+            img.SetPixel( i, "int", j, "int", colorBlack, "Color" );
         }
         else
         {
-            NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBrown, "Color");
-            //img.SetPixel( i, j, colorBrown );
+            //NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBrown, "Color");
+            img.SetPixel(  i, "int", j, "int", colorBrown, "Color" );
         }
     }
 }
 
-img.Save( "file.png", imgFormat );
+img.Save( "file.png", "string", imgFormat, "ImageFormat" );

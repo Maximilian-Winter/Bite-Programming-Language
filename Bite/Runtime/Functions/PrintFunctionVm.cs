@@ -9,11 +9,11 @@ public class PrintFunctionVm : IBiteVmCallable
 {
     #region Public
 
-    public object Call( List < DynamicBiteVariable > arguments )
+    public object Call( DynamicBiteVariable[] arguments )
     {
         if ( arguments[0].DynamicType != DynamicVariableType.Null )
         {
-            int arraySize = arguments.Count;
+            int arraySize = arguments.Length;
 
             for ( int i = 0; i < arraySize; i++ )
             {

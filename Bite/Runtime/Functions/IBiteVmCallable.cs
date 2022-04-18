@@ -6,7 +6,7 @@ namespace Bite.Runtime.Functions
 
 public interface IBiteVmCallable
 {
-    object Call( List < DynamicBiteVariable > arguments );
+    object Call( DynamicBiteVariable[] arguments );
 }
 
 }

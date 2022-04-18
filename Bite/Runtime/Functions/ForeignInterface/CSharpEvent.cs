@@ -26,7 +26,7 @@ public class CSharpEvent < V, T, K > : ICSharpEvent
         return m_EventWrapper.EventHolder;
     }
 
-    public void Invoke( string name, List < DynamicBiteVariable > m_FunctionArguments )
+    public void Invoke( string name, DynamicBiteVariable[] m_FunctionArguments )
     {
         m_EventWrapper.Invoke( name, m_FunctionArguments );
     }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Antlr4.Runtime.Dfa;
 using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions;
@@ -26,8 +27,10 @@ public class BiteVm
     private int m_CurrentInstructionPointer;
     private DynamicBiteVariableStack m_VmStack;
 
-    private readonly List < DynamicBiteVariable > m_FunctionArguments = new List < DynamicBiteVariable >();
+    //private readonly List < DynamicBiteVariable > m_FunctionArguments = new List < DynamicBiteVariable >();
 
+    private DynamicBiteVariable[] m_FunctionArguments = new DynamicBiteVariable[0];
+    public TypeRegistry TypeRegistry;
     private ObjectPoolFastMemory m_PoolFastMemoryFastMemory;
     private FastGlobalMemorySpace m_GlobalMemorySpace;
     private FastMemorySpace m_CurrentMemorySpace;
@@ -341,7 +344,7 @@ public class BiteVm
                         else if ( call.ObjectData is IBiteVmCallable callable )
                         {
                             object returnVal = callable.Call( m_FunctionArguments );
-                            m_FunctionArguments.Clear();
+                            m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
 
                             if ( returnVal != null )
                             {
@@ -510,9 +513,10 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
 
-                        for ( int i = 0; i < numberOfArguments; i++ )
+                        m_FunctionArguments = new DynamicBiteVariable[numberOfArguments];
+                        for ( int i = numberOfArguments - 1; i >= 0; i-- )
                         {
-                            m_FunctionArguments.Add( m_VmStack.Pop() );
+                            m_FunctionArguments[i] = ( m_VmStack.Pop() );
                         }
 
                         break;
@@ -553,12 +557,12 @@ public class BiteVm
                             m_CurrentMemorySpace = callSpace;
                             m_CallStack.Push( callSpace );
 
-                            for ( int i = 0; i < m_FunctionArguments.Count; i++ )
+                            for ( int i = 0; i < m_FunctionArguments.Length; i++ )
                             {
                                 m_CurrentMemorySpace.Define( m_FunctionArguments[i] );
                             }
 
-                            m_FunctionArguments.Clear();
+                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
                             m_CurrentChunk = function.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                             m_CurrentLineNumberPointer = 0;
@@ -566,7 +570,7 @@ public class BiteVm
                         else if ( call.ObjectData is IBiteVmCallable callable )
                         {
                             object returnVal = callable.Call( m_FunctionArguments );
-                            m_FunctionArguments.Clear();
+                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
 
                             if ( returnVal != null )
                             {
@@ -607,7 +611,7 @@ public class BiteVm
                                 m_CurrentMemorySpace.Define( functionArgument );
                             }
 
-                            m_FunctionArguments.Clear();
+                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
                             m_CurrentChunk = functionFromStack.ChunkToWrap;
                             m_CurrentInstructionPointer = 0;
                             m_CurrentLineNumberPointer = 0;
@@ -628,12 +632,11 @@ public class BiteVm
                         if ( dynamicBiteVariable.ObjectData is StaticWrapper wrapper )
                         {
                             string methodName = constant.StringConstantValue;
-                            object[] functionArguments = new object[m_FunctionArguments.Count];
-                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
+                            object[] functionArguments = new object[m_FunctionArguments.Length];
+                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Length];
                             int it = 0;
-                            m_FunctionArguments.Reverse();
 
-                            for ( int i = 0; i < m_FunctionArguments.Count; i++ )
+                            for ( int i = 0; i < m_FunctionArguments.Length; i++ )
                             {
                                 functionArguments[it] = m_FunctionArguments[i].ToObject();
                                 functionArgumentTypes[it] = m_FunctionArguments[i].GetType();
@@ -649,7 +652,7 @@ public class BiteVm
                                 object returnVal = fastMethodInfo.
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
 
-                                m_FunctionArguments.Clear();
+                                m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
 
                                 if ( returnVal != null )
                                 {
@@ -666,7 +669,7 @@ public class BiteVm
                         {
                             EventInfo eventInfo = (EventInfo)m_VmStack.Pop().ObjectData;
                             cSharpEvent.Invoke( eventInfo.Name, m_FunctionArguments );
-                            m_FunctionArguments.Clear();
+                            m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
                         }
                         else if ( dynamicBiteVariable.ObjectData is FastMemorySpace fastMemorySpace )
                         {
@@ -681,7 +684,7 @@ public class BiteVm
                                 {
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
-                                    //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
+                                    //callSpace.ResetPropertiesArray( m_FunctionArguments.Length );
                                     callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
                                     callSpace.CallerChunk = m_CurrentChunk;
                                     callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
@@ -695,7 +698,7 @@ public class BiteVm
                                         m_CurrentMemorySpace.Define( functionArgument );
                                     }
 
-                                    m_FunctionArguments.Clear();
+                                    m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
                                     m_CurrentChunk = function.ChunkToWrap;
                                     m_CurrentInstructionPointer = 0;
                                     m_CurrentLineNumberPointer = 0;
@@ -704,7 +707,7 @@ public class BiteVm
                                 if ( call.ObjectData is IBiteVmCallable callable )
                                 {
                                     object returnVal = callable.Call( m_FunctionArguments );
-                                    m_FunctionArguments.Clear();
+                                    m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
 
                                     if ( returnVal != null )
                                     {
@@ -723,15 +726,23 @@ public class BiteVm
                             //string callString = obj + "." + constant.StringConstantValue;
                             Type type = obj.GetType();
 
-                            object[] functionArguments = new object[m_FunctionArguments.Count];
-                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Count];
-                            int it = 0;
-                            m_FunctionArguments.Reverse();
+                            object[] functionArguments = new object[m_FunctionArguments.Length / 2];
+                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Length / 2];
 
-                            for ( int i = 0; i < m_FunctionArguments.Count; i++ )
+                            int it = 0;
+                            for ( int i = 0; i < m_FunctionArguments.Length; i += 2 )
                             {
-                                functionArguments[it] = m_FunctionArguments[i].ToObject();
-                                functionArgumentTypes[it] = m_FunctionArguments[i].GetType();
+                                if ( m_FunctionArguments[i + 1].DynamicType == DynamicVariableType.String )
+                                {
+                                    if ( TypeRegistry.TryResolveType(
+                                            m_FunctionArguments[i + 1].StringData,
+                                            out Type argType ) )
+                                    {
+                                        functionArgumentTypes[it] = argType;
+                                        functionArguments[it] = Convert.ChangeType(m_FunctionArguments[i].ToObject(), argType);
+                                    }
+                                }
+
                                 it++;
                             }
 
@@ -744,7 +755,7 @@ public class BiteVm
                                 object returnVal = fastMethodInfo.
                                     Invoke( dynamicBiteVariable.ObjectData, functionArguments );
 
-                                m_FunctionArguments.Clear();
+                                m_FunctionArguments = Array.Empty<DynamicBiteVariable>();
 
                                 if ( returnVal != null )
                                 {

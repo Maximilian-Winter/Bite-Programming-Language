@@ -44,7 +44,7 @@ internal class Program
 
             biteVmReciever.RegisterSystemModuleCallables( programReciever.TypeRegistry );
             biteVmReciever.SynchronizationContext = new SynchronizationContext();
-
+            biteVmReciever.TypeRegistry = programReciever.TypeRegistry;
             Task.Run(
                      () =>
                      {

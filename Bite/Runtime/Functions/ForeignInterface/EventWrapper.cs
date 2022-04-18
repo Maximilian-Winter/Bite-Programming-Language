@@ -169,23 +169,22 @@ public class EventWrapper < V, T, K >
         return m_EventInfos.TryGetValue( name, out eventInfo );
     }
 
-    public void Invoke( string name, List < DynamicBiteVariable > functionArguments )
+    public void Invoke( string name, DynamicBiteVariable[] functionArguments )
     {
          if ( m_EventInfos.TryGetValue( name, out EventInfo eventInfo ) )
         {
             MethodInfo methodInfo = eventInfo.EventHandlerType.GetMethod( "Invoke" );
             ParameterInfo[] parameterInfos = methodInfo.GetParameters();
             
-            if ( functionArguments.Count != parameterInfos.Length )
+            if ( functionArguments.Length != parameterInfos.Length )
             {
                 return;
             }
             else
             {
-                functionArguments.Reverse();
-                object[] eventArgs = new object[functionArguments.Count];
+                object[] eventArgs = new object[functionArguments.Length];
                 
-                for ( int i = 0; i < functionArguments.Count; i++ )
+                for ( int i = 0; i < functionArguments.Length; i++ )
                 {
                     object arg = functionArguments[i].ToObject();
 

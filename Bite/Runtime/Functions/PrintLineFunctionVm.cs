@@ -9,9 +9,9 @@ public class PrintLineFunctionVm : IBiteVmCallable
 {
     #region Public
 
-    public object Call( List < DynamicBiteVariable > arguments )
+    public object Call( DynamicBiteVariable[] arguments )
     {
-        int argumentsCount = arguments.Count;
+        int argumentsCount = arguments.Length;
 
         for ( int i = 0; i < argumentsCount; i++ )
         {

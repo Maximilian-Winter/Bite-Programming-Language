@@ -24,12 +24,11 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
         m_TypeRegistry = typeRegistry;
     }
 
-    public object Call( List < DynamicBiteVariable > arguments )
+    public object Call( DynamicBiteVariable[] arguments )
     {
-        arguments.Reverse();
-        if ( arguments.Count > 0 )
+        if ( arguments.Length > 0 )
         {
-            if ( arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.Object && arguments[0].ObjectData is FastMemorySpace fliObject)
+            if ( arguments.Length == 1 && arguments[0].DynamicType == DynamicVariableType.Object && arguments[0].ObjectData is FastMemorySpace fliObject)
             {
                 string typeString = fliObject.Get( "Type" ).StringData;
 
@@ -305,7 +304,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         }
                     }
             }
-            else if (  arguments.Count == 1 && arguments[0].DynamicType == DynamicVariableType.String )
+            else if (  arguments.Length == 1 && arguments[0].DynamicType == DynamicVariableType.String )
             {
                 Type type = ResolveType( arguments[0].StringData );
 
@@ -318,7 +317,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                 return wrapper;
             }
-            else if (  arguments.Count == 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.String )
+            else if (  arguments.Length == 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.String )
             {
                 Type type = ResolveType( arguments[0].StringData );
 
@@ -336,7 +335,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                     return obj;
                 }
             }
-            else if (  arguments.Count == 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.True  )
+            else if (  arguments.Length == 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.True  )
             {
                 Type type = ResolveType( arguments[0].StringData );
 
@@ -351,7 +350,7 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                 return classObject;
             }
-            else if (  arguments.Count > 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.True  )
+            else if (  arguments.Length > 2 && arguments[0].DynamicType == DynamicVariableType.String && arguments[1].DynamicType == DynamicVariableType.True  )
             {
                 Type type = ResolveType( arguments[0].StringData );
 
@@ -361,11 +360,11 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
                         $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
                 }
                 
-                Type[] constructorArgTypes = new Type[(arguments.Count - 2) / 2];
-                object[] constructorArgs = new object[(arguments.Count - 2) / 2];
+                Type[] constructorArgTypes = new Type[(arguments.Length - 2) / 2];
+                object[] constructorArgs = new object[(arguments.Length - 2) / 2];
 
                 int counter = 0;
-                for ( int i = 2; i < arguments.Count; i+=2 )
+                for ( int i = 2; i < arguments.Length; i+=2 )
                 {
                     if ( arguments[i + 1].DynamicType == DynamicVariableType.String )
                     {
@@ -392,16 +391,16 @@ public class ForeignLibraryInterfaceVm : IBiteVmCallable
 
                 return classObject;
             }
-            else if (  arguments.Count > 2 && arguments[0].DynamicType == DynamicVariableType.Object && arguments[1].DynamicType == DynamicVariableType.String  )
+            else if (  arguments.Length > 2 && arguments[0].DynamicType == DynamicVariableType.Object && arguments[1].DynamicType == DynamicVariableType.String  )
             {
                 object obj = arguments[0].ToObject();
                 Type type = obj.GetType();
 
-                Type[] argTypes = new Type[(arguments.Count - 2) / 2];
-                object[] args = new object[(arguments.Count - 2) / 2];
+                Type[] argTypes = new Type[(arguments.Length - 2) / 2];
+                object[] args = new object[(arguments.Length - 2) / 2];
 
                 int counter = 0;
-                for ( int i = 2; i < arguments.Count; i+=2 )
+                for ( int i = 2; i < arguments.Length; i+=2 )
                 {
                     if ( arguments[i + 1].DynamicType == DynamicVariableType.String )
                     {
