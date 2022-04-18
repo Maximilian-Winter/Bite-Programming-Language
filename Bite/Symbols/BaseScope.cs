@@ -91,6 +91,7 @@ public abstract class BaseScope : Scope
 
     public virtual void define( Symbol sym )
     {
+        GlobalSymbolTable.Define( sym );
         if ( symbols.ContainsKey( sym.Name ) )
         {
             throw new ArgumentException( "duplicate symbol " + sym.Name );

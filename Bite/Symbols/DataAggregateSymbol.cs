@@ -88,6 +88,7 @@ public abstract class DataAggregateSymbol : SymbolWithScope, MemberSymbol, Type
 
     public override void define( Symbol sym )
     {
+        GlobalSymbolTable.Define( sym );
         if ( !( sym is MemberSymbol ) )
         {
             throw new ArgumentException( "sym is " + sym.GetType().Name + " not MemberSymbol" );

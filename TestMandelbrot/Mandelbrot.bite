@@ -4,10 +4,10 @@ import System;
 using System;
 
 
-var xmin = -1.5;
-var xmax = 1.5;
-var ymin = -1.5;
-var ymax = 1.5;
+var xmin = -2.0;
+var xmax = 2.0;
+var ymin = -2.0;
+var ymax = 2.0;
 
 var maxiter = 1000;
 
