@@ -645,14 +645,23 @@ public class BiteVm
                         if ( dynamicBiteVariable.ObjectData is StaticWrapper wrapper )
                         {
                             string methodName = constant.StringConstantValue;
-                            object[] functionArguments = new object[m_FunctionArguments.Length];
-                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Length];
-                            int it = 0;
+                            object[] functionArguments = new object[m_FunctionArguments.Length / 2];
+                            Type[] functionArgumentTypes = new Type[m_FunctionArguments.Length / 2];
 
-                            for ( int i = 0; i < m_FunctionArguments.Length; i++ )
+                            int it = 0;
+                            for ( int i = 0; i < m_FunctionArguments.Length; i += 2 )
                             {
-                                functionArguments[it] = m_FunctionArguments[i].ToObject();
-                                functionArgumentTypes[it] = m_FunctionArguments[i].GetType();
+                                if ( m_FunctionArguments[i + 1].DynamicType == DynamicVariableType.String )
+                                {
+                                    if ( TypeRegistry.TryResolveType(
+                                            m_FunctionArguments[i + 1].StringData,
+                                            out Type argType ) )
+                                    {
+                                        functionArgumentTypes[it] = argType;
+                                        functionArguments[it] = Convert.ChangeType(m_FunctionArguments[i].ToObject(), argType);
+                                    }
+                                }
+
                                 it++;
                             }
 
@@ -990,8 +999,50 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpGetNextVarByRef:
                     {
-                        m_GetNextVarByRef = true;
+                        BiteVmOpCodes nextOpCode = ReadInstruction();
 
+                        if ( nextOpCode == BiteVmOpCodes.OpGetVar )
+                        {
+                            m_LastGetLocalVarModuleId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                    ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalVarDepth = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                 ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalClassId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_LastGetLocalVarId = m_CurrentChunk.Code[m_CurrentInstructionPointer] |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 1] << 8 ) |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 2] << 16 ) |
+                                              ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
+
+                        m_CurrentInstructionPointer += 4;
+
+                        m_VmStack.Push(
+                            m_CurrentMemorySpace.Get(
+                                m_LastGetLocalVarModuleId,
+                                m_LastGetLocalVarDepth,
+                                m_LastGetLocalClassId,
+                                m_LastGetLocalVarId ) );
+                        }
+                        else
+                        {
+                            m_CurrentInstructionPointer--;
+                        }
+                        
                         break;
                     }
 
@@ -1025,27 +1076,13 @@ public class BiteVm
 
                         m_CurrentInstructionPointer += 4;
 
-                        if ( m_GetNextVarByRef )
-                        {
-                            m_VmStack.Push(
+                        m_VmStack.Push(
+                            DynamicVariableExtension.ToDynamicVariable(
                                 m_CurrentMemorySpace.Get(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
-                                    m_LastGetLocalVarId ) );
-
-                            m_GetNextVarByRef = false;
-                        }
-                        else
-                        {
-                            m_VmStack.Push(
-                                DynamicVariableExtension.ToDynamicVariable(
-                                    m_CurrentMemorySpace.Get(
-                                        m_LastGetLocalVarModuleId,
-                                        m_LastGetLocalVarDepth,
-                                        m_LastGetLocalClassId,
-                                        m_LastGetLocalVarId ) ) );
-                        }
+                                    m_LastGetLocalVarId ) ) );
 
                         break;
                     }
@@ -1258,14 +1295,27 @@ public class BiteVm
                         m_LastGetLocalVarDepth = depth;
                         m_LastGetLocalClassId = classId;
 
-                        ReadInstruction();
-                        
-                        m_CurrentMemorySpace.Put(
-                            m_LastGetLocalVarModuleId,
-                            m_LastGetLocalVarDepth,
-                            m_LastGetLocalClassId,
-                            m_LastGetLocalVarId,
-                            m_VmStack.Pop() );
+                        BiteVmOpCodes nextOpCode = ReadInstruction();
+
+                        if ( nextOpCode == BiteVmOpCodes.OpAssign )
+                        {
+                            m_CurrentMemorySpace.Put(
+                                m_LastGetLocalVarModuleId,
+                                m_LastGetLocalVarDepth,
+                                m_LastGetLocalClassId,
+                                m_LastGetLocalVarId,
+                                m_VmStack.Pop() );
+                        }
+                        else
+                        {
+                            m_VmStack.Push( m_CurrentMemorySpace.Get(
+                                                m_LastGetLocalVarModuleId,
+                                                m_LastGetLocalVarDepth,
+                                                m_LastGetLocalClassId,
+                                                m_LastGetLocalVarId ) );
+                            m_CurrentInstructionPointer--;
+                        }
+                       
                         break;
                     }
 

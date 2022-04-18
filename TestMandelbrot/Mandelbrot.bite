@@ -56,8 +56,7 @@ for ( j = 0; j < yres; j++ )
         }
         else
         {
-            //NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBrown, "Color");
-            img.SetPixel(  i, "int", j, "int", colorBrown, "Color" );
+             img.SetPixel( i, "int", j, "int", colorBrown, "Color" );
         }
     }
 }
