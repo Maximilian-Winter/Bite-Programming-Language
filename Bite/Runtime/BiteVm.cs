@@ -362,14 +362,14 @@ public class BiteVm
             if ( m_CurrentInstructionPointer < m_CurrentChunk.Code.Length )
             {
 #if BITE_VM_DEBUG_TRACE_EXECUTION
-                Console.Write( "Stack:   " );
+               /* Console.Write( "Stack:   " );
 
                 for ( int i = 0; i < m_VmStack.Count; i++ )
                 {
                     Console.Write( "[" + m_VmStack.Peek( i ) + "]" );
                 }
 
-                Console.Write( "\n" );
+                Console.Write( "\n" );*/
 
                 m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer, m_CurrentLineNumberPointer );
 #endif
@@ -1213,8 +1213,14 @@ public class BiteVm
                         m_LastGetLocalVarDepth = depth;
                         m_LastGetLocalClassId = classId;
 
-                        m_VmStack.Push( m_CurrentMemorySpace.Get( moduleId, depth, classId, id ) );
-
+                        ReadInstruction();
+                        
+                        m_CurrentMemorySpace.Put(
+                            m_LastGetLocalVarModuleId,
+                            m_LastGetLocalVarDepth,
+                            m_LastGetLocalClassId,
+                            m_LastGetLocalVarId,
+                            m_VmStack.Pop() );
                         break;
                     }
 

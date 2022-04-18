@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Bite.Compiler;
 using Bite.Modules.Callables;
 using Bite.Runtime;
+using Bite.Runtime.Bytecode;
 using Bite.Runtime.CodeGen;
 
 namespace TestMandelbrot
@@ -55,6 +57,25 @@ internal class Program
 
                          Console.WriteLine(
                              $"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- " );
+                         
+                         IOrderedEnumerable < KeyValuePair < string, long > > sortedDict =
+                             from entry in ChunkDebugHelper.InstructionCounter orderby entry.Value descending select entry;
+
+                         long totalInstructions = 0;
+
+                         foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
+                         {
+                             totalInstructions += keyValuePair.Value;
+                         }
+
+                         foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
+                         {
+                             Console.WriteLine(
+                                 "--Instruction Count for Instruction {0}: {2}     {1}%",
+                                 keyValuePair.Key,
+                                 ( 100.0 / totalInstructions * keyValuePair.Value ).ToString( "00.0" ),
+                                 keyValuePair.Value );
+                         }
                      } ).
                  ContinueWith(
                      t =>
@@ -65,6 +86,8 @@ internal class Program
                          }
                      } );
         }
+        
+       
 
         Console.ReadLine();
     }
