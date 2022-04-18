@@ -199,3 +199,8 @@ public class TestClassCSharp
     #endregion
 }
 ```
+
+
+Here are more examples on how to use the `NetLanguageInterface`
+
+![BitNetInterface](https://user-images.githubusercontent.com/24946356/163724215-78bde228-9ce7-4c92-b7c5-52163d6fcd45.PNG)
