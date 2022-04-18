@@ -31,7 +31,7 @@ public static class ChunkDebugHelper
 
     public static int DissassembleInstruction( this BinaryChunk chunk, int offset, int lineOffset )
     {
-        //Console.Write( offset + " " );
+        Console.Write( offset + " " );
 
         BiteVmOpCodes instruction = ( BiteVmOpCodes ) chunk.Code[offset];
         offset++;
@@ -63,7 +63,7 @@ public static class ChunkDebugHelper
                     lineNumber = chunk.Lines[chunk.Lines.Count - 1];
                 }
                
-                //Console.WriteLine( $"{inst} Line: {lineNumber}" );
+                Console.WriteLine( $"{inst} Line: {lineNumber}" );
 
                 return offset + 1;
         }
