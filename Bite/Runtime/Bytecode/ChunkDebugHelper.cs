@@ -28,15 +28,12 @@ public static class ChunkDebugHelper
             offset = DissassembleInstruction( chunk, offset );
         }*/
     }
-
-    public static int DissassembleInstruction( this BinaryChunk chunk, int offset, int lineOffset )
+    
+    public static int CountInstruction( this BinaryChunk chunk, int offset )
     {
-        //Console.Write( offset + " " );
-
         BiteVmOpCodes instruction = ( BiteVmOpCodes ) chunk.Code[offset];
         offset++;
-
-       
+        
         switch ( instruction )
         {
             default:
@@ -53,6 +50,23 @@ public static class ChunkDebugHelper
                     //InstructionAnalysis.Add( inst, new InstructionAnalysis() );
                 }
 
+                return offset + 1;
+        }
+    }
+
+    public static int DissassembleInstruction( this BinaryChunk chunk, int offset, int lineOffset )
+    {
+        Console.Write( offset + " " );
+
+        BiteVmOpCodes instruction = ( BiteVmOpCodes ) chunk.Code[offset];
+        offset++;
+
+       
+        switch ( instruction )
+        {
+            default:
+                string inst = instruction.ToString();
+
                 int lineNumber = 0;
                 if ( lineOffset < chunk.Lines.Count )
                 {
@@ -63,7 +77,7 @@ public static class ChunkDebugHelper
                     lineNumber = chunk.Lines[chunk.Lines.Count - 1];
                 }
                
-                //Console.WriteLine( $"{inst} Line: {lineNumber}" );
+                Console.WriteLine( $"{inst} Line: {lineNumber}" );
 
                 return offset + 1;
         }

@@ -1,5 +1,5 @@
 //#define BITE_VM_DEBUG_TRACE_EXECUTION
-
+//#define BITE_VM_DEBUG_COUNT_EXECUTION
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -373,15 +373,19 @@ public class BiteVm
 
             if ( m_CurrentInstructionPointer < m_CurrentChunk.Code.Length )
             {
+                
+#if BITE_VM_DEBUG_COUNT_EXECUTION
+                m_CurrentChunk.CountInstruction( m_CurrentInstructionPointer );
+#endif
 #if BITE_VM_DEBUG_TRACE_EXECUTION
-               /* Console.Write( "Stack:   " );
+               Console.Write( "Stack:   " );
 
                 for ( int i = 0; i < m_VmStack.Count; i++ )
                 {
                     Console.Write( "[" + m_VmStack.Peek( i ) + "]" );
                 }
 
-                Console.Write( "\n" );*/
+                Console.Write( "\n" );
 
                 m_CurrentChunk.DissassembleInstruction( m_CurrentInstructionPointer, m_CurrentLineNumberPointer );
 #endif
@@ -663,7 +667,13 @@ public class BiteVm
                                     it++;
                                 }
 
-                                biteVmCallSite.FastMethodInfo.Invoke( null, functionArguments );
+                                object returnVal = biteVmCallSite.FastMethodInfo.Invoke( null, functionArguments );
+                                m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
+                                
+                                if ( returnVal != null )
+                                {
+                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                }
                             }
                             else
                             {
@@ -798,7 +808,14 @@ public class BiteVm
                                     it++;
                                 }
 
-                                biteVmCallSite.FastMethodInfo.Invoke( obj, functionArguments );
+                                object returnVal = biteVmCallSite.FastMethodInfo.Invoke( obj, functionArguments );
+                                
+                                m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
+
+                                if ( returnVal != null )
+                                {
+                                    m_VmStack.Push( DynamicVariableExtension.ToDynamicVariable( returnVal ) );
+                                }
                             }
                             else
                             {

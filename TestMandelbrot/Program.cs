@@ -19,7 +19,7 @@ namespace TestMandelbrot
 {
 
 class ChangColorIntensity {
-    public static Color ChangeColorBrightness( float correctionFactor)
+    public static Color GetWhiteColorByIntensity( float correctionFactor)
     {
         float red = 255 * correctionFactor;
         float green = 255 * correctionFactor;
@@ -28,14 +28,14 @@ class ChangColorIntensity {
         return Color.FromArgb((int)255, (int)red, (int)green, (int)blue);
     }
 }
-public class ColorBrightnessBiteVm : IBiteVmCallable
+public class WhiteColorByIntensityVm : IBiteVmCallable
 {
 
     public object Call( DynamicBiteVariable[] arguments )
     {
         if ( arguments.Length == 1 )
         {
-            return ChangColorIntensity.ChangeColorBrightness(
+            return ChangColorIntensity.GetWhiteColorByIntensity(
                 (float) arguments[0].NumberData );
         }
 
@@ -70,48 +70,36 @@ internal class Program
             programReciever.TypeRegistry.RegisterType < ImageFormat >();
             programReciever.TypeRegistry.RegisterType < Color >();
             programReciever.TypeRegistry.RegisterType (typeof(Math), "Math");
-            biteVmReciever.RegisterCallable( "GetWhiteColorByIntensity", new ColorBrightnessBiteVm() );
+            biteVmReciever.RegisterCallable( "GetWhiteColorByIntensity", new WhiteColorByIntensityVm() );
             biteVmReciever.RegisterSystemModuleCallables( programReciever.TypeRegistry );
             biteVmReciever.SynchronizationContext = new SynchronizationContext();
             biteVmReciever.TypeRegistry = programReciever.TypeRegistry;
-            Task.Run(
-                     () =>
-                     {
-                         Stopwatch stopwatch = new Stopwatch();
-                         stopwatch.Start();
-                         biteVmReciever.Interpret( programReciever );
-                         stopwatch.Stop();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            biteVmReciever.Interpret( programReciever );
+            stopwatch.Stop();
 
-                         Console.WriteLine(
-                             $"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- " );
+            Console.WriteLine(
+                $"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- " );
                          
-                         IOrderedEnumerable < KeyValuePair < string, long > > sortedDict =
-                             from entry in ChunkDebugHelper.InstructionCounter orderby entry.Value descending select entry;
+            IOrderedEnumerable < KeyValuePair < string, long > > sortedDict =
+                from entry in ChunkDebugHelper.InstructionCounter orderby entry.Value descending select entry;
 
-                         long totalInstructions = 0;
+            long totalInstructions = 0;
 
-                         foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
-                         {
-                             totalInstructions += keyValuePair.Value;
-                         }
+            foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
+            {
+                totalInstructions += keyValuePair.Value;
+            }
 
-                         foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
-                         {
-                             Console.WriteLine(
-                                 "--Instruction Count for Instruction {0}: {2}     {1}%",
-                                 keyValuePair.Key,
-                                 ( 100.0 / totalInstructions * keyValuePair.Value ).ToString( "00.0" ),
-                                 keyValuePair.Value );
-                         }
-                     } ).
-                 ContinueWith(
-                     t =>
-                     {
-                         if ( t.IsFaulted )
-                         {
-                             Console.WriteLine( t.Exception.InnerException.Message );
-                         }
-                     } );
+            foreach ( KeyValuePair < string, long > keyValuePair in sortedDict )
+            {
+                Console.WriteLine(
+                    "--Instruction Count for Instruction {0}: {2}     {1}%",
+                    keyValuePair.Key,
+                    ( 100.0 / totalInstructions * keyValuePair.Value ).ToString( "00.0" ),
+                    keyValuePair.Value );
+            }
         }
         
        
