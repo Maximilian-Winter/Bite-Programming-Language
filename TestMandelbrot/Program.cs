@@ -19,27 +19,13 @@ namespace TestMandelbrot
 {
 
 class ChangColorIntensity {
-    public static Color ChangeColorBrightness(Color color, float correctionFactor)
+    public static Color ChangeColorBrightness( float correctionFactor)
     {
-        float red = (float)color.R;
-        float green = (float)color.G;
-        float blue = (float)color.B;
-
-        if (correctionFactor < 0)
-        {
-            correctionFactor = 1 + correctionFactor;
-            red *= correctionFactor;
-            green *= correctionFactor;
-            blue *= correctionFactor;
-        }
-        else
-        {
-            red = (255 - red) * correctionFactor + red;
-            green = (255 - green) * correctionFactor + green;
-            blue = (255 - blue) * correctionFactor + blue;
-        }
-
-        return Color.FromArgb((int)correctionFactor, (int)red, (int)green, (int)blue);
+        float red = 255 * correctionFactor;
+        float green = 255 * correctionFactor;
+        float blue = 255 * correctionFactor;
+        
+        return Color.FromArgb((int)255, (int)red, (int)green, (int)blue);
     }
 }
 public class ColorBrightnessBiteVm : IBiteVmCallable
@@ -47,11 +33,10 @@ public class ColorBrightnessBiteVm : IBiteVmCallable
 
     public object Call( DynamicBiteVariable[] arguments )
     {
-        if ( arguments.Length == 2 )
+        if ( arguments.Length == 1 )
         {
             return ChangColorIntensity.ChangeColorBrightness(
-                ( Color ) arguments[0].ObjectData,
-                (float) arguments[1].NumberData );
+                (float) arguments[0].NumberData );
         }
 
         return null;
@@ -85,7 +70,7 @@ internal class Program
             programReciever.TypeRegistry.RegisterType < ImageFormat >();
             programReciever.TypeRegistry.RegisterType < Color >();
             programReciever.TypeRegistry.RegisterType (typeof(Math), "Math");
-            biteVmReciever.RegisterCallable( "ChangeColorBrightness", new ColorBrightnessBiteVm() );
+            biteVmReciever.RegisterCallable( "GetWhiteColorByIntensity", new ColorBrightnessBiteVm() );
             biteVmReciever.RegisterSystemModuleCallables( programReciever.TypeRegistry );
             biteVmReciever.SynchronizationContext = new SynchronizationContext();
             biteVmReciever.TypeRegistry = programReciever.TypeRegistry;

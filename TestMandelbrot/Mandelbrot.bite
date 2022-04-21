@@ -3,6 +3,7 @@ module Mandelbrot;
 import System; 
 using System;
 
+extern callable function GetWhiteColorByIntensity ( intensity );
 
 var xmin = -2.0;
 var xmax = 2.0;
@@ -27,7 +28,7 @@ var img = NetLanguageInterface("Bitmap", true, xres, "int", yres, "int");
 var imgFormat = NetLanguageInterface("ImageFormat", "Png");
 var colorBlack = NetLanguageInterface("Color", "Black");
 var colorBrown = NetLanguageInterface("Color", "Brown");
-
+var math = NetLanguageInterface("Math");
 
 for ( j = 0; j < yres; j++ )
 {
@@ -51,12 +52,12 @@ for ( j = 0; j < yres; j++ )
 
         if ( k >= maxiter )
         {
-            //NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBlack, "Color");
             img.SetPixel( i, "int", j, "int", colorBlack, "Color" );
         }
         else
         {
-             img.SetPixel( i, "int", j, "int", colorBrown, "Color" );
+            var intensity = math.Sqrt(k / maxiter, "double");
+            img.SetPixel( i, "int", j, "int", GetWhiteColorByIntensity(intensity), "Color" );
         }
     }
 }
