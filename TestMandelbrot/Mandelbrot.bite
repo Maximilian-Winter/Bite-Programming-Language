@@ -12,7 +12,7 @@ var ymax = 2.0;
 
 var maxiter = 1000;
 
-var xres = 1024;
+var xres = 512;
 var yres = ( xres * ( ymax - ymin ) ) / ( xmax - xmin );
 
 var dx = ( xmax - xmin ) / xres;

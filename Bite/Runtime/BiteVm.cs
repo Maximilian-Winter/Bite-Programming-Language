@@ -947,7 +947,6 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpDefineVar:
                     {
-                        BiteVmOpCodes biteVmOpCode = ReadInstruction();
                         string instanceName = ReadConstant().StringConstantValue;
                         m_CurrentMemorySpace.Define( m_VmStack.Pop(), instanceName );
 
@@ -956,7 +955,6 @@ public class BiteVm
 
                     case BiteVmOpCodes.OpDeclareVar:
                     {
-                        BiteVmOpCodes biteVmOpCode = ReadInstruction();
                         string instanceName = ReadConstant().StringConstantValue;
                         m_CurrentMemorySpace.Define( DynamicVariableExtension.ToDynamicVariable(), instanceName );
 
@@ -1013,9 +1011,6 @@ public class BiteVm
                                                ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                         m_CurrentInstructionPointer += 4;
-
-                        BiteVmOpCodes biteVmOpCode = ReadInstruction();
-                        string instanceName = ReadConstant().StringConstantValue;
 
                         if ( m_CurrentMemorySpace.Get( moduleIdClass, depthClass, -1, idClass ).ObjectData is
                             BiteChunkWrapper classWrapper )
@@ -1085,13 +1080,14 @@ public class BiteVm
                                                   ( m_CurrentChunk.Code[m_CurrentInstructionPointer + 3] << 24 );
 
                             m_CurrentInstructionPointer += 4;
-
+                            
                             m_VmStack.Push(
                                 m_CurrentMemorySpace.Get(
                                     m_LastGetLocalVarModuleId,
                                     m_LastGetLocalVarDepth,
                                     m_LastGetLocalClassId,
                                     m_LastGetLocalVarId ) );
+                            
                         }
                         else
                         {

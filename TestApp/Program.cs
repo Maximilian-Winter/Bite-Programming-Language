@@ -86,78 +86,13 @@ public class Program
             
             biteVmReciever.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
             
-            Task.Run(
-                     () =>
-                     {
-                         Stopwatch stopwatch = new Stopwatch();
-                         stopwatch.Start();
-                         biteVmReciever.Interpret( programReciever );
-                         stopwatch.Stop();
-                         Console.WriteLine($"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- ");
-                     } ).
-                 ContinueWith(
-                     t =>
-                     {
-                         if ( t.IsFaulted )
-                         {
-                             Console.WriteLine( t.Exception.InnerException.Message );
-                         }
-                     } );
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            biteVmReciever.Interpret( programReciever );
+            stopwatch.Stop();
+            Console.WriteLine($"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- ");
         }
         
-        
-        files = Directory.EnumerateFiles(
-            ".\\TestProgram",
-            "CSharpEventInvokeExample.bite",
-            SearchOption.AllDirectories );
-
-        BiteProgram programSender = null;
-        /*foreach ( string file in files )
-        {
-            Console.WriteLine( $"File: {file}" );
-            List < string > biteProg = new List < string >();
-            biteProg.Add( File.ReadAllText( file ) );
-            programSender = compiler.Compile( biteProg );
-            
-            programSender.TypeRegistry.RegisterType < SampleEventArgs >();
-            programSender.TypeRegistry.RegisterType < TestClassCSharp >();
-            
-            biteVmSender.RegisterSystemModuleCallables( programSender.TypeRegistry );
-            biteVmSender.SynchronizationContext = biteVmReciever.SynchronizationContext;
-            
-            biteVmSender.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
-            
-            Task.Run(
-                     () =>
-                     {
-                         Stopwatch stopwatch = new Stopwatch();
-                         stopwatch.Start();
-                         biteVmSender.Interpret( programSender );
-                         stopwatch.Stop();
-                         Console.WriteLine( stopwatch.ElapsedMilliseconds );
-                     } ).
-                 ContinueWith(
-                     t =>
-                     {
-                         if ( t.IsFaulted )
-                         {
-                             Console.WriteLine( t.Exception.InnerException.Message );
-                         }
-                     } );
-        }*/
-        
-        while ( true )
-        {
-            string line = Console.ReadLine();
-
-            if ( line == "exit" )
-            {
-                break;
-            }
-
-            delegateTest.InvokeEvent( new object(), new SampleEventArgs( line ) );
-        }
-
         Console.ReadLine();
     }
 
