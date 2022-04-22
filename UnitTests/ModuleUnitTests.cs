@@ -53,7 +53,7 @@ public class ModuleUnitTests
     [Fact]
     public void LoadModuleDependencyBehaviorInvariant()
     {
-        string moduleA = "module ModuleA; import ModuleC; import ModuleB; var a = 1; ModuleB.foo();";
+        string moduleA = "module ModuleA; import ModuleC; import ModuleB; var a = 1; var b = ModuleB.foo(); b;";
         string moduleB = "module ModuleB; import ModuleD; ModuleD.d = 11; function foo() { return ModuleD.d; }";
         string moduleC = "module ModuleC; import ModuleD; ModuleD.d = 13; function foo() { return ModuleD.d; }";
         string moduleD = "module ModuleD; var d = 7;";

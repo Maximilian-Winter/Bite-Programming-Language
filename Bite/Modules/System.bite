@@ -20,14 +20,6 @@ class NetInterfaceObject {
 
 extern callable function NetLanguageInterface ( object );
 
-function CreateFromType( typeName, arguments, types ) {
-    var interface = new NetInterfaceObject();
-    interface.Type = typeName;
-    interface.ConstructorArguments = arguments;
-    interface.ConstructorArgumentsTypes = types;
-    return NetLanguageInterface ( interface );
-}
-
 // Linked to PrintFunctionVm
 
 extern callable function Print ( object );

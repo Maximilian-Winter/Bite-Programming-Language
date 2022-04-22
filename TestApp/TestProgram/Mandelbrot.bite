@@ -3,6 +3,8 @@ module Mandelbrot;
 import System; 
 using System;
 
+import Interop; 
+using Interop;
 
 var xmin = -2.0;
 var xmax = 2.0;
@@ -22,6 +24,8 @@ var y;
 var i;
 var j;
 var k;
+
+var bitmapConstructor = GetConstructor( "Bitmap", "int", "int" );
 
 var img = bitmapConstructor( xres, yres );
 
@@ -56,17 +60,13 @@ for ( j = 0; j < yres; j++ )
 
         if ( k >= maxiter )
         {
-            NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBlack, "Color");
-            //img.SetPixel( i, j, colorBlack );
+            setPixel( img, i, j, colorBlack );
         }
         else
         {
-            NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBrown, "Color");
-            //img.SetPixel( i, j, colorBrown );
+            setPixel( img, i, j, colorBrown );
         }
     }
 }
 
 img.Save( "file.png", "string", imgFormat, "ImageFormat" );
-
-

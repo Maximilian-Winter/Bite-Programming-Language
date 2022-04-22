@@ -1,0 +1,17 @@
+﻿// Bite Interop Module
+
+module Interop;
+
+
+// Linked to ForeignLibraryInterfaceVm
+
+extern callable function GetConstructor ( type, parameterTypes );
+
+// extern callable function GetStaticClass ( type );
+
+extern callable function GetStaticMember ( type, name );
+
+extern callable function GetMethod ( type, methodName, parameterTypes );
+
+// extern callable function GetPropertyOrField ( type, name );
+

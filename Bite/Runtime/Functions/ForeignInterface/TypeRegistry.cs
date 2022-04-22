@@ -61,7 +61,20 @@ public class TypeRegistry
         return methodInfo;
     }
 
-    public void RegisterAssemblyTypes( Assembly assembly, Func < Type, bool > filter = null )
+    public MethodInfo GetStaticMethod( Type type, string methodName, Type[] argTypes )
+    {
+        string key = $"{type.FullName}.${methodName}({GetArgTypeNames( argTypes )})";
+
+        if (!m_MethodCache.TryGetValue( key, out MethodInfo methodInfo ))
+        {
+            methodInfo = type.GetMethod( methodName, BindingFlags.Static | BindingFlags.Public, null, argTypes, null );
+            m_MethodCache.Add( key, methodInfo );
+        }
+
+        return methodInfo;
+    }
+
+        public void RegisterAssemblyTypes( Assembly assembly, Func < Type, bool > filter = null )
     {
         IEnumerable < Type > types = assembly.GetTypes().AsEnumerable();
 

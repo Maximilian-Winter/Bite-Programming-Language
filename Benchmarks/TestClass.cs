@@ -5,8 +5,9 @@ public class TestClass
 {
     #region Public
 
-    public void TestMethod( string arg1, int arg2, float arg3 )
+    public int TestMethod( string arg1, int arg2, float arg3 )
     {
+        return arg2;
     }
 
     #endregion

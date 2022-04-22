@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,17 +54,17 @@ public class Program
     {
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "FibonacciExample.bite",
+            "Mandelbrot.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();
-        
+
         BiteVm biteVm = new BiteVm();
 
         biteVm.InitVm();
 
         DelegateTest delegateTest = new DelegateTest();
-        
+
         ICSharpEvent cSharpEvent =
             new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
 
@@ -73,39 +75,27 @@ public class Program
             List < string > biteProg = new List < string >();
             biteProg.Add( File.ReadAllText( file ) );
             BiteProgram biteProgram = compiler.Compile( biteProg );
-            
+
             biteProgram.TypeRegistry.RegisterType < SampleEventArgs >();
             biteProgram.TypeRegistry.RegisterType < TestClassCSharp >();
-            biteProgram.TypeRegistry.RegisterType < FSharpTest.Line >();
-            biteProgram.TypeRegistry.RegisterType (typeof(Console),"Console");
-            
+            biteProgram.TypeRegistry.RegisterType < Bitmap >();
+            biteProgram.TypeRegistry.RegisterType < ImageFormat >();
+            biteProgram.TypeRegistry.RegisterType < Color >();
+            // biteProgram.TypeRegistry.RegisterType < FSharpTest.Line >();
+            biteProgram.TypeRegistry.RegisterType( typeof( Console ), "Console" );
+
             biteVm.RegisterSystemModuleCallables( biteProgram.TypeRegistry );
             biteVm.SynchronizationContext = new SynchronizationContext();
-            
             biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
 
-            Task.Run(
-                () =>
-                {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    biteVm.Interpret( biteProgram );
-                    stopwatch.Stop();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            biteVm.Interpret( biteProgram );
+            stopwatch.Stop();
 
-                    Console.WriteLine( $"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- " );
-                } );
+            Console.WriteLine( $"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- " );
         }
 
-        while ( true )
-        {
-            string line = Console.ReadLine();
-            if ( line == "exit" )
-            {
-                break;
-            }
-            biteVm.CallBiteFunction( new BiteFunctionCall( "Update", Array.Empty<DynamicBiteVariable>() ) );
-        }
-        
         Console.ReadLine();
     }
 

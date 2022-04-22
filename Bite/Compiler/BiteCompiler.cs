@@ -177,7 +177,13 @@ public class BiteCompiler
         return m_SystemModule;
     }
 
-    private ExpressionBaseNode ParseExpression( string expression )
+    private string GetBiteModule( string moduleName )
+    {
+        // Memoize system module so we don't load it from the assembly resource every time we compile
+        return ModuleLoader.LoadModule( moduleName );
+    }
+
+        private ExpressionBaseNode ParseExpression( string expression )
     {
         BITEParser biteParser = CreateBiteParser( expression, out BiteCompilerSyntaxErrorListener errorListener );
 
@@ -224,7 +230,11 @@ public class BiteCompiler
         ModuleBaseNode systemModuleBase = ParseModule( GetSystemModule() );
         programBase.AddModule( systemModuleBase );
 
-        foreach ( string biteModule in modules )
+
+        ModuleBaseNode interopModuleBase = ParseModule( GetBiteModule( "Interop" ) );
+        programBase.AddModule( interopModuleBase );
+
+            foreach ( string biteModule in modules )
         {
             ModuleBaseNode moduleBase = ParseModule( biteModule );
             programBase.AddModule( moduleBase );
