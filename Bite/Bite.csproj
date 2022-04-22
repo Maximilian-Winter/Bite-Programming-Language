@@ -18,10 +18,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <None Remove="Modules\InterOp.bite" />
         <None Remove="Modules\System.bite" />
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Modules\Interop.bite" />
         <EmbeddedResource Include="Modules\System.bite" />
     </ItemGroup>
 

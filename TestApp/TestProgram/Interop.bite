@@ -1,0 +1,11 @@
+module Mandelbrot;
+
+import Interop; 
+using Interop;
+
+var xres = 300;
+var yres = 300;
+
+var bitmapConstructor = GetConstructor("Bitmap", "int", "int");
+
+var img = bitmapConstructor(xres, yres);
