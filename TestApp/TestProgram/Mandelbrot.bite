@@ -23,11 +23,16 @@ var i;
 var j;
 var k;
 
-var img = NetLanguageInterface("Bitmap", true, xres, "int", yres, "int");
-var imgFormat = NetLanguageInterface("ImageFormat", "Png");
-var colorBlack = NetLanguageInterface("Color", "Black");
-var colorBrown = NetLanguageInterface("Color", "Brown");
+var img = bitmapConstructor( xres, yres );
 
+var imgFormat = GetStaticMember( "ImageFormat", "Png" );
+var colorBlack = GetStaticMember( "Color", "Black" );
+var colorBrown = GetStaticMember( "Color", "Brown" );
+var setPixel = GetMethod( "Bitmap", "SetPixel", "int", "int", "Color" );
+function Update()
+{
+    PrintLine("i: ${i} j:${j}");
+}
 
 for ( j = 0; j < yres; j++ )
 {
@@ -62,4 +67,6 @@ for ( j = 0; j < yres; j++ )
     }
 }
 
-img.Save( "file.png", imgFormat );
+img.Save( "file.png", "string", imgFormat, "ImageFormat" );
+
+

@@ -77,7 +77,9 @@ public class BiteVm
     private BiteFunctionCall m_CallBack;
 
     private bool m_CallbackWaiting = false;
-    private bool m_SpinLock = false;
+    private bool m_SpinLockCallingThread = false;
+    private bool m_SpinLockWorkingThread = false;
+    private bool m_RunOnCallingThreadThread = false;
     private int m_InstructionPointerBeforeExecutingCallback = -1;
 
     private ContextMode m_ContextMode;
@@ -224,7 +226,7 @@ public class BiteVm
     ///     Registers a set of external objects as global variables
     /// </summary>
     /// <param name="externalObjects"></param>
-    public void RegisterExternalGlobalObjects( Dictionary < string, object > externalObjects )
+    public void RegisterExternalGlobalObjects( IDictionary < string, object > externalObjects )
     {
         if ( externalObjects != null )
         {
@@ -234,17 +236,66 @@ public class BiteVm
             }
         }
     }
-
-    public void CallBiteFunction( BiteFunctionCall biteFunctionCall )
+    
+    public void CallBiteFunction( BiteFunctionCall biteFunctionCall, bool runOnCallingThread = false )
     {
         m_CallBack = biteFunctionCall;
-        m_SpinLock = true;
+        m_SpinLockCallingThread = true;
         m_CallbackWaiting = true;
 
-        while ( m_SpinLock )
+        if ( runOnCallingThread )
+        {
+            m_RunOnCallingThreadThread = true;
+            m_SpinLockWorkingThread = true;
+        }
+        while ( m_SpinLockCallingThread )
         {
             Thread.Sleep( new TimeSpan( 1 ) );
         }
+
+        if ( runOnCallingThread )
+        {
+            Run();
+        }
+    }
+    
+    public void CallBiteFunctionSynchron( BiteFunctionCall biteFunctionCall, bool runOnCallingThread = false)
+    {
+        m_CallBack = biteFunctionCall;
+        m_CallbackWaiting = true;
+
+        if ( runOnCallingThread )
+        {
+            Run();
+        }
+    }
+
+    public void PrepareCallToBiteFunction( BiteFunctionCall biteFunctionCall, bool runOnCallingThread = false )
+    {
+        m_CallBack = biteFunctionCall;
+        m_SpinLockCallingThread = true;
+        m_CallbackWaiting = true;
+
+        if ( runOnCallingThread )
+        {
+            m_RunOnCallingThreadThread = true;
+            m_SpinLockWorkingThread = true;
+        }
+    }
+
+    public bool RunBiteFunction()
+    {
+        while ( m_SpinLockCallingThread )
+        {
+            return false;
+        }
+
+        if ( m_RunOnCallingThreadThread )
+        {
+            Run();
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -294,7 +345,7 @@ public class BiteVm
                 return BiteVmInterpretResult.Cancelled;
             }
 
-            if ( m_CallbackWaiting && m_CurrentInstructionPointer != m_InstructionPointerBeforeExecutingCallback )
+            if ( m_CallbackWaiting && (m_CurrentInstructionPointer != m_InstructionPointerBeforeExecutingCallback || m_CurrentInstructionPointer >= m_CurrentChunk.Code.Length))
             {
                 m_InstructionPointerBeforeExecutingCallback = m_CurrentInstructionPointer;
                 string method = m_CallBack.FunctionName;
@@ -304,7 +355,7 @@ public class BiteVm
                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
                     //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
-                    callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                    callSpace.m_EnclosingSpace = m_GlobalMemorySpace;
                     callSpace.CallerChunk = m_CurrentChunk;
                     callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
                     callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
@@ -332,7 +383,7 @@ public class BiteVm
                         FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
                         //callSpace.ResetPropertiesArray( m_FunctionArguments.Count );
-                        callSpace.m_EnclosingSpace = m_CurrentMemorySpace;
+                        callSpace.m_EnclosingSpace = m_GlobalMemorySpace;
                         callSpace.CallerChunk = m_CurrentChunk;
                         callSpace.CallerIntructionPointer = m_CurrentInstructionPointer;
                         callSpace.CallerLineNumberPointer = m_CurrentLineNumberPointer;
@@ -369,6 +420,17 @@ public class BiteVm
                 }
 
                 m_CallbackWaiting = false;
+
+                if ( m_RunOnCallingThreadThread )
+                {
+                    m_SpinLockCallingThread = false;
+                    while ( m_SpinLockWorkingThread )
+                    {
+                        Thread.Sleep( new TimeSpan( 1 ) );
+                    }
+
+                    m_RunOnCallingThreadThread = false;
+                }
             }
 
             if ( m_CurrentInstructionPointer < m_CurrentChunk.Code.Length )
@@ -6717,7 +6779,8 @@ public class BiteVm
 
                         if ( m_CurrentMemorySpace.IsRunningCallback )
                         {
-                            m_SpinLock = false;
+                            m_SpinLockCallingThread = false;
+                            m_SpinLockWorkingThread = false;
                         }
 
                         m_CurrentMemorySpace = m_CallStack.Peek();
@@ -6765,7 +6828,8 @@ public class BiteVm
 
                     if ( m_CurrentMemorySpace.IsRunningCallback )
                     {
-                        m_SpinLock = false;
+                        m_SpinLockCallingThread = false;
+                        m_SpinLockWorkingThread = false;
                     }
 
                     if ( m_CallStack.Count > 0 )

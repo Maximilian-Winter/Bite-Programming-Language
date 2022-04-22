@@ -9,6 +9,7 @@ using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
 using Bite.Runtime.Functions.ForeignInterface;
+using Bite.Runtime.Memory;
 
 namespace TestApp
 {
@@ -82,12 +83,27 @@ public class Program
             biteVm.SynchronizationContext = new SynchronizationContext();
             
             biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
-            
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            biteVm.Interpret( biteProgram );
-            stopwatch.Stop();
-            Console.WriteLine($"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- ");
+
+            Task.Run(
+                () =>
+                {
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    biteVm.Interpret( biteProgram );
+                    stopwatch.Stop();
+
+                    Console.WriteLine( $"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- " );
+                } );
+        }
+
+        while ( true )
+        {
+            string line = Console.ReadLine();
+            if ( line == "exit" )
+            {
+                break;
+            }
+            biteVm.CallBiteFunction( new BiteFunctionCall( "Update", Array.Empty<DynamicBiteVariable>() ) );
         }
         
         Console.ReadLine();
