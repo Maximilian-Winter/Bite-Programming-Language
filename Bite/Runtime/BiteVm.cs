@@ -130,8 +130,9 @@ public class BiteVm
     /// <returns></returns>
     public BiteVmInterpretResult Interpret( BiteProgram program, CancellationToken token )
     {
-        m_CurrentChunk = program.CompiledMainChunk;
+        TypeRegistry = program.TypeRegistry;
 
+        m_CurrentChunk = program.CompiledMainChunk;
         m_CancellationToken = token;
         m_Stopping = false;
 

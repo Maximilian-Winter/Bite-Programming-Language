@@ -3,6 +3,8 @@ module Mandelbrot;
 import System; 
 using System;
 
+import Interop; 
+using Interop;
 
 var xmin = -2.0;
 var xmax = 2.0;
@@ -23,13 +25,14 @@ var i;
 var j;
 var k;
 
-var bitmapConstructor = Interop.GetConstructor("Bitmap", "int", "int");
+var bitmapConstructor = GetConstructor( "Bitmap", "int", "int" );
 
-var img = bitmapConstructor(xres, yres);
-var imgFormat = Interop.GetMember("ImageFormat", "Png");
-var colorBrown = Interop.GetMember("Color", "Black");
-var colorBrown = Interop.GetMember("Color", "Brown");
-var setPixel = Interop.GetMethod("Bitmap" "SetPixel", "int", "int", "Color");
+var img = bitmapConstructor( xres, yres );
+
+var imgFormat = GetStaticMember( "ImageFormat", "Png" );
+var colorBlack = GetStaticMember( "Color", "Black" );
+var colorBrown = GetStaticMember( "Color", "Brown" );
+var setPixel = GetMethod( "Bitmap", "SetPixel", "int", "int", "Color" );
 
 for ( j = 0; j < yres; j++ )
 {
@@ -54,14 +57,12 @@ for ( j = 0; j < yres; j++ )
         if ( k >= maxiter )
         {
             setPixel( img, i, j, colorBlack );
-            //img.SetPixel( i, j, colorBlack );
         }
         else
         {
-            //NetLanguageInterface(img, "SetPixel", i, "int", j, "int", colorBrown, "Color");
-            //img.SetPixel( i, j, colorBrown );
+            setPixel( img, i, j, colorBrown );
         }
     }
 }
 
-//img.Save( "file.png", imgFormat );
+img.Save( "file.png", "string", imgFormat, "ImageFormat" );

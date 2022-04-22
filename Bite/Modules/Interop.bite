@@ -9,7 +9,7 @@ extern callable function GetConstructor ( type, parameterTypes );
 
 // extern callable function GetStaticClass ( type );
 
-// extern callable function GetStaticMember ( type, name );
+extern callable function GetStaticMember ( type, name );
 
 extern callable function GetMethod ( type, methodName, parameterTypes );
 
