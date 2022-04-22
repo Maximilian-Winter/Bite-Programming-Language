@@ -56,39 +56,36 @@ public class Program
 
         BiteCompiler compiler = new BiteCompiler();
         
-        BiteVm biteVmReciever = new BiteVm();
-        BiteVm biteVmSender = new BiteVm();
-        
-        biteVmReciever.InitVm();
-        biteVmSender.InitVm();
-        
+        BiteVm biteVm = new BiteVm();
+
+        biteVm.InitVm();
+
         DelegateTest delegateTest = new DelegateTest();
         
         ICSharpEvent cSharpEvent =
             new CSharpEvent < DelegateTest.TestDelegate, object, SampleEventArgs >( delegateTest );
 
         //delegateTest.OnSampleEvent += Test;
-        BiteProgram programReciever = null;
         foreach ( string file in files )
         {
             Console.WriteLine( $"File: {file}" );
             List < string > biteProg = new List < string >();
             biteProg.Add( File.ReadAllText( file ) );
-            programReciever = compiler.Compile( biteProg );
+            BiteProgram biteProgram = compiler.Compile( biteProg );
             
-            programReciever.TypeRegistry.RegisterType < SampleEventArgs >();
-            programReciever.TypeRegistry.RegisterType < TestClassCSharp >();
-            programReciever.TypeRegistry.RegisterType < FSharpTest.Line >();
-            programReciever.TypeRegistry.RegisterType (typeof(Console),"Console");
+            biteProgram.TypeRegistry.RegisterType < SampleEventArgs >();
+            biteProgram.TypeRegistry.RegisterType < TestClassCSharp >();
+            biteProgram.TypeRegistry.RegisterType < FSharpTest.Line >();
+            biteProgram.TypeRegistry.RegisterType (typeof(Console),"Console");
             
-            biteVmReciever.RegisterSystemModuleCallables( programReciever.TypeRegistry );
-            biteVmReciever.SynchronizationContext = new SynchronizationContext();
+            biteVm.RegisterSystemModuleCallables( biteProgram.TypeRegistry );
+            biteVm.SynchronizationContext = new SynchronizationContext();
             
-            biteVmReciever.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
+            biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
             
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            biteVmReciever.Interpret( programReciever );
+            biteVm.Interpret( biteProgram );
             stopwatch.Stop();
             Console.WriteLine($"--- Elapsed Time Interpreting in Milliseconds: {stopwatch.ElapsedMilliseconds}ms --- ");
         }
