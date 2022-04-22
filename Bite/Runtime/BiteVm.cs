@@ -271,34 +271,6 @@ public class BiteVm
         }
     }
 
-    public void PrepareCallToBiteFunction( BiteFunctionCall biteFunctionCall, bool runOnCallingThread = false )
-    {
-        m_CallBack = biteFunctionCall;
-        m_SpinLockCallingThread = true;
-        m_CallbackWaiting = true;
-
-        if ( runOnCallingThread )
-        {
-            m_RunOnCallingThreadThread = true;
-            m_SpinLockWorkingThread = true;
-        }
-    }
-
-    public bool RunBiteFunction()
-    {
-        while ( m_SpinLockCallingThread )
-        {
-            return false;
-        }
-
-        if ( m_RunOnCallingThreadThread )
-        {
-            Run();
-        }
-
-        return true;
-    }
-
     /// <summary>
     ///     Requests the current <see cref="BiteVm" /> to stop execution and exit as soon as the current instruction has
     ///     completed.
