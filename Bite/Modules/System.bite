@@ -1,24 +1,11 @@
 ﻿// Bite System Module
 
 module System;
+import Interop; 
 
 class Object {
 
 }
-
-class NetInterfaceObject {
-    var Type = "";
-    var Method = "";
-    var Arguments = new Object();
-    var ConstructorArguments = new Object();
-    var ConstructorArgumentsTypes = new Object();
-    var ObjectInstance = new Object();
-    var ReturnClass = false;
-}
-
-// Linked to ForeignLibraryInterfaceVm
-
-extern callable function NetLanguageInterface ( object );
 
 // Linked to PrintFunctionVm
 

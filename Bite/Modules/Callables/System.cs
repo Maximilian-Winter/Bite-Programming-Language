@@ -18,7 +18,6 @@ public static class SystemModule
         biteVm.RegisterCallable( "GetMethod", new InteropGetMethod( typeRegistry ) );
         biteVm.RegisterCallable( "GetStaticClass", new InteropGetStaticClass( typeRegistry ) );
         biteVm.RegisterCallable( "GetGenericMethod", new InteropGetGenericMethod( typeRegistry ) );
-        biteVm.RegisterCallable( "NetLanguageInterface", new ForeignLibraryInterfaceVm( typeRegistry ) );
         biteVm.RegisterCallable( "Print", new PrintFunctionVm() );
         biteVm.RegisterCallable( "PrintLine", new PrintLineFunctionVm() );
     }

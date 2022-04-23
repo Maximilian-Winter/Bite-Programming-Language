@@ -777,12 +777,11 @@ public class BiteVm
                             string methodName = constant.StringConstantValue;
                             DynamicBiteVariable call = fastMemorySpace.Get( methodName );
 
-                            m_CurrentMemorySpace = fastMemorySpace;
-
                             if ( call.ObjectData != null )
                             {
                                 if ( call.ObjectData is BiteChunkWrapper function )
                                 {
+                                    m_CurrentMemorySpace = fastMemorySpace;
                                     FastMemorySpace callSpace = m_PoolFastMemoryFastMemory.Get();
 
                                     //callSpace.ResetPropertiesArray( m_FunctionArguments.Length );
@@ -804,8 +803,7 @@ public class BiteVm
                                     m_CurrentInstructionPointer = 0;
                                     m_CurrentLineNumberPointer = 0;
                                 }
-
-                                if ( call.ObjectData is IBiteVmCallable callable )
+                                else if ( call.ObjectData is IBiteVmCallable callable )
                                 {
                                     object returnVal = callable.Call( m_FunctionArguments );
                                     m_FunctionArguments = Array.Empty < DynamicBiteVariable >();
