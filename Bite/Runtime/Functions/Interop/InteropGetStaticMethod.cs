@@ -6,16 +6,13 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime.Functions.Interop
 {
 
-public class InteropGetMethod : InteropBase, IBiteVmCallable
+public class InteropGetStaticMethod : InteropBase, IBiteVmCallable
 {
-
-    #region Public
-
-    public InteropGetMethod()
+    public InteropGetStaticMethod()
     {
     }
 
-    public InteropGetMethod( TypeRegistry typeRegistry ) : base( typeRegistry )
+    public InteropGetStaticMethod( TypeRegistry typeRegistry ) : base( typeRegistry )
     {
     }
 
@@ -23,7 +20,7 @@ public class InteropGetMethod : InteropBase, IBiteVmCallable
     {
         Type type = ResolveType( arguments[0].StringData );
 
-        if (type == null)
+        if ( type == null )
         {
             throw new BiteVmRuntimeException(
                 $"Runtime Error: Type: {arguments[0].StringData} not registered as a type!" );
@@ -58,19 +55,10 @@ public class InteropGetMethod : InteropBase, IBiteVmCallable
 
         MethodInfo methodInfo = m_TypeRegistry.GetMethod( type, arguments[1].StringData, methodArgTypes );
 
-        if ( methodInfo.IsGenericMethod )
-        {
-            return methodInfo;
-        }
-        else
-        {
-            return new MethodInvoker( methodInfo );
-        }
-       
+        StaticMethodInvoker staticMethodInvoker = new StaticMethodInvoker( methodInfo );
+        
+        return staticMethodInvoker;
     }
-
-
-    #endregion
 }
 
 }

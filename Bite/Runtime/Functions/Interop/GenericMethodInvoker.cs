@@ -6,17 +6,15 @@ using Bite.Runtime.Memory;
 namespace Bite.Runtime.Functions.Interop
 {
 
-public class MethodInvoker : IBiteVmCallable
+public class GenericMethodInvoker : IBiteVmCallable
 {
     private Type[] m_ArgTypes;
-    private readonly FastMethodInfo m_FastMethodInfo;
 
     private MethodInfo m_OriginalMethodInfo;
 
-    public MethodInvoker( MethodInfo methodInfo )
+    public GenericMethodInvoker( MethodInfo methodInfo )
     {
         OriginalMethodInfo = methodInfo;
-        m_FastMethodInfo = new FastMethodInfo( methodInfo );
 
         ParameterInfo[] parameterInfos = methodInfo.GetParameters();
         m_ArgTypes = new Type[parameterInfos.Length];
@@ -45,7 +43,7 @@ public class MethodInvoker : IBiteVmCallable
 
         }
 
-        object value = m_FastMethodInfo.Invoke( arguments[0].ToObject(), constructorArgs );
+        object value = OriginalMethodInfo.Invoke( arguments[0].ToObject(), constructorArgs );
 
         return value;
     }

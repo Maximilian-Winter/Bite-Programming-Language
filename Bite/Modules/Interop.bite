@@ -7,7 +7,11 @@ module Interop;
 
 extern callable function GetConstructor ( type, parameterTypes );
 
-// extern callable function GetStaticClass ( type );
+extern callable function GetStaticClass ( type );
+
+extern callable function GetStaticMethod ( type, parameterTypes );
+
+extern callable function GetGenericMethod ( method, genericTypes );
 
 extern callable function GetStaticMember ( type, name );
 

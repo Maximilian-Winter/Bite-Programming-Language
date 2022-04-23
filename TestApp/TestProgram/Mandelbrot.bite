@@ -6,6 +6,9 @@ using System;
 import Interop; 
 using Interop;
 
+extern callable function GetWhiteColorByIntensity ( intensity );
+
+
 var xmin = -2.0;
 var xmax = 2.0;
 var ymin = -2.0;
@@ -33,10 +36,9 @@ var imgFormat = GetStaticMember( "ImageFormat", "Png" );
 var colorBlack = GetStaticMember( "Color", "Black" );
 var colorBrown = GetStaticMember( "Color", "Brown" );
 var setPixel = GetMethod( "Bitmap", "SetPixel", "int", "int", "Color" );
-function Update()
-{
-    PrintLine("i: ${i} j:${j}");
-}
+var console = GetStaticClass("Console");
+
+var mathSqrt = GetStaticMethod("Math", "Sqrt", "double");
 
 for ( j = 0; j < yres; j++ )
 {
@@ -64,7 +66,8 @@ for ( j = 0; j < yres; j++ )
         }
         else
         {
-            setPixel( img, i, j, colorBrown );
+            var intensity = mathSqrt(k / maxiter);
+            setPixel( img, i, j, GetWhiteColorByIntensity(intensity));
         }
     }
 }

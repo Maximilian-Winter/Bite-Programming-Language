@@ -10,12 +10,37 @@ using Bite.Compiler;
 using Bite.Modules.Callables;
 using Bite.Runtime;
 using Bite.Runtime.CodeGen;
+using Bite.Runtime.Functions;
 using Bite.Runtime.Functions.ForeignInterface;
 using Bite.Runtime.Memory;
 
 namespace TestApp
 {
 
+class ChangColorIntensity {
+    public static Color GetWhiteColorByIntensity( float correctionFactor)
+    {
+        float red = 255 * correctionFactor;
+        float green = 255 * correctionFactor;
+        float blue = 255 * correctionFactor;
+        
+        return Color.FromArgb((int)255, (int)red, (int)green, (int)blue);
+    }
+}
+public class WhiteColorByIntensityVm : IBiteVmCallable
+{
+
+    public object Call( DynamicBiteVariable[] arguments )
+    {
+        if ( arguments.Length == 1 )
+        {
+            return ChangColorIntensity.GetWhiteColorByIntensity(
+                (float) arguments[0].NumberData );
+        }
+
+        return null;
+    }
+}
 public class SampleEventArgs
 {
     public string Text { get; set; } // readonly
@@ -83,8 +108,9 @@ public class Program
             biteProgram.TypeRegistry.RegisterType < Color >();
             // biteProgram.TypeRegistry.RegisterType < FSharpTest.Line >();
             biteProgram.TypeRegistry.RegisterType( typeof( Console ), "Console" );
-
+            biteProgram.TypeRegistry.RegisterType (typeof(Math), "Math");
             biteVm.RegisterSystemModuleCallables( biteProgram.TypeRegistry );
+            biteVm.RegisterCallable( "GetWhiteColorByIntensity", new WhiteColorByIntensityVm() );
             biteVm.SynchronizationContext = new SynchronizationContext();
             biteVm.RegisterExternalGlobalObject( "EventObject", cSharpEvent );
 
