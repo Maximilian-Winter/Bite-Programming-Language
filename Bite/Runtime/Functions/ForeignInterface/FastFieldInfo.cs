@@ -33,15 +33,19 @@ public class FastFieldInfo
                                   instanceExpression ).
                               Compile();
 
-        BinaryExpression assignExpression = Expression.Assign(
-            callExpression,
-            Expression.Convert( valueExpression, propertyInfo.FieldType ) );
+        if ( !propertyInfo.ReflectedType.IsEnum )
+        {
+            BinaryExpression assignExpression = Expression.Assign(
+                callExpression,
+                Expression.Convert( valueExpression, propertyInfo.FieldType ) );
 
-        SetDelegate = Expression.Lambda < UpdateValueDelegate >(
-                                     assignExpression,
-                                     instanceExpression,
-                                     valueExpression ).
-                                 Compile();
+            SetDelegate = Expression.Lambda < UpdateValueDelegate >(
+                                         assignExpression,
+                                         instanceExpression,
+                                         valueExpression ).
+                                     Compile();
+        }
+        
 
         FieldType = propertyInfo.FieldType;
     }
