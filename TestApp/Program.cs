@@ -79,7 +79,7 @@ public class Program
     {
         IEnumerable < string > files = Directory.EnumerateFiles(
             ".\\TestProgram",
-            "FibonacciExample.bite",
+            "Mandelbrot.bite",
             SearchOption.AllDirectories );
 
         BiteCompiler compiler = new BiteCompiler();

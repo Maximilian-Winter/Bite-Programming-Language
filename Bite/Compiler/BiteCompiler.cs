@@ -19,6 +19,36 @@ public class BiteCompiler
     #region Public
 
     /// <summary>
+    ///     Parse a single module string into an AST node.
+    /// </summary>
+    public ModuleBaseNode ParseModule( string module )
+    {
+        BiteAstGenerator gen = new BiteAstGenerator();
+
+        BITEParser biteParser = CreateBiteParser( module, out BiteCompilerSyntaxErrorListener errorListener );
+
+        BITEParser.ModuleContext tree = biteParser.program().module( 0 );
+
+        if ( errorListener.Errors.Count > 0 )
+        {
+            string moduleName = "unknown";
+            try
+            {
+                module = module.Trim();
+                int start = module.IndexOf( "module" ) + "module ".Length;
+                moduleName = module.Substring( start, module.IndexOf( ';' ) - start );
+            }
+            catch { }
+
+            throw new BiteCompilerException(
+                $"Error occured while parsing module '{moduleName}' .\r\nError Count: {errorListener.Errors.Count}",
+                errorListener.Errors );
+        }
+
+        return ( ModuleBaseNode ) gen.VisitModule( tree );
+    }
+
+    /// <summary>
     ///     Compiles a set of modules
     /// </summary>
     /// <param name="modules"></param>
@@ -201,7 +231,7 @@ public class BiteCompiler
         return ( ExpressionBaseNode ) gen.VisitExpression( tree );
     }
 
-    private ModuleBaseNode ParseModule( string module )
+    private ModuleBaseNode ParseModuleInternal( string module )
     {
         BiteAstGenerator gen = new BiteAstGenerator();
 
@@ -227,16 +257,16 @@ public class BiteCompiler
     {
         ProgramBaseNode programBase = new ProgramBaseNode();
 
-        ModuleBaseNode systemModuleBase = ParseModule( GetSystemModule() );
+        ModuleBaseNode systemModuleBase = ParseModuleInternal( GetSystemModule() );
         programBase.AddModule( systemModuleBase );
 
 
-        ModuleBaseNode interopModuleBase = ParseModule( GetBiteModule( "Interop" ) );
+        ModuleBaseNode interopModuleBase = ParseModuleInternal( GetBiteModule( "Interop" ) );
         programBase.AddModule( interopModuleBase );
 
             foreach ( string biteModule in modules )
         {
-            ModuleBaseNode moduleBase = ParseModule( biteModule );
+            ModuleBaseNode moduleBase = ParseModuleInternal( biteModule );
             programBase.AddModule( moduleBase );
         }
 
