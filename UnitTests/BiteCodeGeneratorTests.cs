@@ -1,11 +1,8 @@
 // Copyright (c) Bite Programming Language. All rights reserved.
 // Licensed under the MIT License.
 
-// TEMPORARILY DISABLED - Code generator implementation in progress
-#if false
-
 using System.Collections.Generic;
-using Bite.NewCodeGenerator;
+using Bite.NewCodeGen;
 using Bite.Compiler;
 using Bite.Runtime;
 using Xunit;
@@ -321,6 +318,4 @@ namespace UnitTests
         }
     }
 }
-
-#endif
 
