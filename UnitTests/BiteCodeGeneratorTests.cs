@@ -146,7 +146,8 @@ namespace UnitTests
             
             var ast = m_Compiler.ParseModule(code);
             var program = m_CodeGen.Compile(ast);
-            var result = m_Vm.Execute(program.MainChunk);
+            
+            var result = m_Vm.Execute(program.MainChunk );
             
             Assert.Equal(BiteVmResult.Success, result);
             Assert.Equal(42.0, m_Vm.LastResult.AsNumber);
